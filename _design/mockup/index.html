@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EN Practice v2 — Mockup Explorer</title>
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" />
+<style>
+    body { background: var(--canvas); }
+    .studio { display: grid; grid-template-columns: 320px 1fr; min-height: 100vh; }
+    @media (max-width: 900px) { .studio { grid-template-columns: 1fr; } }
+
+    /* ---------------------------------------------------------- rail */
+    .rail {
+        border-right: 2px solid var(--border);
+        background: var(--surface);
+        display: flex; flex-direction: column;
+        max-height: 100vh; position: sticky; top: 0;
+    }
+    @media (max-width: 900px) { .rail { position: static; max-height: none; } }
+    .rail__head { padding: 18px 18px 12px; border-bottom: 2px solid var(--border); }
+    .rail__body { overflow-y: auto; padding: 12px 12px 32px; flex: 1; }
+    .rail__group { padding: 14px 8px 6px; font-size: .6875rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-faint); }
+    .rail__link {
+        display: flex; align-items: center; gap: 10px;
+        min-height: 40px; padding: 0 10px; border-radius: var(--r-sm);
+        color: var(--ink-soft); font-size: .875rem; font-weight: 700; cursor: pointer;
+        border: 0; background: transparent; width: 100%; text-align: left;
+    }
+    .rail__link:hover { background: var(--surface-alt); color: var(--ink); }
+    .rail__link[aria-current='true'] { background: var(--teal-soft); color: var(--teal); }
+    .rail__num { font-family: var(--font-mono); font-size: .6875rem; color: var(--ink-faint); min-width: 20px; }
+    .rail__link[aria-current='true'] .rail__num { color: var(--teal); }
+
+    /* -------------------------------------------------------- canvas */
+    .stage { display: flex; flex-direction: column; min-width: 0; }
+    .bar {
+        position: sticky; top: 0; z-index: 20;
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        padding: 12px 18px; background: var(--surface);
+        border-bottom: 2px solid var(--border);
+    }
+    .viewport { flex: 1; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
+    .frame {
+        width: 100%; max-width: var(--frame-w, 1440px);
+        background: var(--surface);
+        border: 2px solid var(--border-strong);
+        border-radius: var(--r-hero);
+        overflow: hidden;
+        box-shadow: 0 8px 0 -2px var(--border), 0 24px 48px -24px rgb(20 35 43 / .35);
+        transition: max-width var(--m-base) var(--ease-out);
+    }
+    .frame iframe { display: block; width: 100%; height: 78vh; min-height: 620px; border: 0; background: var(--canvas); }
+    .meta { padding: 12px 18px; border-top: 2px solid var(--border); display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .meta code { font-family: var(--font-mono); font-size: .8125rem; color: var(--teal); }
+
+    .segmented button { display: inline-flex; align-items: center; gap: 6px; }
+    .swatch { width: 14px; height: 14px; border-radius: 4px; border: 2px solid rgb(0 0 0 / .15); }
+</style>
+</head>
+<body>
+<div class="studio">
+
+    <aside class="rail">
+        <div class="rail__head">
+            <div class="row g12">
+                <svg width="40" height="40" viewBox="0 0 200 200" aria-hidden="true">
+                    <circle cx="100" cy="104" r="70" fill="#0E7C6B"/>
+                    <ellipse cx="100" cy="80" rx="52" ry="47" fill="#F6EBD8"/>
+                    <circle cx="82" cy="76" r="15" fill="#fff"/><circle cx="82" cy="77" r="7" fill="#14232B"/>
+                    <circle cx="118" cy="76" r="15" fill="#fff"/><circle cx="118" cy="77" r="7" fill="#14232B"/>
+                    <path d="M92 92 q8 -6 16 0 q-8 17 -8 17 z" fill="#F5B32E"/>
+                </svg>
+                <div class="grow">
+                    <div class="t-h3">EN Practice <span style="color:var(--teal)">v2</span></div>
+                    <div class="t-micro muted">Mockup explorer · Lexi's Flight Path</div>
+                </div>
+            </div>
+        </div>
+        <nav class="rail__body" id="rail"></nav>
+    </aside>
+
+    <main class="stage">
+        <div class="bar">
+            <div class="segmented" role="group" aria-label="Kích thước khung">
+                <button data-w="390"  aria-pressed="false">📱 Phone</button>
+                <button data-w="768"  aria-pressed="false">📲 Tablet</button>
+                <button data-w="1440" aria-pressed="true">🖥 Desktop</button>
+            </div>
+            <div class="segmented" role="group" aria-label="Chủ đề">
+                <button data-theme="light" aria-pressed="true">☀ Sáng</button>
+                <button data-theme="dark"  aria-pressed="false">☾ Tối</button>
+            </div>
+            <div class="grow"></div>
+            <button class="btn btn--ghost btn--sm" id="reload" type="button">↻ Tải lại</button>
+            <a class="btn btn--ghost btn--sm" id="open" href="01-landing.html" target="_blank" rel="noopener">↗ Mở tab mới</a>
+        </div>
+
+        <div class="viewport">
+            <div class="frame" id="frame">
+                <iframe id="view" src="01-landing.html" title="Screen preview"></iframe>
+                <div class="meta">
+                    <span class="t-label" id="title">01 · Landing (chưa đăng nhập)</span>
+                    <code id="path">01-landing.html</code>
+                    <div class="grow"></div>
+                    <span class="t-micro muted" id="note"></span>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+/* The screen registry is injected by _src/build.mjs from the same data that
+   renders the screens, so this explorer cannot drift from what was built.
+   Classic script + inlined data on purpose: a page opened off disk (file://)
+   cannot load ES modules or fetch a sibling JSON file. */
+/* REGISTRY-START */
+const SCREENS = [
+    {
+        "f": "01-landing",
+        "t": "Landing",
+        "g": "Marketing & Auth",
+        "n": "Hero + 6 section · variance cao nhất trong hệ"
+    },
+    {
+        "f": "02-login",
+        "t": "Đăng nhập / Đăng ký",
+        "g": "Marketing & Auth",
+        "n": "Split panel · 1 cột dưới 1024px"
+    },
+    {
+        "f": "03-onboarding",
+        "t": "Onboarding lần đầu",
+        "g": "Marketing & Auth",
+        "n": "Không có nav · 1 quyết định mỗi bước"
+    },
+    {
+        "f": "04-home",
+        "t": "Trang chủ",
+        "g": "Học hằng ngày",
+        "n": "Không còn bento 6 widget"
+    },
+    {
+        "f": "05-daily-plan",
+        "t": "Kế hoạch học hôm nay",
+        "g": "Học hằng ngày",
+        "n": "Sheet 28px radius · không có nav"
+    },
+    {
+        "f": "06-path",
+        "t": "Lộ trình học",
+        "g": "Học hằng ngày",
+        "n": "Signature surface · node pulse 1.6s (tắt khi reduced-motion)"
+    },
+    {
+        "f": "07-vocabulary-check",
+        "t": "Tra từ & hỏi AI",
+        "g": "Từ vựng",
+        "n": "Ô nhập là trọng tâm · credit hiển thị trước khi tốn"
+    },
+    {
+        "f": "08-vocabulary-list",
+        "t": "Test từ vựng",
+        "g": "Từ vựng",
+        "n": "Empty/loading/error đều được thiết kế"
+    },
+    {
+        "f": "09-vocabulary-take",
+        "t": "Làm bài test từ vựng",
+        "g": "Từ vựng",
+        "n": "Nút kiểm tra dính đáy, an toàn với ngón tay"
+    },
+    {
+        "f": "10-vocabulary-result",
+        "t": "Kết quả test từ vựng",
+        "g": "Từ vựng",
+        "n": "Kết quả dẫn thẳng tới hành động tiếp theo"
+    },
+    {
+        "f": "11-vocabulary-history",
+        "t": "Lịch sử test từ vựng",
+        "g": "Từ vựng",
+        "n": "Sửa lỗi cuộn ngang của v1"
+    },
+    {
+        "f": "12-dictionary",
+        "t": "Sổ tay từ vựng",
+        "g": "Từ vựng",
+        "n": "Danh sách + chi tiết, dưới 1024px thành 1 cột"
+    },
+    {
+        "f": "13-dictionary-review",
+        "t": "Ôn flashcard SRS",
+        "g": "Từ vựng",
+        "n": "Một thẻ một màn · 4 nút to, dễ bấm bằng ngón cái"
+    },
+    {
+        "f": "14-evaluation",
+        "t": "Đánh giá năng lực",
+        "g": "Từ vựng",
+        "n": "Không tô hồng kết quả · nêu rõ đâu là ước tính"
+    },
+    {
+        "f": "15-review",
+        "t": "Ôn tập ngắt quãng",
+        "g": "Từ vựng",
+        "n": "Bước 1/3 · cho thấy trước sẽ mất bao lâu"
+    },
+    {
+        "f": "16-ielts-list",
+        "t": "Kho đề IELTS",
+        "g": "IELTS",
+        "n": "Lọc theo kỹ năng · 1 bố cục duy nhất cho mọi màn danh sách"
+    },
+    {
+        "f": "17-ielts-detail",
+        "t": "Chi tiết đề thi",
+        "g": "IELTS",
+        "n": "Cho biết chính xác sẽ tốn bao nhiêu credit"
+    },
+    {
+        "f": "18-ielts-take",
+        "t": "Phòng thi IELTS",
+        "g": "IELTS",
+        "n": "Sửa lỗi lớn nhất của v1: passage và câu hỏi cùng nhìn thấy được"
+    },
+    {
+        "f": "19-ielts-result",
+        "t": "Kết quả IELTS",
+        "g": "IELTS",
+        "n": "Band là ước tính luyện tập, không phải điểm thi thật"
+    },
+    {
+        "f": "20-ielts-history",
+        "t": "Lịch sử thi IELTS",
+        "g": "IELTS",
+        "n": "Chart + danh sách, không dùng bảng cuộn ngang"
+    },
+    {
+        "f": "21-writing-list",
+        "t": "Writing — danh sách",
+        "g": "IELTS",
+        "n": "Nêu rõ chấm bất đồng bộ và có trạng thái chờ"
+    },
+    {
+        "f": "22-writing-take",
+        "t": "Writing — phòng viết",
+        "g": "IELTS",
+        "n": "Đếm từ, cảnh báo thiếu từ, lưu nháp tự động"
+    },
+    {
+        "f": "23-writing-result",
+        "t": "Writing — bài đã chấm",
+        "g": "IELTS",
+        "n": "Phản hồi gắn với câu cụ thể trong bài"
+    },
+    {
+        "f": "24-speaking-list",
+        "t": "Speaking — chủ đề",
+        "g": "IELTS",
+        "n": "Yêu cầu micro được nói rõ trước khi bắt đầu"
+    },
+    {
+        "f": "25-speaking-take",
+        "t": "Speaking — ghi âm",
+        "g": "IELTS",
+        "n": "Trạng thái ghi rõ ràng, có nút dừng to"
+    },
+    {
+        "f": "26-speaking-result",
+        "t": "Speaking — kết quả",
+        "g": "IELTS",
+        "n": "Số liệu giọng nói thật, không phóng đại"
+    },
+    {
+        "f": "27-custom-speaking",
+        "t": "Hội thoại AI tự chọn chủ đề",
+        "g": "IELTS",
+        "n": "Credit hiển thị trước, không giật mình"
+    },
+    {
+        "f": "28-leaderboard",
+        "t": "Bảng xếp hạng",
+        "g": "Tiến độ",
+        "n": "Không phơi 50 người lạ · mặc định tắt, dùng biệt danh"
+    },
+    {
+        "f": "29-weekly-report",
+        "t": "Báo cáo tuần",
+        "g": "Tiến độ",
+        "n": "Chỉ số đều là dữ liệu luyện tập thật"
+    },
+    {
+        "f": "30-challenges",
+        "t": "Thử thách tuần",
+        "g": "Tiến độ",
+        "n": "Không tạo áp lực xã hội · không có đồng hồ đếm ngược đỏ"
+    },
+    {
+        "f": "31-rewards",
+        "t": "Phần thưởng & nhiệm vụ",
+        "g": "Tiến độ",
+        "n": "v1 là 1 file 1.604 dòng · v2 tách thành tab rõ ràng"
+    },
+    {
+        "f": "32-credits",
+        "t": "Ví credit",
+        "g": "Tiến độ",
+        "n": "Bảng phí công khai · nói rõ cái gì miễn phí"
+    },
+    {
+        "f": "33-profile",
+        "t": "Trang cá nhân",
+        "g": "Tài khoản",
+        "n": "Lexi tiến hoá theo level, chỉ hiển thị ở đây và lúc mở khoá"
+    },
+    {
+        "f": "34-notifications",
+        "t": "Trung tâm thông báo",
+        "g": "Tài khoản",
+        "n": "Có công tắc tắt nhắc học ngay trong ngữ cảnh"
+    },
+    {
+        "f": "35-settings",
+        "t": "Cài đặt",
+        "g": "Tài khoản",
+        "n": "Hai công tắc gamification nằm ở nhóm đầu tiên, một chạm"
+    },
+    {
+        "f": "36-ai-chat",
+        "t": "AI Coach",
+        "g": "Tài khoản",
+        "n": "Nêu rõ chi phí mỗi tin nhắn trước khi gửi"
+    }
+];
+/* REGISTRY-END */
+
+const rail = document.getElementById('rail');
+const view = document.getElementById('view');
+const openLink = document.getElementById('open');
+const titleEl = document.getElementById('title');
+const pathEl = document.getElementById('path');
+const noteEl = document.getElementById('note');
+const frame = document.getElementById('frame');
+
+let current = SCREENS[0];
+let groups = [];
+for (const s of SCREENS) {
+    if (!groups.includes(s.g)) groups.push(s.g);
+}
+
+rail.innerHTML = groups.map((g) => `
+    <div class="rail__group">${g}</div>
+    ${SCREENS.map((s, i) => ({ ...s, i }))
+        .filter((s) => s.g === g)
+        .map((s) => `<button class="rail__link" type="button" data-f="${s.f}">
+            <span class="rail__num">${String(s.i + 1).padStart(2, '0')}</span>
+            <span class="grow truncate">${s.t}</span>
+        </button>`).join('')}
+`).join('');
+
+function select(file, { push = true } = {}) {
+    const screen = SCREENS.find((s) => s.f === file) || SCREENS[0];
+    current = screen;
+    view.src = `${screen.f}.html`;
+    openLink.href = `${screen.f}.html`;
+    titleEl.textContent = `${String(SCREENS.indexOf(screen) + 1).padStart(2, '0')} · ${screen.t}`;
+    pathEl.textContent = `${screen.f}.html`;
+    noteEl.textContent = screen.n;
+    rail.querySelectorAll('.rail__link').forEach((b) => {
+        b.setAttribute('aria-current', String(b.dataset.f === screen.f));
+    });
+    if (push) history.replaceState(null, '', `#${screen.f}`);
+}
+
+rail.addEventListener('click', (e) => {
+    const btn = e.target.closest('.rail__link');
+    if (btn) select(btn.dataset.f);
+});
+
+/* device width */
+document.querySelectorAll('[data-w]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-w]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+        btn.setAttribute('aria-pressed', 'true');
+        frame.style.setProperty('--frame-w', `${btn.dataset.w}px`);
+    });
+});
+
+/* theme: tokens.css declares light AND dark via native light-dark(), so one
+   `color-scheme` value flips the entire product. The local screens are
+   same-origin (including over file://), so the frame is driven directly. */
+let theme = 'light';
+function applyTheme(next) {
+    theme = next;
+    document.documentElement.style.colorScheme = theme;
+    document.querySelectorAll('[data-theme]').forEach((b) => {
+        b.setAttribute('aria-pressed', String(b.dataset.theme === theme));
+    });
+    try {
+        view.contentDocument.documentElement.style.colorScheme = theme;
+    } catch (err) { /* cross-origin frame: not expected for local screens */ }
+}
+document.querySelectorAll('[data-theme]').forEach((btn) => {
+    btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
+});
+view.addEventListener('load', () => {
+    try {
+        view.contentDocument.documentElement.style.colorScheme = theme;
+    } catch (err) { /* ignore */ }
+});
+
+document.getElementById('reload').addEventListener('click', () => { view.src = view.src; });
+
+const initial = location.hash.replace('#', '');
+select(SCREENS.some((s) => s.f === initial) ? initial : SCREENS[0].f, { push: false });
+applyTheme('light');
+</script>
+</body>
+</html>

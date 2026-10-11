@@ -1,0 +1,413 @@
+import { Suspense, lazy } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import RequireAuth from './app/RequireAuth';
+import RootRedirect from './app/RootRedirect';
+
+/**
+ * Route owner.
+ *
+ * Every page is lazy so the first download carries only its own graph — v1
+ * learned this the hard way (one 3.58MB chunk on the home page). Any static
+ * import added here pulls that module into the first download, so this file stays
+ * nearly import-free.
+ *
+ * Route grouping follows who may see what:
+ *
+ *   public      reachable without a session ("/" lands on the guest surface)
+ *   guarded     needs a session; wrapped in RequireAuth
+ *   timed       outside the app shell entirely — no nav, no mascot
+ *
+ * v1 sent a logged-out visitor on "/" to /vocabulary, which is the guest
+ * surface, and this keeps that. Sending them to /home would fire four
+ * authenticated requests and render four 401 panels.
+ */
+/**
+ * The shell is LAZY, and that is load-bearing rather than stylistic.
+ *
+ * `AppLayout` mounts CreditProvider + RealtimeStompProvider +
+ * VocabularyExplainProvider, and the STOMP client behind them is ~13 kB gzip. A
+ * static import here would put all of it in the FIRST download for every
+ * signed-out visitor, who uses none of it. (That is exactly what happened: with a
+ * static import the entry chunk went 177.91 -> 190.63 kB gzip. Lazy, the entry
+ * stays lean and the shell arrives with the first authenticated screen.)
+ */
+const AppLayout = lazy(() => import('./app/AppLayout'));
+const ProviderLayout = lazy(() => import('./app/ProviderLayout'));
+const HomePage = lazy(() => import('./pages/home/HomePage'));
+const IeltsListPage = lazy(() => import('./pages/ielts/IeltsListPage'));
+const IeltsTakePage = lazy(() => import('./pages/ielts/IeltsTakePage'));
+const IeltsResultPage = lazy(() => import('./pages/ielts/IeltsResultPage'));
+const IeltsTestDetailPage = lazy(() => import('./pages/ielts/IeltsTestDetailPage'));
+const IeltsHistoryPage = lazy(() => import('./pages/ielts/IeltsHistoryPage'));
+const LoginPage = lazy(() => import('./pages/login/LoginPage'));
+const VocabularyListPage = lazy(() => import('./pages/vocabulary/VocabularyListPage'));
+const VocabularyTakePage = lazy(() => import('./pages/vocabulary/VocabularyTakePage'));
+const VocabularyResultPage = lazy(() => import('./pages/vocabulary/VocabularyResultPage'));
+const VocabularyHistoryPage = lazy(() => import('./pages/vocabulary/VocabularyHistoryPage'));
+const DictionaryPage = lazy(() => import('./pages/vocabulary/DictionaryPage'));
+const DictionaryReviewPage = lazy(() => import('./pages/vocabulary/DictionaryReviewPage'));
+const VocabularyCheckPage = lazy(() => import('./pages/vocabulary/VocabularyCheckPage'));
+const CreditsPage = lazy(() => import('./pages/credits/CreditsPage'));
+const WeeklyReportPage = lazy(() => import('./pages/progress/WeeklyReportPage'));
+const WritingListPage = lazy(() => import('./pages/writing/WritingListPage'));
+const WritingTakePage = lazy(() => import('./pages/writing/WritingTakePage'));
+const WritingResultPage = lazy(() => import('./pages/writing/WritingResultPage'));
+const WritingHistoryPage = lazy(() => import('./pages/writing/WritingHistoryPage'));
+const SpeakingListPage = lazy(() => import('./pages/speaking/SpeakingListPage'));
+const SpeakingPracticePage = lazy(() => import('./pages/speaking/SpeakingPracticePage'));
+const SpeakingResultPage = lazy(() => import('./pages/speaking/SpeakingResultPage'));
+const SpeakingHistoryPage = lazy(() => import('./pages/speaking/SpeakingHistoryPage'));
+const CustomSpeakingPage = lazy(() => import('./pages/speaking/CustomSpeakingPage'));
+const CustomSpeakingResultPage = lazy(() => import('./pages/speaking/CustomSpeakingResultPage'));
+const ProfilePage = lazy(() => import('./pages/account/ProfilePage'));
+const SettingsPage = lazy(() => import('./pages/account/SettingsPage'));
+const NotificationCenterPage = lazy(() => import('./pages/notifications/NotificationCenterPage'));
+const AiChatPage = lazy(() => import('./pages/chat/AiChatPage'));
+const LeaderboardPage = lazy(() => import('./pages/gamification/LeaderboardPage'));
+const RewardsPage = lazy(() => import('./pages/gamification/RewardsPage'));
+const ChallengesPage = lazy(() => import('./pages/gamification/ChallengesPage'));
+const EvaluationPage = lazy(() => import('./pages/evaluation/EvaluationPage'));
+const ReviewConfigPage = lazy(() => import('./pages/evaluation/ReviewConfigPage'));
+const OnboardingPage = lazy(() => import('./pages/onboarding/OnboardingPage'));
+const LearningPathPage = lazy(() => import('./pages/learning/LearningPathPage'));
+
+function RouteFallback() {
+    return (
+        <div role="status" aria-busy="true" aria-live="polite" className="grid min-h-dvh place-items-center">
+            <span className="sr-only">Đang tải…</span>
+            <span className="size-8 animate-spin rounded-full border-2 border-[var(--border)] border-t-[var(--teal)]" />
+        </div>
+    );
+}
+
+export default function App() {
+    return (
+        <Suspense fallback={<RouteFallback />}>
+            <Routes>
+                <Route element={<AppLayout />}>
+                    <Route
+                        path="/home"
+                        element={
+                            <RequireAuth>
+                                <HomePage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/ielts"
+                        element={
+                            <RequireAuth>
+                                <IeltsListPage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/ielts/result"
+                        element={
+                            <RequireAuth>
+                                <IeltsResultPage />
+                            </RequireAuth>
+                        }
+                    />
+
+                    
+                    <Route
+                        path="/ielts/test/:testId"
+                        element={
+                            <RequireAuth>
+                                <IeltsTestDetailPage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/ielts/history"
+                        element={
+                            <RequireAuth>
+                                <IeltsHistoryPage />
+                            </RequireAuth>
+                        }
+                    />
+<Route
+                        path="/vocabulary"
+                        element={
+                            <RequireAuth>
+                                <VocabularyListPage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/vocabulary/history"
+                        element={
+                            <RequireAuth>
+                                <VocabularyHistoryPage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/vocabulary/result"
+                        element={
+                            <RequireAuth>
+                                <VocabularyResultPage />
+                            </RequireAuth>
+                        }
+                    />
+
+                    <Route
+                        path="/dictionary"
+                        element={
+                            <RequireAuth>
+                                <DictionaryPage />
+                            </RequireAuth>
+                        }
+                    />
+
+                    
+
+                    <Route
+                        path="/credits"
+                        element={
+                            <RequireAuth>
+                                <CreditsPage />
+                            </RequireAuth>
+                        }
+                    />
+
+                    <Route
+                        path="/weekly-report"
+                        element={
+                            <RequireAuth>
+                                <WeeklyReportPage />
+                            </RequireAuth>
+                        }
+                    />
+
+                    <Route
+                        path="/writing"
+                        element={
+                            <RequireAuth>
+                                <WritingListPage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/writing/submissions"
+                        element={
+                            <RequireAuth>
+                                <WritingHistoryPage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/writing/submission/:submissionId"
+                        element={
+                            <RequireAuth>
+                                <WritingResultPage />
+                            </RequireAuth>
+                        }
+                    />
+
+                    <Route
+                        path="/speaking"
+                        element={
+                            <RequireAuth>
+                                <SpeakingListPage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/speaking/attempts"
+                        element={
+                            <RequireAuth>
+                                <SpeakingHistoryPage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/speaking/result/:attemptId"
+                        element={
+                            <RequireAuth>
+                                <SpeakingResultPage />
+                            </RequireAuth>
+                        }
+                    />
+
+                    
+                    <Route
+                        path="/custom-speaking"
+                        element={
+                            <RequireAuth>
+                                <CustomSpeakingPage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/custom-speaking/:conversationId"
+                        element={
+                            <RequireAuth>
+                                <CustomSpeakingResultPage />
+                            </RequireAuth>
+                        }
+                    />
+<Route
+                        path="/profile"
+                        element={
+                            <RequireAuth>
+                                <ProfilePage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/settings"
+                        element={
+                            <RequireAuth>
+                                <SettingsPage />
+                            </RequireAuth>
+                        }
+                    />
+
+                    {/* The rail has linked here since the first v2 build — `navigation.js`
+                        lists it and `pageTitles.js` names it — but no route existed, so the
+                        catch-all silently sent the learner to /home instead. */}
+                    <Route
+                        path="/path"
+                        element={
+                            <RequireAuth>
+                                <LearningPathPage />
+                            </RequireAuth>
+                        }
+                    />
+
+                    <Route
+                        path="/notifications"
+                        element={
+                            <RequireAuth>
+                                <NotificationCenterPage />
+                            </RequireAuth>
+                        }
+                    />
+
+                    <Route
+                        path="/ai-chat"
+                        element={
+                            <RequireAuth>
+                                <AiChatPage />
+                            </RequireAuth>
+                        }
+                    />
+
+                    <Route
+                        path="/leaderboard"
+                        element={
+                            <RequireAuth>
+                                <LeaderboardPage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/rewards"
+                        element={
+                            <RequireAuth>
+                                <RewardsPage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/challenges"
+                        element={
+                            <RequireAuth>
+                                <ChallengesPage />
+                            </RequireAuth>
+                        }
+                    />
+
+                    <Route
+                        path="/evaluation"
+                        element={
+                            <RequireAuth>
+                                <EvaluationPage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/review"
+                        element={
+                            <RequireAuth>
+                                <ReviewConfigPage />
+                            </RequireAuth>
+                        }
+                    />
+<Route path="*" element={<Navigate to="/home" replace />} />
+                </Route>
+
+                {/* The root is OUTSIDE the shell, and that is a fix rather than a
+                    preference. `RootRedirect` renders the landing page for a visitor with
+                    no session, and the landing page is a full-bleed surface with its own
+                    sticky header and hero. Inside `AppLayout` it was rendering with the
+                    sidebar AND a second header above it, plus an avatar and a notification
+                    badge that belong to an account the visitor does not have. A signed-in
+                    user never sees this branch — it redirects to /home, which does mount
+                    the shell. */}
+                <Route path="/" element={<RootRedirect />} />
+
+                {/* Outside the shell on purpose: /login is a full-bleed split
+                    panel, not a page inside the app chrome. It also MUST be a real
+                    route — RequireAuth redirects here, and a redirect target that
+                    does not exist falls through to the catch-all, which sends the
+                    visitor back to the guarded route. That is an infinite loop and
+                    it hangs the browser. */}
+                <Route path="/login" element={<LoginPage />} />
+
+                {/* Timed surfaces sit outside the shell: no sidebar, no tab bar, no
+                    floating Lexi. A test screen must not offer a way to wander off,
+                    and the mascot must not talk mid-paper.
+
+                    Note the ORDER matters here: "/vocabulary/test" must be declared
+                    before any "/vocabulary" shell route could swallow it. React
+                    Router v6 ranks static segments above dynamic ones, so an exact
+                    "/vocabulary/test" wins over the shell's catch-all either way —
+                    but keeping them in separate branches makes the intent explicit. */}
+                <Route path="/ielts/take" element={<IeltsTakePage />} />
+                <Route path="/vocabulary/test" element={<VocabularyTakePage />} />
+                <Route path="/dictionary/review" element={<DictionaryReviewPage />} />
+
+                {/* Public surfaces. The landing page is the root for a visitor; the
+                    guest trial is a real no-account surface, matching the promise made
+                    on the landing page and the login card.
+
+                    /vocabulary/check is deliberately NOT inside AppLayout: it needs the
+                    provider chain (credit + STOMP + explain) but must not render the
+                    sidebar, tab bar or floating Lexi. It is also NOT behind RequireAuth
+                    — an earlier version had it guarded, so a guest clicking the trial
+                    was redirected to /login and the promised free trial was impossible.
+
+                    THE OTHER TWO ROUTES HERE NEED THE SAME CHAIN, and did not have it:
+                    /writing/task/:taskId and /speaking/practice/:topicId both read the
+                    credit price before the press, so both threw
+                    "useCredit must be used inside CreditProvider" and rendered nothing.
+                    A timed surface without chrome is the intent; a timed surface
+                    without its providers is a blank screen. */}
+                <Route element={<ProviderLayout />}>
+                    <Route path="/vocabulary/check" element={<VocabularyCheckPage />} />
+                    <Route path="/writing/task/:taskId" element={<WritingTakePage />} />
+                    <Route path="/speaking/practice/:topicId" element={<SpeakingPracticePage />} />
+                </Route>
+
+                {/* Onboarding is a focused flow, so it is outside the shell: no sidebar, no
+                    tab bar, no floating Lexi offering a way out of a four-question setup.
+                    It IS behind RequireAuth — the flow writes to the visitor's own profile,
+                    and a guest has no profile to write to.
+
+                    It is reachable by URL at any time, which is what makes "làm lại
+                    onboarding" from Settings a plain link rather than a special mode. */}
+                <Route
+                    path="/onboarding"
+                    element={
+                        <RequireAuth>
+                            <OnboardingPage />
+                        </RequireAuth>
+                    }
+                />
+            </Routes>
+        </Suspense>
+    );
+}

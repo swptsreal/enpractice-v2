@@ -1,0 +1,47 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+dist-ssr/
+
+# local env (the API URL is baked in at build time, so this file is per-machine)
+.env
+.env.local
+.env.*.local
+
+# logs
+*.log
+npm-debug.log*
+
+# editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# vite / vitest
+.vite/
+coverage/
+
+# Recorded AI responses for scripts/dev-verify-*.mjs. Per-machine on purpose: they
+# capture ids, answers and grading text from THIS developer's backend, they go stale
+# when the database is reset, and they are only there to save 9router tokens while
+# iterating. Record them with `node scripts/dev-verify-<flow>.mjs --live`.
+scripts/fixtures/
+
+# scratch
+COMMIT_MSG.tmp
+*.tmp
+
+COMMIT_MSG.txt
+
+.commitmsg
+
+.git-commit-msg
+# Playwright: the signed-in state contains real tokens for the dev account, and the screenshots
+# are build output, not source.
+e2e/.auth/
+e2e/.artifacts/
+e2e/__screenshots__/

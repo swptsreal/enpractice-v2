@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Onboarding lần đầu · EN Practice v2</title>
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/shell.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" />
+<style>
+.onb { min-height: 100vh; display: flex; flex-direction: column; }
+.onb__bar { padding: 16px 20px; border-bottom: 2px solid var(--border); }
+.onb__main { flex: 1; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
+.onb__options { width: 100%; max-width: 560px; margin-top: 28px; display: flex; flex-direction: column; gap: 12px; }
+.onb__opt {
+    display: flex; align-items: center; gap: 14px; width: 100%; min-height: 76px; padding: 14px 16px;
+    border: 2px solid var(--border-strong); border-radius: var(--r-card); background: var(--surface);
+    color: inherit; text-align: left; cursor: pointer; box-shadow: 0 4px 0 0 var(--border-strong);
+    transition: transform 90ms var(--ease-out), box-shadow 90ms var(--ease-out);
+}
+.onb__opt:active { transform: translateY(4px); box-shadow: 0 0 0 0 var(--border-strong); }
+.onb__opt[aria-pressed='true'] { border-color: var(--teal); background: var(--teal-soft); box-shadow: 0 4px 0 0 var(--teal-strong); }
+.onb__radio { width: 26px; height: 26px; border-radius: 999px; border: 2px solid var(--border-strong); display: grid; place-items: center; color: var(--teal); }
+.onb__opt[aria-pressed='true'] .onb__radio { border-color: var(--teal); background: var(--teal); color: var(--on-teal); }
+.onb__foot { padding: 16px 20px; border-top: 2px solid var(--border); background: var(--surface); }
+</style>
+</head>
+<body>
+<a class="sr-only" href="#main">Bỏ qua tới nội dung</a>
+
+<div class="onb">
+    <header class="onb__bar">
+        <div class="row g12" style="width:100%;max-width:760px;margin-inline:auto">
+            <span class="t-micro muted">Bước 1 / 4</span>
+            <div class="grow"><div class="bar" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+        <div class="bar__fill " style="width:25%"></div>
+    </div></div>
+            <a class="t-micro muted" href="04-home.html">Bỏ qua</a>
+        </div>
+    </header>
+
+    <main class="onb__main" id="main">
+        <div class="row g16" style="align-items:flex-end;justify-content:center;margin-bottom:8px">
+            <img class="lexi lexi--xl " data-mood="happy"
+        src="assets/lexi-yeah.webp" width="200" height="208"
+        loading="lazy" decoding="async" role="img" aria-label="Lexi đang cười" />
+            <div class="bubble bubble--lexi bubble--left" style="max-width:280px">
+                Mục tiêu band của bạn là bao nhiêu? Mình sẽ chọn bài vừa sức.
+            </div>
+        </div>
+
+        <h1 class="t-display" style="text-align:center">Bạn đang nhắm band nào?</h1>
+        <p class="t-body muted" style="text-align:center;max-width:48ch;margin:8px auto 0">
+            Chọn một mục tiêu. Bạn đổi được bất cứ lúc nào trong phần Cá nhân.
+        </p>
+
+        <div class="onb__options" data-group>
+            
+                <button class="onb__opt" type="button" data-act="select" aria-pressed="false">
+                    <span class="band">5.0 – 5.5</span>
+                    <span class="grow"><strong class="t-h3" style="display:block">5.0 – 5.5</strong><span class="t-micro muted">Nền tảng · xây thói quen học</span></span>
+                    <span class="onb__radio" aria-hidden="true"></span>
+                </button>
+                <button class="onb__opt" type="button" data-act="select" aria-pressed="true">
+                    <span class="band">6.0 – 6.5</span>
+                    <span class="grow"><strong class="t-h3" style="display:block">6.0 – 6.5</strong><span class="t-micro muted">Mục tiêu phổ biến nhất</span></span>
+                    <span class="onb__radio" aria-hidden="true"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12.5 9.5 18 19.5 6.5"/></svg></span>
+                </button>
+                <button class="onb__opt" type="button" data-act="select" aria-pressed="false">
+                    <span class="band">7.0 – 7.5</span>
+                    <span class="grow"><strong class="t-h3" style="display:block">7.0 – 7.5</strong><span class="t-micro muted">Cần độ chính xác cao</span></span>
+                    <span class="onb__radio" aria-hidden="true"></span>
+                </button>
+                <button class="onb__opt" type="button" data-act="select" aria-pressed="false">
+                    <span class="band">Chưa xác định</span>
+                    <span class="grow"><strong class="t-h3" style="display:block">Chưa xác định</strong><span class="t-micro muted">Để Lexi gợi ý sau bài đầu tiên</span></span>
+                    <span class="onb__radio" aria-hidden="true"></span>
+                </button>
+        </div>
+    </main>
+
+    <footer class="onb__foot">
+        <div class="row g12" style="width:100%;max-width:760px;margin-inline:auto">
+            <button class="btn btn--ghost" type="button" disabled>Quay lại</button>
+            <div class="grow"></div>
+            <a class="btn btn--primary btn--lg" href="04-home.html">Tiếp tục <svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12h15"/><path d="M13.5 6l6 6-6 6"/></svg></a>
+        </div>
+    </footer>
+</div>
+<div id="live" class="sr-only" role="status" aria-atomic="true"></div>
+<script>
+/* A mockup that cannot be pressed cannot be judged, so the interactions that
+   carry the design — tab switching, answer selection, switch toggles, revealing
+   a verdict — are live. Tab panels are keyed off data-panel, which is also what
+   the aria-controls wiring documents, so the mockup and the accessibility tree
+   cannot disagree. Plain <script>, no module, so file:// works. */
+(function () {
+    var live = document.getElementById('live');
+    function announce(text) { if (live) live.textContent = text; }
+
+    document.addEventListener('click', function (e) {
+        var tab = e.target.closest('[data-tab]');
+        if (tab) {
+            var group = tab.closest('[data-tabs]');
+            group.querySelectorAll('[data-tab]').forEach(function (t) {
+                t.setAttribute('aria-selected', String(t === tab));
+            });
+            var scope = group.dataset.tabs;
+            document.querySelectorAll('[data-panel^="' + scope + '-"]').forEach(function (p) {
+                p.hidden = p.dataset.panel !== tab.dataset.tab;
+            });
+            return;
+        }
+        var sel = e.target.closest('[data-select]');
+        if (sel) {
+            var box = sel.closest('[data-group]');
+            if (box) box.querySelectorAll('[data-select]').forEach(function (s) {
+                s.setAttribute('aria-pressed', String(s === sel));
+            });
+            announce(sel.dataset.announce || 'Đã chọn');
+            return;
+        }
+        var tog = e.target.closest('[data-toggle]');
+        if (tog) {
+            var on = (tog.getAttribute('aria-checked') || tog.getAttribute('aria-pressed')) === 'true';
+            tog.setAttribute('aria-checked', String(!on));
+            tog.setAttribute('aria-pressed', String(!on));
+            return;
+        }
+        var reveal = e.target.closest('[data-reveal]');
+        if (reveal) {
+            var el = document.getElementById(reveal.dataset.reveal);
+            if (el) {
+                el.hidden = false;
+                el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                announce(reveal.dataset.announce || '');
+            }
+        }
+    });
+})();
+</script>
+</body>
+</html>

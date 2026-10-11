@@ -1,0 +1,543 @@
+/* =============================================================================
+   EN Practice v2 — design tokens
+   Single source of truth. Light + dark are declared together per token via
+   light-dark(), so adding a token means touching exactly one line.
+
+   Verified by _design/contrast_check.py — re-run it after any colour change.
+   ========================================================================== */
+
+:root {
+    color-scheme: light dark;
+
+    /* ---- brand: one action colour, one reward colour ---- */
+    --teal:        light-dark(#0E7C6B, #4FCDB6);
+    --teal-strong: light-dark(#0A6355, #7ADDC9);
+    --teal-soft:   light-dark(#E4F5F0, #123B37);
+    --amber:       light-dark(#F5B32E, #F7C455);
+    --amber-edge:  light-dark(#B8811A, #C99A32);
+    --amber-soft:  light-dark(#FDF3DC, #3C2F12);
+
+    /* ---- ground ---- */
+    --canvas:      light-dark(#FBF8F2, #0C161B);
+    --surface:     light-dark(#FFFFFF, #14232B);
+    --surface-alt: light-dark(#F3F0E8, #1C2F38);
+
+    /* ---- ink ---- */
+    --ink:        light-dark(#14232B, #EAF4F2);
+    --ink-soft:   light-dark(#3B525E, #B9CECB);
+    --ink-muted:  light-dark(#5A717D, #8DA5A3);
+    --ink-faint:  light-dark(#8FA3AD, #647C7B);
+    --on-teal:    light-dark(#FFFFFF, #0C161B);
+    --on-amber:   #14232B;
+
+    /* ---- lines ---- */
+    --border:        light-dark(#E4E0D4, #25393F);
+    --border-strong: light-dark(#8B8674, #647C7B);
+
+    /* ---- semantics (state reporting only, never decoration) ---- */
+    --correct:  light-dark(#117D55, #4BD08B);
+    --wrong:    light-dark(#C33934, #F07C74);
+    --attention: light-dark(#9C5809, #E8A838);
+    --info:     light-dark(#0B6E8F, #5CC2E0);
+    --correct-soft: light-dark(#E3F4EC, #10322A);
+    --wrong-soft:   light-dark(#FBE9E8, #3A1D1C);
+
+    /* ---- shape ---- */
+    --r-chip:    999px;
+    --r-sm:      10px;
+    --r-control: 14px;
+    --r-card:    20px;
+    --r-hero:    28px;
+
+    /* ---- press edge (the signature affordance) ---- */
+    --edge: 4px;
+
+    /* ---- motion ---- */
+    --m-press: 90ms;
+    --m-fast: 160ms;
+    --m-base: 240ms;
+    --m-slow: 380ms;
+    --ease-out: cubic-bezier(.22, 1, .36, 1);
+    /* --ease-back deliberately overshoots. It is permitted ONLY for one-shot
+       moments (a node unlocking, a band score landing), never for state
+       changes, hovers or anything that repeats. Named so the intent survives. */
+    --ease-back: cubic-bezier(.34, 1.56, .64, 1);
+
+    /* ---- type ---- */
+    --font: 'Nunito', ui-rounded, 'Segoe UI', system-ui, sans-serif;
+    --font-display: 'Baloo 2', 'Nunito', ui-rounded, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+    /* ---- layout ---- */
+    --shell-sidebar: 264px;
+    --shell-tabbar: 68px;
+    --shell-header: 64px;
+    --container: 1240px;
+}
+
+/* =============================== reset ================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+    margin: 0;
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--canvas);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, p, figure, ul, ol { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+button, input, textarea, select { font: inherit; color: inherit; }
+img, svg { display: block; max-width: 100%; }
+a { color: var(--teal); text-decoration: none; }
+
+/* The user-agent rule for [hidden] is `display: none` at author-origin weight,
+   so any component that sets its own `display` silently defeats it. Tab panels
+   and sheet bodies rely on [hidden], so make it authoritative once, here. */
+[hidden] { display: none !important; }
+
+:focus-visible {
+    outline: 3px solid var(--teal);
+    outline-offset: 2px;
+    border-radius: var(--r-sm);
+}
+
+::selection { background: color-mix(in srgb, var(--teal) 28%, transparent); }
+
+/* ============================== typography ============================== */
+
+.t-display-xl { font-family: var(--font-display); font-size: clamp(2.25rem, 6vw, 3.5rem); font-weight: 800; line-height: 1.04; letter-spacing: -0.02em; }
+.t-display    { font-size: clamp(1.75rem, 4.5vw, 2.5rem); font-weight: 800; line-height: 1.10; letter-spacing: -0.02em; }
+.t-h1         { font-size: clamp(1.5rem, 3.4vw, 2rem);     font-weight: 800; line-height: 1.15; letter-spacing: -0.015em; }
+.t-h2         { font-size: 1.5rem;  font-weight: 800; line-height: 1.20; letter-spacing: -0.01em; }
+.t-h3         { font-size: 1.125rem; font-weight: 700; line-height: 1.30; }
+.t-body-lg    { font-size: 1.0625rem; font-weight: 500; line-height: 1.55; }
+.t-body       { font-size: 1rem; font-weight: 400; line-height: 1.60; }
+.t-label      { font-size: .875rem; font-weight: 700; line-height: 1.20; letter-spacing: .01em; }
+.t-micro      { font-size: .8125rem; font-weight: 600; line-height: 1.40; letter-spacing: .01em; }
+.t-mono       { font-family: var(--font-mono); font-size: .875rem; font-weight: 600; line-height: 1.30; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+
+.muted  { color: var(--ink-muted); }
+.soft   { color: var(--ink-soft); }
+.prose  { max-width: 68ch; }
+
+/* =============================== layout ================================ */
+
+.container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: 16px; }
+@media (min-width: 768px) { .container { padding-inline: 24px; } }
+@media (min-width: 1280px) { .container { padding-inline: 32px; } }
+
+.stack   { display: flex; flex-direction: column; }
+.row     { display: flex; align-items: center; }
+.between { display: flex; align-items: center; justify-content: space-between; }
+.wrap    { flex-wrap: wrap; }
+.grow    { flex: 1 1 auto; min-width: 0; }
+.g4  { gap: 4px; }  .g8  { gap: 8px; }  .g12 { gap: 12px; }
+.g16 { gap: 16px; } .g24 { gap: 24px; } .g32 { gap: 32px; }
+.center { align-items: center; }
+.baseline { align-items: baseline; }
+
+.grid { display: grid; gap: 16px; }
+.g-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.g-auto { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+@media (max-width: 767px) {
+    .g-3, .g-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 479px) {
+    .g-2, .g-3, .g-4 { grid-template-columns: minmax(0, 1fr); }
+}
+
+.pad  { padding: 16px; }
+.pad-l { padding: 20px; }
+.pad-x { padding: 24px; }
+@media (min-width: 768px) { .pad-x { padding: 32px; } }
+
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ============================== surfaces =============================== */
+
+.card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--r-card);
+}
+
+/* Level 1 gets the press edge, never a soft shadow. */
+.card--edge { box-shadow: 0 var(--edge) 0 0 var(--border); }
+
+/* Level 2 — genuinely floating above another surface. */
+.card--raised {
+    border-color: var(--border-strong);
+    box-shadow: 0 6px 0 -2px var(--border), 0 16px 32px -18px rgb(20 35 43 / .38);
+}
+
+.card--hero { border-radius: var(--r-hero); }
+.card--flat { background: var(--surface-alt); border-color: transparent; box-shadow: none; }
+.card--tight { padding: 0; overflow: hidden; }
+
+/* An inset row inside a card. Deliberately NOT a card: no border, no press
+   edge, no shadow. Nesting cards manufactures false depth, and it was one of
+   the patterns v1 repeated most (card inside card inside card on the results
+   and progress screens). */
+.rowbox {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px 14px; border-radius: var(--r-control);
+    background: var(--surface-alt);
+}
+.rowbox--center { align-items: center; }
+.rowbox--wrap { flex-wrap: wrap; }
+
+.hr { height: 2px; background: var(--border); border: 0; }
+
+/* =============================== actions =============================== */
+
+.btn {
+    --btn-fill: var(--surface);
+    --btn-ink: var(--ink);
+    --btn-edge: var(--border-strong);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 20px;
+    border: 2px solid transparent;
+    border-radius: var(--r-control);
+    background: var(--btn-fill);
+    color: var(--btn-ink);
+    font-size: .9375rem;
+    font-weight: 800;
+    letter-spacing: .01em;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 var(--edge) 0 0 var(--btn-edge);
+    transition: transform var(--m-press) var(--ease-out),
+                box-shadow var(--m-press) var(--ease-out),
+                filter var(--m-fast) var(--ease-out);
+}
+.btn:active { transform: translateY(var(--edge)); box-shadow: 0 0 0 0 var(--btn-edge); }
+.btn--primary { --btn-fill: var(--teal); --btn-ink: var(--on-teal); --btn-edge: var(--teal-strong); }
+.btn--reward  { --btn-fill: var(--amber); --btn-ink: var(--on-amber); --btn-edge: var(--amber-edge); }
+.btn--ghost   { --btn-fill: transparent; --btn-ink: var(--teal); --btn-edge: transparent;
+                box-shadow: none; border-color: var(--border-strong); }
+.btn--ghost:active { transform: translateY(2px); }
+.btn--danger  { --btn-fill: var(--wrong); --btn-ink: light-dark(#fff, #0C161B); --btn-edge: light-dark(#992B27, #C25F58); }
+.btn--sm { min-height: 40px; padding: 0 14px; font-size: .875rem; border-radius: var(--r-sm); }
+.btn--lg { min-height: 56px; padding: 0 28px; font-size: 1rem; }
+.btn--block { width: 100%; }
+.btn--icon { min-width: 48px; padding: 0; }
+.btn[disabled], .btn[aria-disabled='true'] {
+    --btn-fill: var(--surface-alt); --btn-ink: var(--ink-faint); --btn-edge: var(--border);
+    cursor: not-allowed; box-shadow: 0 var(--edge) 0 0 var(--btn-edge);
+}
+.btn[disabled]:active { transform: none; }
+
+/* ================================ chips ================================ */
+
+.chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 30px; padding: 0 12px;
+    border-radius: var(--r-chip);
+    background: var(--surface-alt); color: var(--ink-soft);
+    font-size: .8125rem; font-weight: 700; letter-spacing: .01em;
+}
+.chip--teal    { background: var(--teal-soft);  color: var(--teal); }
+.chip--amber   { background: var(--amber-soft); color: var(--attention); }
+.chip--correct { background: var(--correct-soft); color: var(--correct); }
+.chip--wrong   { background: var(--wrong-soft);   color: var(--wrong); }
+.chip--outline { background: transparent; border: 2px solid var(--border-strong); }
+
+/* ================================ badges =============================== */
+
+.badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 22px; height: 22px; padding: 0 7px;
+    border-radius: var(--r-chip);
+    background: var(--wrong); color: #fff;
+    font-size: .6875rem; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.band {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: var(--r-sm);
+    background: var(--teal-soft); color: var(--teal);
+    font-family: var(--font-mono); font-size: .9375rem; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ============================== stat tiles ============================= */
+
+.stat {
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 14px 16px;
+    background: var(--surface); border: 2px solid var(--border);
+    border-radius: var(--r-card); box-shadow: 0 var(--edge) 0 0 var(--border);
+}
+.stat__row { display: flex; align-items: center; gap: 8px; color: var(--ink-muted); }
+.stat__value { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stat__label { font-size: .8125rem; font-weight: 600; color: var(--ink-muted); }
+.stat--amber .stat__value { color: var(--attention); }
+.stat--teal  .stat__value { color: var(--teal); }
+
+/* =============================== progress ============================== */
+
+.bar { height: 16px; border-radius: var(--r-chip); background: var(--surface-alt); overflow: hidden; }
+.bar__fill { height: 100%; border-radius: var(--r-chip); background: var(--teal); transition: width var(--m-base) var(--ease-out); }
+.bar__fill--amber { background: var(--amber); }
+.bar--thin { height: 8px; }
+
+/* ================================ answer =============================== */
+
+.answer {
+    display: flex; align-items: center; gap: 14px;
+    width: 100%; min-height: 64px; padding: 12px 16px;
+    border: 2px solid var(--border-strong); border-radius: var(--r-control);
+    background: var(--surface); color: var(--ink);
+    font-size: 1rem; font-weight: 600; text-align: left;
+    cursor: pointer;
+    box-shadow: 0 var(--edge) 0 0 var(--border-strong);
+    transition: transform var(--m-press) var(--ease-out),
+                box-shadow var(--m-press) var(--ease-out),
+                background var(--m-fast) var(--ease-out),
+                border-color var(--m-fast) var(--ease-out);
+}
+.answer:active { transform: translateY(var(--edge)); box-shadow: 0 0 0 0 var(--border-strong); }
+.answer__key {
+    flex: 0 0 auto; width: 32px; height: 32px;
+    display: grid; place-items: center;
+    border: 2px solid var(--border-strong); border-radius: var(--r-sm);
+    font-family: var(--font-mono); font-size: .875rem; font-weight: 700;
+}
+.answer--selected {
+    border-color: var(--teal); background: var(--teal-soft);
+    box-shadow: 0 var(--edge) 0 0 var(--teal-strong);
+}
+.answer--selected .answer__key { border-color: var(--teal); color: var(--teal); }
+.answer--correct {
+    border-color: var(--correct); background: var(--correct-soft);
+    box-shadow: 0 var(--edge) 0 0 var(--correct);
+}
+.answer--correct .answer__key { border-color: var(--correct); background: var(--correct); color: var(--surface); }
+.answer--wrong {
+    border-color: var(--wrong); background: var(--wrong-soft);
+    box-shadow: 0 var(--edge) 0 0 var(--wrong);
+}
+.answer--wrong .answer__key { border-color: var(--wrong); background: var(--wrong); color: var(--surface); }
+.answer--dim { opacity: .55; }
+
+/* ================================ inputs =============================== */
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field__label { font-size: .875rem; font-weight: 700; }
+.field__help  { font-size: .8125rem; color: var(--ink-muted); }
+.field__error { font-size: .8125rem; color: var(--wrong); font-weight: 600; }
+.input, .textarea, .select {
+    width: 100%; min-height: 48px; padding: 10px 14px;
+    border: 2px solid var(--border-strong); border-radius: var(--r-control);
+    background: var(--surface); color: var(--ink);
+}
+.textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+.input::placeholder, .textarea::placeholder { color: var(--ink-faint); }
+.input:focus, .textarea:focus, .select:focus {
+    outline: 3px solid var(--teal); outline-offset: 2px; border-color: var(--teal);
+}
+.input--error { border-color: var(--wrong); }
+
+/* ================================ tabs ================================= */
+
+.tabs { display: flex; gap: 6px; padding: 4px; background: var(--surface-alt); border-radius: var(--r-control); }
+.tab {
+    flex: 1 1 auto; min-height: 40px; padding: 0 14px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    border: 0; border-radius: var(--r-sm); background: transparent;
+    color: var(--ink-muted); font-size: .875rem; font-weight: 700;
+    cursor: pointer; white-space: nowrap;
+}
+.tab[aria-selected='true'] { background: var(--surface); color: var(--ink); box-shadow: 0 2px 0 0 var(--border); }
+
+.segmented { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface-alt); border-radius: var(--r-chip); }
+.segmented > button {
+    min-height: 34px; padding: 0 14px; border: 0; border-radius: var(--r-chip);
+    background: transparent; color: var(--ink-muted);
+    font-size: .8125rem; font-weight: 700; cursor: pointer;
+}
+.segmented > button[aria-pressed='true'] { background: var(--surface); color: var(--ink); box-shadow: 0 2px 0 0 var(--border); }
+
+/* ================================= nav ================================= */
+
+.nav { display: flex; flex-direction: column; gap: 4px; }
+.nav__item {
+    display: flex; align-items: center; gap: 12px;
+    min-height: 48px; padding: 0 14px;
+    border-radius: var(--r-control);
+    color: var(--ink-soft); font-size: .9375rem; font-weight: 700;
+    cursor: pointer;
+}
+.nav__item:hover { background: var(--surface-alt); color: var(--ink); }
+.nav__item[aria-current='page'] { background: var(--teal-soft); color: var(--teal); }
+.nav__group { padding: 16px 14px 6px; font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
+
+.tabbar {
+    display: flex; align-items: stretch;
+    background: var(--surface); border-top: 2px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.tabbar__item {
+    flex: 1 1 0; min-height: var(--shell-tabbar);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    border: 0; background: transparent; color: var(--ink-muted);
+    font-size: .6875rem; font-weight: 700; cursor: pointer;
+}
+.tabbar__item[aria-current='page'] { color: var(--teal); }
+
+/* ================================ lexi ================================= */
+
+/* Lexi is a set of ten authored illustrations, one image per mood. Motion is
+   therefore applied to the whole picture — transforms and opacity only —
+   because there are no named parts to animate. The square box gives a stable
+   footprint for a set whose aspect ratios range from 0.74 to 1.01. */
+.lexi {
+    width: 88px; height: 88px;
+    object-fit: contain; object-position: center bottom;
+    flex: 0 0 auto;
+    user-select: none; -webkit-user-drag: none;
+    transform-origin: center bottom;
+}
+.lexi--xs { width: 40px;  height: 40px; }
+.lexi--sm { width: 56px;  height: 56px; }
+.lexi--md { width: 88px;  height: 88px; }
+.lexi--lg { width: 120px; height: 120px; }
+.lexi--xl { width: 200px; height: 200px; }
+
+@media (prefers-reduced-motion: no-preference) {
+    .lexi[data-mood='idle']      { animation: lexi-breathe 3.4s ease-in-out infinite; }
+    .lexi[data-mood='happy']     { animation: lexi-hop .7s var(--ease-out) 1; }
+    .lexi[data-mood='sad']       { animation: lexi-sag .9s var(--ease-out) 1; }
+    .lexi[data-mood='excited']   { animation: lexi-startle 1.2s var(--ease-out) 1; }
+    .lexi[data-mood='celebrate'] { animation: lexi-cheer .9s var(--ease-out) 1; }
+    .lexi[data-mood='thinking']  { animation: lexi-tilt 2.4s ease-in-out infinite; }
+    .lexi[data-mood='explain']   { animation: lexi-point 1.8s ease-in-out infinite; }
+    .lexi[data-mood='sleepy']    { animation: lexi-nod 4s ease-in-out infinite; }
+    .lexi[data-mood='approve']   { animation: lexi-hop .8s var(--ease-out) 1; }
+    .lexi[data-mood='coffee']    { animation: lexi-breathe 2.6s ease-in-out infinite; }
+}
+
+@keyframes lexi-breathe { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-2px) scale(1.012); } }
+@keyframes lexi-hop     { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-12px) rotate(-4deg); } 70% { transform: translateY(-5px) rotate(2deg); } }
+@keyframes lexi-sag     { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(4px) scale(.96); } }
+@keyframes lexi-startle { 0%,100% { transform: translateY(0) scale(1); } 30% { transform: translateY(-16px) scale(1.06); } 60% { transform: translateY(-8px) scale(1.03); } }
+@keyframes lexi-cheer   { 0%,100% { transform: translateY(0) rotate(0); } 25% { transform: translateY(-18px) rotate(-7deg); } 50% { transform: translateY(-6px) rotate(7deg); } 75% { transform: translateY(-12px) rotate(-4deg); } }
+@keyframes lexi-tilt    { 0%,100% { transform: rotate(0); } 50% { transform: rotate(-6deg); } }
+@keyframes lexi-point   { 0%,100% { transform: rotate(0); } 50% { transform: rotate(-9deg) translateY(-3px); } }
+@keyframes lexi-nod     { 0%,100% { transform: rotate(0) translateY(0); } 50% { transform: rotate(5deg) translateY(3px); } }
+
+/* Mood previews on the design-system sheet. */
+.lexi-cell { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.lexi-cell .lexi {
+    background: var(--surface-alt);
+    border-radius: var(--r-card);
+    padding: 6px;
+    box-sizing: content-box;
+}
+
+/* ================================ bubble =============================== */
+
+.bubble {
+    position: relative;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 2px solid var(--border-strong);
+    border-radius: var(--r-card);
+    box-shadow: 0 var(--edge) 0 0 var(--border);
+    font-size: 1rem; font-weight: 600;
+}
+.bubble--lexi { font-family: var(--font-display); font-weight: 700; }
+.bubble::after {
+    content: ''; position: absolute; width: 14px; height: 14px;
+    background: var(--surface);
+    border-right: 2px solid var(--border-strong); border-bottom: 2px solid var(--border-strong);
+}
+.bubble--left::after  { left: 22px; bottom: -9px; transform: rotate(45deg); }
+.bubble--right::after { right: 22px; bottom: -9px; transform: rotate(45deg); }
+
+/* ============================== path nodes ============================= */
+
+.path { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0; }
+.path__seg { width: 6px; height: 34px; background: var(--border); border-radius: var(--r-chip); }
+.path__node {
+    width: 84px; height: 84px; border-radius: var(--r-chip);
+    display: grid; place-items: center;
+    border: 2px solid transparent;
+    background: var(--teal); color: var(--on-teal);
+    box-shadow: 0 6px 0 0 var(--teal-strong);
+    cursor: pointer;
+}
+.path__node--current { animation: node-pulse 1.6s ease-in-out infinite; }
+.path__node--done   { background: var(--teal-soft); color: var(--teal); box-shadow: 0 6px 0 0 var(--border-strong); }
+.path__node--locked { background: var(--surface-alt); color: var(--ink-faint); box-shadow: 0 6px 0 0 var(--border); }
+.path__node--milestone { background: var(--amber); color: var(--on-amber); box-shadow: 0 6px 0 0 var(--amber-edge); width: 96px; height: 96px; }
+.path__ring { position: absolute; inset: -6px; border-radius: var(--r-chip); border: 3px solid var(--teal); opacity: .35; }
+
+@keyframes node-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.045); }
+}
+
+/* ============================== feedback ============================== */
+
+.verdict {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; border-radius: var(--r-card);
+    border: 2px solid var(--correct); background: var(--correct-soft);
+    box-shadow: 0 var(--edge) 0 0 var(--correct);
+}
+.verdict--wrong { border-color: var(--wrong); background: var(--wrong-soft); box-shadow: 0 var(--edge) 0 0 var(--wrong); }
+
+@media (prefers-reduced-motion: no-preference) {
+    .shake { animation: shake .4s var(--ease-out) 1; }
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+}
+
+/* ============================== utilities ============================= */
+
+.hide       { display: none !important; }
+.only-mobile { display: none; }
+@media (max-width: 1023px) { .hide-lg { display: none !important; } }
+@media (min-width: 1024px) { .only-mobile { display: none !important; } .only-lg { display: block; } }
+@media (max-width: 1023px) { .only-lg { display: none !important; } .only-mobile { display: block; } }
+
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.sticky-top { position: sticky; top: 0; z-index: 10; }
+
+/* ============================ reduced motion =========================== */
+
+/* Transforms go instant; the meaningful colour change of a verdict or a press
+   edge stays, because that is feedback rather than decoration. */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+    }
+    .lexi { animation: none !important; }
+    .lexi__head, .lexi__body, .lexi__wing, .lexi__eye { animation: none !important; }
+    .path__node--current { animation: none !important; }
+}

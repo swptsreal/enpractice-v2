@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Writing — phòng viết · EN Practice v2</title>
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/shell.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" />
+<style>
+.write { min-height: 100vh; display: flex; flex-direction: column; background: var(--canvas); }
+.write__body { flex: 1; display: grid; grid-template-columns: 380px 1fr; gap: 0; min-height: 0; }
+.write__prompt { padding: 24px; background: var(--surface); border-right: 2px solid var(--border); overflow-y: auto; }
+.write__editor { padding: 20px 24px; display: flex; flex-direction: column; gap: 10px; }
+.write__meta { display: flex; align-items: center; gap: 12px; }
+.write__foot { padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 2px solid var(--border); }
+@media (max-width: 1023px) {
+    .write__body { grid-template-columns: 1fr; }
+    .write__prompt { border-right: 0; border-bottom: 2px solid var(--border); padding: 16px 14px; }
+    .write__editor { padding: 14px; padding-bottom: 90px; }
+}
+</style>
+</head>
+<body>
+<a class="sr-only" href="#main">Bỏ qua tới nội dung</a>
+
+<div class="write">
+    <header class="exam__bar">
+        <button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Thoát"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        <div class="grow" style="min-width:0"><span class="t-label truncate" style="display:block">Writing Task 2 — Public transport</span>
+        <span class="t-micro muted">Tối thiểu 250 từ · khuyến nghị 40 phút</span></div>
+        <span class="timer"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span class="mono">27:15</span></span>
+        <span class="chip chip--teal hide-lg"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg> 1 credit</span>
+    </header>
+
+    <div class="write__body">
+        <section class="write__prompt" aria-label="Đề bài">
+            <span class="chip chip--outline">Task 2 · Essay</span>
+            <h2 class="t-h3" style="margin-top:12px">Some people think governments should spend money on public transport rather than on new roads.</h2>
+            <p class="t-body soft" style="margin-top:8px">Discuss both views and give your own opinion.</p>
+            <div class="hr" style="margin:16px 0"></div>
+            <h3 class="t-label">Tiêu chí chấm</h3>
+            <ul class="stack g8" style="margin-top:8px">
+                
+                    <li class="row g8 t-micro soft"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12.5 9.5 18 19.5 6.5"/></svg> Task Response</li>
+                    <li class="row g8 t-micro soft"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12.5 9.5 18 19.5 6.5"/></svg> Coherence &amp; Cohesion</li>
+                    <li class="row g8 t-micro soft"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12.5 9.5 18 19.5 6.5"/></svg> Lexical Resource</li>
+                    <li class="row g8 t-micro soft"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12.5 9.5 18 19.5 6.5"/></svg> Grammatical Range</li>
+            </ul>
+            <div class="hr" style="margin:16px 0"></div>
+            <div class="row g8"><span><img class="lexi lexi--xs " data-mood="explain"
+        src="assets/lexi-study-1.webp" width="40" height="48"
+        loading="lazy" decoding="async" aria-hidden="true" /></span>
+                <p class="t-micro soft">Mẹo: mỗi đoạn thân bài nên có một câu chủ đề rõ ràng.</p></div>
+        </section>
+
+        <section class="write__editor" aria-label="Bài viết">
+            <label class="field" style="height:100%">
+                <span class="sr-only">Bài viết của bạn</span>
+                <textarea class="textarea" style="min-height:380px;height:100%">It is often argued that public money would be better spent on public transport than on building new roads. While I accept that road expansion can relieve congestion in the short term, I believe that investment in public transport produces greater long-term benefits for both the environment and social equality.
+
+On the one hand, supporters of road building point out that…</textarea>
+            </label>
+            <div class="write__meta">
+                <span class="t-micro muted">Tự động lưu lúc 15:42</span>
+                <div class="grow"></div>
+                <span class="chip chip--amber" id="wc"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 20l3.5-.8L20 6.7a2 2 0 0 0-2.8-2.8L4.8 16.5z"/><path d="M15.5 5.5 18.5 8.5"/></svg> 142 / 250 từ</span>
+            </div>
+            <div class="row g12 hide-lg" style="justify-content:flex-end">
+                <button class="btn btn--ghost" type="button">Lưu nháp</button>
+                <a class="btn btn--primary" href="23-writing-result.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M12 3.5 13.8 9l5.7 1.8-5.7 1.8L12 18.2 10.2 12.6 4.5 10.8 10.2 9z"/><path d="M18.5 3.5v3M20 5h-3"/></svg> Nộp bài để AI chấm</a>
+            </div>
+        </section>
+    </div>
+
+    <footer class="write__foot hide-lg">
+        <div class="row g12" style="max-width:1240px;margin-inline:auto;width:100%">
+            <span class="t-micro muted grow">Nộp bài sẽ tốn 1 credit và cần khoảng 30–60 giây để chấm.</span>
+            <a class="btn btn--primary" href="23-writing-result.html">Nộp bài · <svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg> 1 credit</a>
+        </div>
+    </footer>
+</div>
+<div id="live" class="sr-only" role="status" aria-atomic="true"></div>
+<script>
+/* A mockup that cannot be pressed cannot be judged, so the interactions that
+   carry the design — tab switching, answer selection, switch toggles, revealing
+   a verdict — are live. Tab panels are keyed off data-panel, which is also what
+   the aria-controls wiring documents, so the mockup and the accessibility tree
+   cannot disagree. Plain <script>, no module, so file:// works. */
+(function () {
+    var live = document.getElementById('live');
+    function announce(text) { if (live) live.textContent = text; }
+
+    document.addEventListener('click', function (e) {
+        var tab = e.target.closest('[data-tab]');
+        if (tab) {
+            var group = tab.closest('[data-tabs]');
+            group.querySelectorAll('[data-tab]').forEach(function (t) {
+                t.setAttribute('aria-selected', String(t === tab));
+            });
+            var scope = group.dataset.tabs;
+            document.querySelectorAll('[data-panel^="' + scope + '-"]').forEach(function (p) {
+                p.hidden = p.dataset.panel !== tab.dataset.tab;
+            });
+            return;
+        }
+        var sel = e.target.closest('[data-select]');
+        if (sel) {
+            var box = sel.closest('[data-group]');
+            if (box) box.querySelectorAll('[data-select]').forEach(function (s) {
+                s.setAttribute('aria-pressed', String(s === sel));
+            });
+            announce(sel.dataset.announce || 'Đã chọn');
+            return;
+        }
+        var tog = e.target.closest('[data-toggle]');
+        if (tog) {
+            var on = (tog.getAttribute('aria-checked') || tog.getAttribute('aria-pressed')) === 'true';
+            tog.setAttribute('aria-checked', String(!on));
+            tog.setAttribute('aria-pressed', String(!on));
+            return;
+        }
+        var reveal = e.target.closest('[data-reveal]');
+        if (reveal) {
+            var el = document.getElementById(reveal.dataset.reveal);
+            if (el) {
+                el.hidden = false;
+                el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                announce(reveal.dataset.announce || '');
+            }
+        }
+    });
+})();
+</script>
+</body>
+</html>

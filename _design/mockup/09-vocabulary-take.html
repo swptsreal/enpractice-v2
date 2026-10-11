@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Làm bài test từ vựng · EN Practice v2</title>
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/shell.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" />
+<style>
+.take { min-height: 100vh; display: flex; flex-direction: column; background: var(--canvas); }
+.take__bar { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 2px solid var(--border); background: var(--surface); }
+.take__main { flex: 1; width: 100%; max-width: 680px; margin-inline: auto; padding: 28px 16px 120px; text-align: center; }
+.take__answers { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; text-align: left; }
+.take__answers .answer[aria-pressed='true'] { border-color: var(--teal); background: var(--teal-soft); box-shadow: 0 4px 0 0 var(--teal-strong); }
+.take__answers .answer[aria-pressed='true'] .answer__key { border-color: var(--teal); color: var(--teal); }
+.take__foot { position: sticky; bottom: 0; background: var(--surface); border-top: 2px solid var(--border); padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); }
+.take__foot-inner { max-width: 680px; margin-inline: auto; display: flex; align-items: center; gap: 12px; }
+@media (max-width: 479px) { .take__foot-inner .btn--ghost { display: none; } .take__foot-inner .btn--primary { width: 100%; } }
+</style>
+</head>
+<body>
+<a class="sr-only" href="#main">Bỏ qua tới nội dung</a>
+
+<div class="take">
+    <header class="take__bar">
+        <button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Thoát"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        <div class="grow" style="max-width:520px"><div class="bar" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100">
+        <div class="bar__fill " style="width:40%"></div>
+    </div></div>
+        <span class="t-micro mono muted">4 / 10</span>
+        <span class="chip chip--amber"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="m12 3.5 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 10l6.1-.9z"/></svg> 30 XP</span>
+    </header>
+
+    <main class="take__main" id="main">
+        <p class="t-micro muted">Chọn nghĩa đúng của từ</p>
+        <h1 class="t-display" style="margin-top:6px">mitigate</h1>
+        <div class="row g8" style="justify-content:center;margin-top:8px">
+            <button class="btn btn--ghost btn--sm" type="button"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 15v-2a7.5 7.5 0 0 1 15 0v2"/><rect x="3" y="14" width="4" height="6" rx="2"/><rect x="17" y="14" width="4" height="6" rx="2"/></svg> Nghe</button>
+            <span class="mono muted">/ˈmɪtɪɡeɪt/</span>
+        </div>
+
+        <div class="take__answers" data-group>
+            <button class="answer" type="button" data-select data-announce="Đã chọn A"><span class="answer__key">A</span><span>làm cho trầm trọng thêm</span></button>
+            <button class="answer" type="button" data-select data-announce="Đã chọn B" aria-pressed="true"><span class="answer__key">B</span><span>làm giảm bớt mức độ nghiêm trọng</span></button>
+            <button class="answer" type="button" data-select data-announce="Đã chọn C"><span class="answer__key">C</span><span>đo lường chính xác</span></button>
+            <button class="answer" type="button" data-select data-announce="Đã chọn D"><span class="answer__key">D</span><span>phản đối công khai</span></button>
+        </div>
+
+        <!-- Verdict: colour + glyph + text, so it never relies on hue alone -->
+        <div class="verdict" id="verdict" hidden>
+            <span style="color:var(--correct)"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12.5 9.5 18 19.5 6.5"/></svg></span>
+            <div class="grow">
+                <strong class="t-label">Chính xác</strong>
+                <p class="t-micro soft">"Mitigate" đi với tác động tiêu cực cần giảm bớt, không phải với việc tốt.</p>
+            </div>
+            <span><img class="lexi lexi--xs " data-mood="happy"
+        src="assets/lexi-yeah.webp" width="40" height="42"
+        loading="lazy" decoding="async" aria-hidden="true" /></span>
+        </div>
+    </main>
+
+    <footer class="take__foot">
+        <div class="take__foot-inner">
+            <button class="btn btn--ghost" type="button" disabled><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M19.5 12h-15"/><path d="M10.5 6l-6 6 6 6"/></svg> Câu trước</button>
+            <div class="grow"></div>
+            <button class="btn btn--primary btn--lg" type="button" data-reveal="verdict" data-announce="Chính xác. Đáp án đúng là B. Cộng 10 XP">
+                Kiểm tra <svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12h15"/><path d="M13.5 6l6 6-6 6"/></svg>
+            </button>
+        </div>
+    </footer>
+</div>
+<div id="live" class="sr-only" role="status" aria-atomic="true"></div>
+<script>
+/* A mockup that cannot be pressed cannot be judged, so the interactions that
+   carry the design — tab switching, answer selection, switch toggles, revealing
+   a verdict — are live. Tab panels are keyed off data-panel, which is also what
+   the aria-controls wiring documents, so the mockup and the accessibility tree
+   cannot disagree. Plain <script>, no module, so file:// works. */
+(function () {
+    var live = document.getElementById('live');
+    function announce(text) { if (live) live.textContent = text; }
+
+    document.addEventListener('click', function (e) {
+        var tab = e.target.closest('[data-tab]');
+        if (tab) {
+            var group = tab.closest('[data-tabs]');
+            group.querySelectorAll('[data-tab]').forEach(function (t) {
+                t.setAttribute('aria-selected', String(t === tab));
+            });
+            var scope = group.dataset.tabs;
+            document.querySelectorAll('[data-panel^="' + scope + '-"]').forEach(function (p) {
+                p.hidden = p.dataset.panel !== tab.dataset.tab;
+            });
+            return;
+        }
+        var sel = e.target.closest('[data-select]');
+        if (sel) {
+            var box = sel.closest('[data-group]');
+            if (box) box.querySelectorAll('[data-select]').forEach(function (s) {
+                s.setAttribute('aria-pressed', String(s === sel));
+            });
+            announce(sel.dataset.announce || 'Đã chọn');
+            return;
+        }
+        var tog = e.target.closest('[data-toggle]');
+        if (tog) {
+            var on = (tog.getAttribute('aria-checked') || tog.getAttribute('aria-pressed')) === 'true';
+            tog.setAttribute('aria-checked', String(!on));
+            tog.setAttribute('aria-pressed', String(!on));
+            return;
+        }
+        var reveal = e.target.closest('[data-reveal]');
+        if (reveal) {
+            var el = document.getElementById(reveal.dataset.reveal);
+            if (el) {
+                el.hidden = false;
+                el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                announce(reveal.dataset.announce || '');
+            }
+        }
+    });
+})();
+</script>
+</body>
+</html>

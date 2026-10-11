@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+        <title>EN Practice – Luyện IELTS &amp; Từ Vựng Tiếng Anh</title>
+        <meta
+            name="description"
+            content="Luyện thi IELTS 4 kỹ năng với AI chấm theo tiêu chí chấm thi, ôn từ vựng ngắt quãng và lộ trình học mỗi ngày. Phần học cốt lõi miễn phí."
+        />
+        <meta name="author" content="EN Practice" />
+        <meta name="theme-color" content="#0E7C6B" />
+
+        <!--
+            THEME BOOT — and the only place it can live.
+
+            The theme/text-size preference is in localStorage, `data-theme` on <html> is
+            per-document state that a reload discards, and React mounts well after the first paint
+            (i18n is awaited first). So anything that restores the preference from inside the app
+            runs too late: the page has already painted in the operating system's scheme, and on
+            any route other than Settings nothing ever restored it at all. That was the bug —
+            choose "Sáng", press F5, get dark.
+
+            THE KEY AND SHAPE MUST MATCH `src/features/settings/useSettings.js`
+            (`en-practice:prefs`, an object with `theme` and `textSize`). This copy cannot import
+            that module: it has to run before the bundle loads, so a small duplicate is the price
+            of never flashing the wrong theme.
+        -->
+        <script>
+            (function () {
+                try {
+                    var raw = window.localStorage.getItem('en-practice:prefs');
+                    var prefs = raw ? JSON.parse(raw) : null;
+                    if (!prefs) return;
+
+                    var root = document.documentElement;
+                    /* `system` means "no attribute": the token layer's `color-scheme: light dark`
+                       then follows the operating system, which is the intent. */
+                    if (prefs.theme && prefs.theme !== 'system') {
+                        root.setAttribute('data-theme', prefs.theme);
+                    }
+                    if (prefs.textSize) {
+                        root.setAttribute('data-text-size', prefs.textSize);
+                    }
+                } catch (error) {
+                    /* Unreadable or corrupt storage must never stop the app from starting. */
+                }
+            })();
+        </script>
+
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+
+        <!--
+            Fonts are self-hosted in production (see src/styles/fonts.css). Nunito
+            and Baloo 2 were both verified to ship a `vietnamese` unicode subset,
+            which matters because Vietnamese is the default and index language.
+            The <link> below is the development convenience only.
+        -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="module" src="/src/main.jsx"></script>
+    </body>
+</html>

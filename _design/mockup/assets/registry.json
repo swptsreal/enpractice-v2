@@ -1,0 +1,218 @@
+[
+  {
+    "f": "01-landing",
+    "t": "Landing",
+    "g": "Marketing & Auth",
+    "n": "Hero + 6 section · variance cao nhất trong hệ"
+  },
+  {
+    "f": "02-login",
+    "t": "Đăng nhập / Đăng ký",
+    "g": "Marketing & Auth",
+    "n": "Split panel · 1 cột dưới 1024px"
+  },
+  {
+    "f": "03-onboarding",
+    "t": "Onboarding lần đầu",
+    "g": "Marketing & Auth",
+    "n": "Không có nav · 1 quyết định mỗi bước"
+  },
+  {
+    "f": "04-home",
+    "t": "Trang chủ",
+    "g": "Học hằng ngày",
+    "n": "Không còn bento 6 widget"
+  },
+  {
+    "f": "05-daily-plan",
+    "t": "Kế hoạch học hôm nay",
+    "g": "Học hằng ngày",
+    "n": "Sheet 28px radius · không có nav"
+  },
+  {
+    "f": "06-path",
+    "t": "Lộ trình học",
+    "g": "Học hằng ngày",
+    "n": "Signature surface · node pulse 1.6s (tắt khi reduced-motion)"
+  },
+  {
+    "f": "07-vocabulary-check",
+    "t": "Tra từ & hỏi AI",
+    "g": "Từ vựng",
+    "n": "Ô nhập là trọng tâm · credit hiển thị trước khi tốn"
+  },
+  {
+    "f": "08-vocabulary-list",
+    "t": "Test từ vựng",
+    "g": "Từ vựng",
+    "n": "Empty/loading/error đều được thiết kế"
+  },
+  {
+    "f": "09-vocabulary-take",
+    "t": "Làm bài test từ vựng",
+    "g": "Từ vựng",
+    "n": "Nút kiểm tra dính đáy, an toàn với ngón tay"
+  },
+  {
+    "f": "10-vocabulary-result",
+    "t": "Kết quả test từ vựng",
+    "g": "Từ vựng",
+    "n": "Kết quả dẫn thẳng tới hành động tiếp theo"
+  },
+  {
+    "f": "11-vocabulary-history",
+    "t": "Lịch sử test từ vựng",
+    "g": "Từ vựng",
+    "n": "Sửa lỗi cuộn ngang của v1"
+  },
+  {
+    "f": "12-dictionary",
+    "t": "Sổ tay từ vựng",
+    "g": "Từ vựng",
+    "n": "Danh sách + chi tiết, dưới 1024px thành 1 cột"
+  },
+  {
+    "f": "13-dictionary-review",
+    "t": "Ôn flashcard SRS",
+    "g": "Từ vựng",
+    "n": "Một thẻ một màn · 4 nút to, dễ bấm bằng ngón cái"
+  },
+  {
+    "f": "14-evaluation",
+    "t": "Đánh giá năng lực",
+    "g": "Từ vựng",
+    "n": "Không tô hồng kết quả · nêu rõ đâu là ước tính"
+  },
+  {
+    "f": "15-review",
+    "t": "Ôn tập ngắt quãng",
+    "g": "Từ vựng",
+    "n": "Bước 1/3 · cho thấy trước sẽ mất bao lâu"
+  },
+  {
+    "f": "16-ielts-list",
+    "t": "Kho đề IELTS",
+    "g": "IELTS",
+    "n": "Lọc theo kỹ năng · 1 bố cục duy nhất cho mọi màn danh sách"
+  },
+  {
+    "f": "17-ielts-detail",
+    "t": "Chi tiết đề thi",
+    "g": "IELTS",
+    "n": "Cho biết chính xác sẽ tốn bao nhiêu credit"
+  },
+  {
+    "f": "18-ielts-take",
+    "t": "Phòng thi IELTS",
+    "g": "IELTS",
+    "n": "Sửa lỗi lớn nhất của v1: passage và câu hỏi cùng nhìn thấy được"
+  },
+  {
+    "f": "19-ielts-result",
+    "t": "Kết quả IELTS",
+    "g": "IELTS",
+    "n": "Band là ước tính luyện tập, không phải điểm thi thật"
+  },
+  {
+    "f": "20-ielts-history",
+    "t": "Lịch sử thi IELTS",
+    "g": "IELTS",
+    "n": "Chart + danh sách, không dùng bảng cuộn ngang"
+  },
+  {
+    "f": "21-writing-list",
+    "t": "Writing — danh sách",
+    "g": "IELTS",
+    "n": "Nêu rõ chấm bất đồng bộ và có trạng thái chờ"
+  },
+  {
+    "f": "22-writing-take",
+    "t": "Writing — phòng viết",
+    "g": "IELTS",
+    "n": "Đếm từ, cảnh báo thiếu từ, lưu nháp tự động"
+  },
+  {
+    "f": "23-writing-result",
+    "t": "Writing — bài đã chấm",
+    "g": "IELTS",
+    "n": "Phản hồi gắn với câu cụ thể trong bài"
+  },
+  {
+    "f": "24-speaking-list",
+    "t": "Speaking — chủ đề",
+    "g": "IELTS",
+    "n": "Yêu cầu micro được nói rõ trước khi bắt đầu"
+  },
+  {
+    "f": "25-speaking-take",
+    "t": "Speaking — ghi âm",
+    "g": "IELTS",
+    "n": "Trạng thái ghi rõ ràng, có nút dừng to"
+  },
+  {
+    "f": "26-speaking-result",
+    "t": "Speaking — kết quả",
+    "g": "IELTS",
+    "n": "Số liệu giọng nói thật, không phóng đại"
+  },
+  {
+    "f": "27-custom-speaking",
+    "t": "Hội thoại AI tự chọn chủ đề",
+    "g": "IELTS",
+    "n": "Credit hiển thị trước, không giật mình"
+  },
+  {
+    "f": "28-leaderboard",
+    "t": "Bảng xếp hạng",
+    "g": "Tiến độ",
+    "n": "Không phơi 50 người lạ · mặc định tắt, dùng biệt danh"
+  },
+  {
+    "f": "29-weekly-report",
+    "t": "Báo cáo tuần",
+    "g": "Tiến độ",
+    "n": "Chỉ số đều là dữ liệu luyện tập thật"
+  },
+  {
+    "f": "30-challenges",
+    "t": "Thử thách tuần",
+    "g": "Tiến độ",
+    "n": "Không tạo áp lực xã hội · không có đồng hồ đếm ngược đỏ"
+  },
+  {
+    "f": "31-rewards",
+    "t": "Phần thưởng & nhiệm vụ",
+    "g": "Tiến độ",
+    "n": "v1 là 1 file 1.604 dòng · v2 tách thành tab rõ ràng"
+  },
+  {
+    "f": "32-credits",
+    "t": "Ví credit",
+    "g": "Tiến độ",
+    "n": "Bảng phí công khai · nói rõ cái gì miễn phí"
+  },
+  {
+    "f": "33-profile",
+    "t": "Trang cá nhân",
+    "g": "Tài khoản",
+    "n": "Lexi tiến hoá theo level, chỉ hiển thị ở đây và lúc mở khoá"
+  },
+  {
+    "f": "34-notifications",
+    "t": "Trung tâm thông báo",
+    "g": "Tài khoản",
+    "n": "Có công tắc tắt nhắc học ngay trong ngữ cảnh"
+  },
+  {
+    "f": "35-settings",
+    "t": "Cài đặt",
+    "g": "Tài khoản",
+    "n": "Hai công tắc gamification nằm ở nhóm đầu tiên, một chạm"
+  },
+  {
+    "f": "36-ai-chat",
+    "t": "AI Coach",
+    "g": "Tài khoản",
+    "n": "Nêu rõ chi phí mỗi tin nhắn trước khi gửi"
+  }
+]

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Ôn tập ngắt quãng · EN Practice v2</title>
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/shell.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" />
+<style>
+.stepper { display: flex; gap: 8px; align-items: center; padding: 0; }
+.stepper__i { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: var(--r-chip); background: var(--surface-alt); }
+.stepper__i.is-on { background: var(--teal-soft); }
+.stepper__d { width: 22px; height: 22px; border-radius: 999px; background: var(--surface); display: grid; place-items: center; font-size: .6875rem; }
+.stepper__i.is-on .stepper__d { background: var(--teal); color: var(--on-teal); }
+.answer[aria-pressed='true'] { border-color: var(--teal); background: var(--teal-soft); box-shadow: 0 4px 0 0 var(--teal-strong); }
+</style>
+</head>
+<body>
+<a class="sr-only" href="#main">Bỏ qua tới nội dung</a>
+
+<div class="shell">
+    <aside class="shell__rail">
+        <a class="shell__brand" href="04-home.html"><span><img class="lexi lexi--xs " data-mood="idle"
+        src="assets/lexi-yes.webp" width="40" height="42"
+        loading="lazy" decoding="async" aria-hidden="true" /></span>
+            <span class="grow"><span class="t-h3" style="display:block">EN Practice</span><span class="t-micro muted">Mỗi ngày một bước</span></span></a>
+        <nav class="shell__nav" aria-label="Điều hướng chính">
+            <div class="nav">
+                <a class="nav__item" href="04-home.html"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5.5h5V20"/></svg><span>Trang chủ</span></a>
+                <a class="nav__item" href="07-vocabulary-check.html" aria-current="page"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Học</span></a>
+                <a class="nav__item" href="16-ielts-list.html"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/></svg><span>Luyện tập</span></a>
+                <a class="nav__item" href="29-weekly-report.html"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg><span>Tiến độ</span></a>
+                <a class="nav__item" href="33-profile.html"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg><span>Cá nhân</span></a>
+            </div>
+        </nav>
+    </aside>
+
+    <div class="shell__main">
+        <header class="shell__header">
+            <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Ôn tập ngắt quãng</h1>
+            <p class="t-micro muted">Bước 1 / 3 — chọn nội dung ôn</p></div>
+        </header>
+
+        <main class="shell__content shell__content--focus" id="main">
+            <ol class="stepper" aria-label="Tiến trình">
+                
+                    <li class="stepper__i is-on"><span class="stepper__d mono">1</span><span class="t-micro ">Chọn nội dung</span></li>
+                    <li class="stepper__i "><span class="stepper__d mono">2</span><span class="t-micro muted">Ôn</span></li>
+                    <li class="stepper__i "><span class="stepper__d mono">3</span><span class="t-micro muted">Kết quả</span></li>
+            </ol>
+
+            <section class="card card--edge pad-x" style="margin-top:20px">
+                <div class="row g12">
+                    <span><img class="lexi lexi--sm " data-mood="explain"
+        src="assets/lexi-study-1.webp" width="56" height="68"
+        loading="lazy" decoding="async" aria-hidden="true" /></span>
+                    <p class="t-body grow">Bạn có <strong>34 từ</strong> đến hạn. Ôn hết sẽ mất khoảng <strong>9 phút</strong>.</p>
+                </div>
+
+                <fieldset style="border:0;padding:0;margin-top:20px">
+                    <legend class="t-label" style="margin-bottom:10px">Nội dung ôn</legend>
+                    <div class="stack g8" data-group>
+                        
+                            <button class="answer" type="button" data-select aria-pressed="true" style="min-height:58px">
+                                <span class="answer__key" style="border-radius:999px"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12.5 9.5 18 19.5 6.5"/></svg></span>
+                                <span class="grow"><strong class="t-label" style="display:block">Ôn từ vựng đến hạn</strong><span class="t-micro muted">34 từ · 9 phút</span></span>
+                            </button>
+                            <button class="answer" type="button" data-select aria-pressed="false" style="min-height:58px">
+                                <span class="answer__key" style="border-radius:999px"></span>
+                                <span class="grow"><strong class="t-label" style="display:block">Từ hay quên</strong><span class="t-micro muted">8 từ · 3 phút</span></span>
+                            </button>
+                            <button class="answer" type="button" data-select aria-pressed="false" style="min-height:58px">
+                                <span class="answer__key" style="border-radius:999px"></span>
+                                <span class="grow"><strong class="t-label" style="display:block">Theo thẻ bạn chọn</strong><span class="t-micro muted">Environment, Health</span></span>
+                            </button>
+                            <button class="answer" type="button" data-select aria-pressed="false" style="min-height:58px">
+                                <span class="answer__key" style="border-radius:999px"></span>
+                                <span class="grow"><strong class="t-label" style="display:block">Ôn tất cả sổ tay</strong><span class="t-micro muted">128 từ · 34 phút</span></span>
+                            </button>
+                    </div>
+                </fieldset>
+
+                <div class="row g12 wrap" style="margin-top:20px">
+                    <div class="grow">
+                        <span class="t-micro muted">Chiều ôn</span>
+                        <div class="segmented" style="margin-top:4px">
+                            <button aria-pressed="true">Anh → Việt</button>
+                            <button aria-pressed="false">Việt → Anh</button>
+                            <button aria-pressed="false">Trộn</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="row g12" style="margin-top:16px">
+                <a class="btn btn--primary btn--lg grow" href="13-dictionary-review.html">Bắt đầu ôn (9 phút)</a>
+                <a class="btn btn--ghost btn--lg" href="04-home.html">Để sau</a>
+            </div>
+        </main>
+
+        <nav class="tabbar only-mobile" aria-label="Điều hướng chính">
+            <a class="tabbar__item" href="04-home.html"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5.5h5V20"/></svg><span>Trang chủ</span></a>
+            <a class="tabbar__item" href="07-vocabulary-check.html" aria-current="page"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Học</span></a>
+            <a class="tabbar__item" href="16-ielts-list.html"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/></svg><span>Luyện tập</span></a>
+            <a class="tabbar__item" href="29-weekly-report.html"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg><span>Tiến độ</span></a>
+            <a class="tabbar__item" href="33-profile.html"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg><span>Cá nhân</span></a>
+        </nav>
+    </div>
+</div>
+<div id="live" class="sr-only" role="status" aria-atomic="true"></div>
+<script>
+/* A mockup that cannot be pressed cannot be judged, so the interactions that
+   carry the design — tab switching, answer selection, switch toggles, revealing
+   a verdict — are live. Tab panels are keyed off data-panel, which is also what
+   the aria-controls wiring documents, so the mockup and the accessibility tree
+   cannot disagree. Plain <script>, no module, so file:// works. */
+(function () {
+    var live = document.getElementById('live');
+    function announce(text) { if (live) live.textContent = text; }
+
+    document.addEventListener('click', function (e) {
+        var tab = e.target.closest('[data-tab]');
+        if (tab) {
+            var group = tab.closest('[data-tabs]');
+            group.querySelectorAll('[data-tab]').forEach(function (t) {
+                t.setAttribute('aria-selected', String(t === tab));
+            });
+            var scope = group.dataset.tabs;
+            document.querySelectorAll('[data-panel^="' + scope + '-"]').forEach(function (p) {
+                p.hidden = p.dataset.panel !== tab.dataset.tab;
+            });
+            return;
+        }
+        var sel = e.target.closest('[data-select]');
+        if (sel) {
+            var box = sel.closest('[data-group]');
+            if (box) box.querySelectorAll('[data-select]').forEach(function (s) {
+                s.setAttribute('aria-pressed', String(s === sel));
+            });
+            announce(sel.dataset.announce || 'Đã chọn');
+            return;
+        }
+        var tog = e.target.closest('[data-toggle]');
+        if (tog) {
+            var on = (tog.getAttribute('aria-checked') || tog.getAttribute('aria-pressed')) === 'true';
+            tog.setAttribute('aria-checked', String(!on));
+            tog.setAttribute('aria-pressed', String(!on));
+            return;
+        }
+        var reveal = e.target.closest('[data-reveal]');
+        if (reveal) {
+            var el = document.getElementById(reveal.dataset.reveal);
+            if (el) {
+                el.hidden = false;
+                el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                announce(reveal.dataset.announce || '');
+            }
+        }
+    });
+})();
+</script>
+</body>
+</html>

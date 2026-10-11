@@ -1,0 +1,130 @@
+/* =============================================================================
+   EN Practice v2 — design tokens
+   =============================================================================
+
+   THE single source of truth for colour, shape, motion and type. This file
+   replaces v1's entire theme machinery:
+
+     themeProfiles.js   788 lines, 9 profiles x 10 backgrounds x 5 primaries
+     themeTokens.js    1238 lines, the resolver
+     config/pagePalettes.js  374 lines, 10 named palettes
+     9 x *Theme.js     ~1000 lines, per-page surface re-derivation
+     index.css         1603 lines, which re-declared the same tokens again
+
+   v2 ships ONE palette per mode. If a surface needs emphasis it uses weight,
+   size, teal or amber — in that order. There is no second colour resolver and
+   no per-component theme conditional.
+
+   Every colour pair used in the UI is measured by scripts/contrast-check.mjs,
+   which is part of `npm run verify`. Do not edit a colour here without running
+   it: the gate caught 5 real failures in the first draft of this palette,
+   including an input border that measured 1.56:1 (i.e. invisible).
+   ========================================================================== */
+
+/* ---- mode selection ------------------------------------------------------
+   The palette is `light-dark()`, so a mode is chosen by `color-scheme` — there is
+   no second set of variables to switch. `useSettings` writes `data-theme` on
+   <html>; WITHOUT these two rules that attribute changed nothing, so the
+   light/dark toggle in Settings looked broken because it was: the page followed
+   the operating system and ignored the choice. `system` removes the attribute and
+   falls back to `light dark` below. */
+
+:root[data-theme='light'] {
+    color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+    color-scheme: dark;
+}
+
+:root {
+    color-scheme: light dark;
+
+    /* ---- brand: one action colour, one reward colour -------------------- */
+    --teal:         light-dark(#0E7C6B, #4FCDB6);
+    --teal-strong:  light-dark(#0A6355, #7ADDC9);
+    --teal-soft:    light-dark(#E4F5F0, #123B37);
+    --amber:        light-dark(#F5B32E, #F7C455);
+    --amber-edge:   light-dark(#B8811A, #C99A32);
+    --amber-soft:   light-dark(#FDF3DC, #3C2F12);
+
+    /* ---- ground --------------------------------------------------------- */
+    --canvas:       light-dark(#FBF8F2, #0C161B);
+    --surface:      light-dark(#FFFFFF, #14232B);
+    --surface-alt:  light-dark(#F3F0E8, #1C2F38);
+
+    /* ---- ink ------------------------------------------------------------ */
+    --ink:          light-dark(#14232B, #EAF4F2);
+    --ink-soft:     light-dark(#3B525E, #B9CECB);
+    /* #5A717D, not #5E7683: the lighter value measured 4.20:1 on surface-alt,
+       which the prose tier cannot use. The correction is a lightness-only move
+       of 0.008, so it is visually identical. */
+    --ink-muted:    light-dark(#5A717D, #8DA5A3);
+    /* decoration and disabled only — 2.47:1 light / 4.11:1 dark. Never a
+       sentence. Measured, not assumed. */
+    --ink-faint:    light-dark(#8FA3AD, #647C7B);
+    --on-teal:      light-dark(#FFFFFF, #0C161B);
+    /* amber is a LIGHT colour, so it carries dark ink. White on amber measures
+       1.72:1 and is a ship-blocker. */
+    --on-amber:     #14232B;
+
+    /* ---- lines ---------------------------------------------------------- */
+    /* a decorative separator between two surfaces that already differ by fill */
+    --border:        light-dark(#E4E0D4, #25393F);
+    /* any border that is a control's only identity (input, answer tile, focus
+       outline) must clear 3:1 (WCAG 2.1 SC 1.4.11) */
+    --border-strong: light-dark(#8B8674, #647C7B);
+
+    /* ---- semantics: report state, never decorate ------------------------ */
+    /* The light-mode status colours are a touch darker than the obvious pick so
+       they clear 4.5:1 on their own soft background: success measured 4.07:1 and
+       danger 4.31:1 on the soft tints. Because a verdict chip renders the status
+       colour ON that tint, the pair is the one that matters. Corrections are
+       lightness-only and under 0.01. */
+    --correct:      light-dark(#117D55, #4BD08B);
+    --wrong:        light-dark(#C33934, #F07C74);
+    --attention:    light-dark(#9C5809, #E8A838);
+    --info:         light-dark(#0B6E8F, #5CC2E0);
+    --correct-soft: light-dark(#E3F4EC, #10322A);
+    --wrong-soft:   light-dark(#FBE9E8, #3A1D1C);
+    --attention-soft: light-dark(#FBF0DC, #3B2E12);
+    --info-soft:    light-dark(#E3F1F6, #102C36);
+
+    /* ---- shape ---------------------------------------------------------- */
+    --r-chip:        999px;
+    --r-sm:          10px;
+    --r-control:     14px;
+    --r-card:        20px;
+    --r-hero:        28px;
+
+    /* the press edge: a solid bottom edge that collapses on :active */
+    --edge:          4px;
+
+    /* ---- motion --------------------------------------------------------- */
+    --m-press:  90ms;
+    --m-fast:   160ms;
+    --m-base:   240ms;
+    --m-slow:   380ms;
+    --ease-out: cubic-bezier(.22, 1, .36, 1);
+    /* --ease-back deliberately overshoots. Permitted ONLY for one-shot moments
+       (a node unlocking, a band score landing), never for state changes, hovers
+       or anything that repeats. */
+    --ease-back: cubic-bezier(.34, 1.56, .64, 1);
+
+    /* ---- type ----------------------------------------------------------- */
+    --font:         'Nunito', ui-rounded, 'Segoe UI', system-ui, sans-serif;
+    --font-display: 'Baloo 2', 'Nunito', ui-rounded, system-ui, sans-serif;
+    --font-mono:    'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+    /* ---- layout --------------------------------------------------------- */
+    --shell-sidebar:   264px;
+    --shell-sidebar-sm: 84px;
+    --shell-tabbar:    68px;
+    --shell-header:    64px;
+    --container-wide:  1240px;
+    --container-focus: 820px;
+}
+
+@media (min-width: 1024px) {
+    :root { --shell-header: 72px; }
+}

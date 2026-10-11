@@ -1,0 +1,197 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+/* =============================================================================
+   Base layer. Small on purpose: v1's index.css was 1603 lines with 156 custom
+   classes and 29 !important because it was fighting antd. v2 has nothing to
+   fight, so the base stays thin and structure lives in components.
+   ========================================================================== */
+
+@layer base {
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    html {
+        -webkit-text-size-adjust: 100%;
+        /* Anchor targets must not land underneath the sticky shell header. Settings'
+           section links (`#reminders`, `#learning`, …) jumped to a heading that was then
+           covered by the header. One line on the scroll container beats a scroll-margin
+           on every section, and it covers links added later. */
+        scroll-padding-top: calc(var(--shell-header) + 12px);
+    }
+
+    body {
+        margin: 0;
+        font-family: var(--font);
+        font-size: 16px;
+        line-height: 1.6;
+        color: var(--ink);
+        background: var(--canvas);
+        min-height: 100dvh;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* `clip` rather than `hidden`: `hidden` makes body a scroll container,
+           which silently kills every `position: sticky` inside it (the shell
+           header, the take-screen action bar). */
+        overflow-x: clip;
+    }
+
+    h1, h2, h3, h4, p, figure, ul, ol, dl, dd {
+        margin: 0;
+    }
+
+    ul, ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    button, input, textarea, select {
+        font: inherit;
+        color: inherit;
+    }
+
+    img, svg {
+        display: block;
+        max-width: 100%;
+    }
+
+    a {
+        color: var(--teal);
+        text-decoration: none;
+    }
+
+    /* The user-agent rule for [hidden] is `display: none` at author-origin
+       weight, so any component that sets its own `display` defeats it. Tab
+       panels and sheet bodies rely on [hidden]; make it authoritative once. */
+    [hidden] {
+        display: none !important;
+    }
+
+    :focus-visible {
+        outline: 3px solid var(--teal);
+        outline-offset: 2px;
+        border-radius: var(--r-sm);
+    }
+
+    ::selection {
+        background: color-mix(in srgb, var(--teal) 28%, transparent);
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--border-strong);
+        border-radius: var(--r-chip);
+        border: 3px solid var(--canvas);
+    }
+}
+
+/* =============================================================================
+   Typography scale. Ten steps; the floor is 13px (v1's Micro step was 11px,
+   which is below a comfortable reading size for this audience on a phone).
+   ========================================================================== */
+
+@layer components {
+    .t-display-xl { font-family: var(--font-display); font-size: clamp(2.25rem, 6vw, 3.5rem); font-weight: 800; line-height: 1.04; letter-spacing: -0.02em; }
+    .t-display    { font-size: clamp(1.75rem, 4.5vw, 2.5rem); font-weight: 800; line-height: 1.10; letter-spacing: -0.02em; }
+    .t-h1         { font-size: clamp(1.5rem, 3.4vw, 2rem);     font-weight: 800; line-height: 1.15; letter-spacing: -0.015em; }
+    .t-h2         { font-size: 1.5rem;  font-weight: 800; line-height: 1.20; letter-spacing: -0.01em; }
+    .t-h3         { font-size: 1.125rem; font-weight: 700; line-height: 1.30; }
+    .t-body-lg    { font-size: 1.0625rem; font-weight: 500; line-height: 1.55; }
+    .t-body       { font-size: 1rem;      font-weight: 400; line-height: 1.60; }
+    .t-label      { font-size: .875rem;   font-weight: 700; line-height: 1.20; letter-spacing: .01em; }
+    .t-micro      { font-size: .8125rem;  font-weight: 600; line-height: 1.40; letter-spacing: .01em; }
+    .t-mono       { font-family: var(--font-mono); font-size: .875rem; font-weight: 600; line-height: 1.30; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+
+    .muted { color: var(--ink-muted); }
+    .soft  { color: var(--ink-soft); }
+
+    /* The Passage Rule: long-form reading is never negatively tracked, never
+       above weight 500, and never wider than a comfortable measure. */
+    .prose-reading {
+        font-size: 1rem;
+        line-height: 1.6;
+        font-weight: 400;
+        max-width: 68ch;
+    }
+
+    /* ---------------------------------------------------------------- layout */
+    .container-wide  { width: 100%; max-width: var(--container-wide);  margin-inline: auto; padding-inline: 16px; }
+    .container-focus { width: 100%; max-width: var(--container-focus); margin-inline: auto; padding-inline: 16px; }
+    @media (min-width: 768px) {
+        .container-wide, .container-focus { padding-inline: 24px; }
+    }
+    @media (min-width: 1280px) {
+        .container-wide { padding-inline: 32px; }
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
+    }
+}
+
+/* =============================================================================
+   The path pulse — the ONE perpetual animation in the product.
+
+   It marks the single node the learner is on, and it is the only thing on any
+   screen that never stops moving. That is a budget, not a style: perpetual
+   motion competes for attention, so exactly one element gets it, and it means
+   "here" rather than "look at me".
+
+   A sonar ring rather than a scale-up, because scaling the node would move the
+   icon the user is aiming at. The ring is a child span with `pointer-events:
+   none`, so it never swallows the press.
+
+   Under `prefers-reduced-motion` the global rule below collapses it to one 1ms
+   iteration, which leaves the node in its resting state — the state is also in
+   the accessible name and the icon, so nothing is lost.
+   ========================================================================== */
+
+@keyframes path-pulse-ring {
+    from {
+        box-shadow: 0 0 0 0 var(--teal);
+        opacity: 0.45;
+    }
+
+    to {
+        box-shadow: 0 0 0 16px var(--teal);
+        opacity: 0;
+    }
+}
+
+.path-pulse {
+    animation: path-pulse-ring 1.6s var(--ease-out) infinite;
+    pointer-events: none;
+}
+
+/* =============================================================================
+   Reduced motion. Transforms become instant; the meaningful COLOUR change of a
+   verdict or a press edge stays, because that is feedback rather than
+   decoration. v1 got this instinct right and v2 keeps it.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+    }
+}

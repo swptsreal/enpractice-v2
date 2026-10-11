@@ -1,0 +1,54 @@
+/* =============================================================================
+   Lexi motion. One keyframe rule per mood, all in one place, so motion is
+   discoverable rather than scattered across components.
+   ============================================================================= */
+
+@media (prefers-reduced-motion: no-preference) {
+    .lexi--idle      { animation: lexi-breathe 3.4s ease-in-out infinite; }
+    .lexi--happy     { animation: lexi-hop .7s var(--ease-out) 1; }
+    .lexi--sad       { animation: lexi-sag .9s var(--ease-out) 1; }
+    .lexi--excited   { animation: lexi-startle 1.2s var(--ease-out) 1; }
+    .lexi--celebrate { animation: lexi-cheer .9s var(--ease-out) 1; }
+    .lexi--thinking  { animation: lexi-tilt 2.4s ease-in-out infinite; }
+    .lexi--explain   { animation: lexi-point 1.8s ease-in-out infinite; }
+    .lexi--sleepy    { animation: lexi-nod 4s ease-in-out infinite; }
+    .lexi--approve   { animation: lexi-hop .8s var(--ease-out) 1; }
+    .lexi--coffee    { animation: lexi-breathe 2.6s ease-in-out infinite; }
+}
+
+@keyframes lexi-breathe {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-2px) scale(1.012); }
+}
+@keyframes lexi-hop {
+    0%, 100% { transform: translateY(0); }
+    40%      { transform: translateY(-12px) rotate(-4deg); }
+    70%      { transform: translateY(-5px) rotate(2deg); }
+}
+@keyframes lexi-sag {
+    0%   { transform: translateY(0) scale(1); }
+    100% { transform: translateY(4px) scale(.96); }
+}
+@keyframes lexi-startle {
+    0%, 100% { transform: translateY(0) scale(1); }
+    30%      { transform: translateY(-16px) scale(1.06); }
+    60%      { transform: translateY(-8px) scale(1.03); }
+}
+@keyframes lexi-cheer {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    25%      { transform: translateY(-18px) rotate(-7deg); }
+    50%      { transform: translateY(-6px) rotate(7deg); }
+    75%      { transform: translateY(-12px) rotate(-4deg); }
+}
+@keyframes lexi-tilt {
+    0%, 100% { transform: rotate(0); }
+    50%      { transform: rotate(-6deg); }
+}
+@keyframes lexi-point {
+    0%, 100% { transform: rotate(0); }
+    50%      { transform: rotate(-9deg) translateY(-3px); }
+}
+@keyframes lexi-nod {
+    0%, 100% { transform: rotate(0) translateY(0); }
+    50%      { transform: rotate(5deg) translateY(3px); }
+}

@@ -1,0 +1,27 @@
+export const REALTIME_MODES = Object.freeze({
+    IDLE: 'idle',
+    GUEST: 'guest',
+    AUTHENTICATED: 'authenticated',
+});
+
+export const GUEST_TRIAL_STATUSES = Object.freeze({
+    IDLE: 'idle',
+    AVAILABLE: 'available',
+    DISABLED: 'disabled',
+    UNAVAILABLE: 'unavailable',
+});
+
+export const GUEST_SESSION_STORAGE_KEY = 'guest_ai_trial_session';
+
+export const GUEST_ERROR_CODES = Object.freeze({
+    TRIAL_DISABLED: 'GUEST_TRIAL_DISABLED',
+    TOKEN_EXPIRED: 'GUEST_TOKEN_EXPIRED',
+    DAILY_LIMIT: 'GUEST_DAILY_LIMIT_REACHED',
+    IP_DAILY_LIMIT: 'IP_DAILY_LIMIT_REACHED',
+    DUPLICATE_REQUEST: 'DUPLICATE_REQUEST',
+    TRIAL_UNAVAILABLE: 'GUEST_TRIAL_UNAVAILABLE',
+    INVALID_REQUEST: 'INVALID_REQUEST',
+    AI_TIMEOUT: 'AI_TIMEOUT',
+    AI_STREAM_FAILED: 'AI_STREAM_FAILED',
+    EMPTY_RESPONSE: 'EMPTY_RESPONSE',
+});

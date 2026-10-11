@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Phòng thi IELTS · EN Practice v2</title>
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/shell.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" />
+<style>
+.exam { min-height: 100vh; display: flex; flex-direction: column; background: var(--canvas); }
+.exam__bar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--surface); border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 15; }
+.timer { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: var(--r-control); background: var(--surface-alt); color: var(--ink-soft); }
+.timer--warn { background: var(--wrong-soft); color: var(--wrong); }
+.exam__tabs { display: flex; gap: 6px; padding: 8px 12px; background: var(--surface); border-bottom: 2px solid var(--border); }
+.exam__tabs [role='tab'] { flex: 1; min-height: 42px; border: 0; border-radius: var(--r-sm); background: var(--surface-alt); color: var(--ink-muted); font-weight: 700; font-size: .875rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.exam__tabs [role='tab'][aria-selected='true'] { background: var(--teal); color: var(--on-teal); }
+.exam__body { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 0; min-height: 0; }
+.exam__pane { overflow-y: auto; padding: 20px; }
+.exam__pane--passage { border-right: 2px solid var(--border); background: var(--surface); }
+.exam__pane--questions { background: var(--canvas); display: flex; flex-direction: column; gap: 16px; }
+.exam__qhead { display: flex; flex-direction: column; gap: 2px; }
+.passage { max-width: 68ch; }
+.passage__text p { margin-top: 14px; }
+.passage__para { color: var(--teal); margin-right: 8px; }
+.passage mark { background: color-mix(in srgb, var(--amber) 46%, transparent); color: inherit; border-radius: 3px; }
+.q { border: 0; padding: 0; margin: 0; }
+.q__legend { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: .9375rem; padding: 0 0 8px; }
+.q__num { width: 26px; height: 26px; display: grid; place-items: center; border-radius: var(--r-sm); background: var(--teal); color: var(--on-teal); font-size: .75rem; }
+.answer[aria-pressed='true'] { border-color: var(--teal); background: var(--teal-soft); box-shadow: 0 4px 0 0 var(--teal-strong); }
+.answer[aria-pressed='true'] .answer__key { border-color: var(--teal); color: var(--teal); }
+.exam__nav { margin-top: auto; padding-top: 16px; border-top: 2px solid var(--border); }
+.qn { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.qn__b { width: 40px; height: 40px; border-radius: var(--r-sm); border: 2px solid var(--border); background: var(--surface); color: var(--ink-muted); font-weight: 700; font-size: .8125rem; cursor: pointer; }
+.qn__b--answered { background: var(--correct-soft); border-color: var(--correct); color: var(--correct); }
+.qn__b--current { background: var(--teal); border-color: var(--teal); color: var(--on-teal); }
+@media (max-width: 1023px) {
+    .exam__body { grid-template-columns: 1fr; }
+    .exam__pane { padding: 16px 14px 110px; }
+    .exam__pane--passage { border-right: 0; }
+    .exam__pane[hidden] { display: none; }
+    .exam__nav { position: sticky; bottom: 0; background: var(--surface); margin: 0 -14px -110px; padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 2px solid var(--border); }
+}
+@media (min-width: 1024px) { .exam__pane { padding: 24px; } }
+</style>
+</head>
+<body>
+<a class="sr-only" href="#main">Bỏ qua tới nội dung</a>
+
+<div class="exam">
+    <header class="exam__bar">
+        <button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Thoát"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        <div class="grow" style="min-width:0">
+            <span class="t-label truncate" style="display:block">Reading — Passage 1</span>
+            <span class="t-micro muted">Câu 1–13 · Matching Headings</span>
+        </div>
+        <span class="timer" id="timer" role="timer" aria-live="off"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg> <span class="mono">18:42</span></span>
+        <a class="btn btn--primary btn--sm" href="19-ielts-result.html">Nộp bài</a>
+    </header>
+
+    <!-- Mobile: a two-tab switch. Desktop: both panes visible at once. -->
+    <div class="exam__tabs only-mobile" role="tablist" aria-label="Chuyển giữa bài đọc và câu hỏi" data-tabs="ex">
+        <button role="tab" aria-selected="true" data-tab="ex-passage"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg> Bài đọc</button>
+        <button role="tab" aria-selected="false" data-tab="ex-questions"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/></svg> Câu hỏi (3/13)</button>
+    </div>
+
+    <div class="exam__body">
+        <section class="exam__pane exam__pane--passage" data-panel="ex-passage" aria-label="Bài đọc">
+            <article class="passage">
+                <h2 class="t-h2">The Return of the Urban Bee</h2>
+                <p class="t-micro muted">Reading Passage 1 · khoảng 900 từ</p>
+                <div class="passage__text prose">
+                    <p><span class="passage__para mono">A</span> For most of the twentieth century, the city was assumed to be
+                    hostile territory for pollinators. Concrete, traffic and a scarcity of flowering plants were thought to
+                    make urban environments a net loss for insect diversity. That assumption has been quietly overturned
+                    over the past fifteen years.</p>
+                    <p><span class="passage__para mono">B</span> Surveys conducted across a dozen European cities found that
+                    certain bee species are <mark>not merely surviving</mark> in urban areas but thriving there, in some cases
+                    at higher densities than in the surrounding farmland. The explanation appears to lie in two factors:
+                    the diversity of garden planting, and the absence of the monoculture farming that dominates rural land.</p>
+                    <p><span class="passage__para mono">C</span> The finding is not universally encouraging, however. The
+                    species that benefit tend to be generalists, able to feed on many plant types. Specialist species,
+                    which depend on a single plant family, have continued to decline in cities as they have elsewhere.</p>
+                    <p class="muted">…</p>
+                </div>
+            </article>
+        </section>
+
+        <section class="exam__pane exam__pane--questions" data-panel="ex-questions" aria-label="Câu hỏi">
+            <div class="exam__qhead">
+                <span class="t-label">Questions 1–5</span>
+                <span class="t-micro muted">Chọn tiêu đề đúng cho mỗi đoạn</span>
+            </div>
+
+            <div class="stack g12">
+                
+                    <fieldset class="q">
+                        <legend class="q__legend"><span class="q__num mono">1</span> Đoạn A</legend>
+                        <div class="stack g8" data-group>
+                            
+                                <button class="answer" type="button" data-select aria-pressed="true" style="min-height:52px">
+                                    <span class="answer__key">A</span><span class="grow t-label">A challenge to a long-held belief</span>
+                                </button>
+                                <button class="answer" type="button" data-select aria-pressed="false" style="min-height:52px">
+                                    <span class="answer__key">B</span><span class="grow t-label">How gardens are designed</span>
+                                </button>
+                                <button class="answer" type="button" data-select aria-pressed="false" style="min-height:52px">
+                                    <span class="answer__key">C</span><span class="grow t-label">The economics of farming</span>
+                                </button>
+                        </div>
+                    </fieldset>
+                    <fieldset class="q">
+                        <legend class="q__legend"><span class="q__num mono">2</span> Đoạn B</legend>
+                        <div class="stack g8" data-group>
+                            
+                                <button class="answer" type="button" data-select aria-pressed="true" style="min-height:52px">
+                                    <span class="answer__key">A</span><span class="grow t-label">Why cities now suit some bees</span>
+                                </button>
+                                <button class="answer" type="button" data-select aria-pressed="false" style="min-height:52px">
+                                    <span class="answer__key">B</span><span class="grow t-label">The decline of farmland</span>
+                                </button>
+                                <button class="answer" type="button" data-select aria-pressed="false" style="min-height:52px">
+                                    <span class="answer__key">C</span><span class="grow t-label">Measuring insect populations</span>
+                                </button>
+                        </div>
+                    </fieldset>
+                <p class="t-micro muted" style="text-align:center">Câu 3–13 tiếp theo…</p>
+            </div>
+
+            <!-- Navigator: the one place a dense grid is right -->
+            <div class="exam__nav">
+                <span class="t-micro muted">Điều hướng câu hỏi</span>
+                <div class="qn" role="group" aria-label="Điều hướng câu hỏi">
+                    <button class="qn__b qn__b--answered" type="button"
+                             aria-label="Câu 1 đã trả lời">1</button><button class="qn__b qn__b--answered" type="button"
+                             aria-label="Câu 2 đã trả lời">2</button><button class="qn__b qn__b--current" type="button"
+                            aria-current="true" aria-label="Câu 3">3</button><button class="qn__b qn__b--idle" type="button"
+                             aria-label="Câu 4">4</button><button class="qn__b qn__b--idle" type="button"
+                             aria-label="Câu 5">5</button><button class="qn__b qn__b--idle" type="button"
+                             aria-label="Câu 6">6</button><button class="qn__b qn__b--idle" type="button"
+                             aria-label="Câu 7">7</button><button class="qn__b qn__b--idle" type="button"
+                             aria-label="Câu 8">8</button><button class="qn__b qn__b--idle" type="button"
+                             aria-label="Câu 9">9</button><button class="qn__b qn__b--idle" type="button"
+                             aria-label="Câu 10">10</button><button class="qn__b qn__b--idle" type="button"
+                             aria-label="Câu 11">11</button><button class="qn__b qn__b--idle" type="button"
+                             aria-label="Câu 12">12</button><button class="qn__b qn__b--idle" type="button"
+                             aria-label="Câu 13">13</button>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+<div id="live" class="sr-only" role="status" aria-atomic="true"></div>
+<script>
+/* A mockup that cannot be pressed cannot be judged, so the interactions that
+   carry the design — tab switching, answer selection, switch toggles, revealing
+   a verdict — are live. Tab panels are keyed off data-panel, which is also what
+   the aria-controls wiring documents, so the mockup and the accessibility tree
+   cannot disagree. Plain <script>, no module, so file:// works. */
+(function () {
+    var live = document.getElementById('live');
+    function announce(text) { if (live) live.textContent = text; }
+
+    document.addEventListener('click', function (e) {
+        var tab = e.target.closest('[data-tab]');
+        if (tab) {
+            var group = tab.closest('[data-tabs]');
+            group.querySelectorAll('[data-tab]').forEach(function (t) {
+                t.setAttribute('aria-selected', String(t === tab));
+            });
+            var scope = group.dataset.tabs;
+            document.querySelectorAll('[data-panel^="' + scope + '-"]').forEach(function (p) {
+                p.hidden = p.dataset.panel !== tab.dataset.tab;
+            });
+            return;
+        }
+        var sel = e.target.closest('[data-select]');
+        if (sel) {
+            var box = sel.closest('[data-group]');
+            if (box) box.querySelectorAll('[data-select]').forEach(function (s) {
+                s.setAttribute('aria-pressed', String(s === sel));
+            });
+            announce(sel.dataset.announce || 'Đã chọn');
+            return;
+        }
+        var tog = e.target.closest('[data-toggle]');
+        if (tog) {
+            var on = (tog.getAttribute('aria-checked') || tog.getAttribute('aria-pressed')) === 'true';
+            tog.setAttribute('aria-checked', String(!on));
+            tog.setAttribute('aria-pressed', String(!on));
+            return;
+        }
+        var reveal = e.target.closest('[data-reveal]');
+        if (reveal) {
+            var el = document.getElementById(reveal.dataset.reveal);
+            if (el) {
+                el.hidden = false;
+                el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                announce(reveal.dataset.announce || '');
+            }
+        }
+    });
+})();
+</script>
+</body>
+</html>
