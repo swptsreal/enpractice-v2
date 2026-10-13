@@ -80,8 +80,12 @@ function withoutOrigin(proxy) {
  *    allowlist even for a request Vite is about to make server-to-server. With no
  *    Origin header Spring treats it as a plain same-origin call.
  *
- *    This is why `VITE_API_URL` is `/api` in `.env` rather than an absolute URL: a
- *    relative base resolves against whatever origin the browser is actually on.
+ *    This is why `VITE_API_URL` is EMPTY in `.env` rather than an absolute URL: an empty
+ *    base means "same origin", which resolves against whatever origin the browser is
+ *    actually on. The RELEASE build sets an absolute base in `.env.production`, where the
+ *    page and the API sit on different hosts and both are https — so the sockets come out
+ *    wss. Either way the value is a BASE url: `axiosClient.js` is the only place that adds
+ *    the `/api` prefix.
  */
 export default defineConfig({
     plugins: [react(), tailwindcss(), basicSsl()],

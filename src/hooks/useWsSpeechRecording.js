@@ -145,8 +145,8 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
             }
             /* DEVIATION FROM v1, deliberate and worth porting back: v1 built this URL by
                hand — `${httpBase.replace('/api','').replace(/^http/,'ws')}/ws/speaking/stt`
-               — which breaks BOTH ways. With the documented `VITE_API_URL=/api` the base
-               becomes empty and `new WebSocket('/ws/speaking/stt?token=…')` throws
+               — which breaks BOTH ways. With the documented dev value (an EMPTY base) the
+               base becomes empty and `new WebSocket('/ws/speaking/stt?token=…')` throws
                `SyntaxError: The URL ... is not valid`, because a relative path is not a
                URL. With an absolute base it produces `ws://` on an https page, which the
                browser blocks as mixed content. `resolveWsUrl` derives the scheme and host

@@ -6,11 +6,11 @@
  *
  * ── THE RULE ──────────────────────────────────────────────────────────────────
  *
- *   1. RELATIVE base (`/api`, the documented dev configuration) means the page talks
- *      to its own origin and the dev server proxies `/ws`. The scheme and host MUST
- *      come from `window.location`: a relative path handed to `new WebSocket()` is not
- *      a URL at all — it throws `SyntaxError` — and an absolute `ws://localhost:8082`
- *      built from the fallback is MIXED CONTENT on the https dev page, which the
+ *   1. EMPTY base (`.env`'s dev value: "use my own origin, the dev server proxies") means
+ *      the page talks to its own origin and the dev server proxies `/ws`. The scheme and
+ *      host MUST come from `window.location`: a relative path handed to `new WebSocket()`
+ *      is not a URL at all — it throws `SyntaxError` — and an absolute `ws://localhost:8082`
+ *      built from a hardcoded host is MIXED CONTENT on the https dev page, which the
  *      browser blocks before a single frame is sent.
  *
  *      That second case is not hypothetical: it is why `/ai-chat`, speaking and
@@ -18,8 +18,11 @@
  *      `WebSocketSession[0 current WS(0) ... 0 total]`. The socket was never opened,
  *      so there was nothing to authenticate and nothing to answer on.
  *
- *   2. ABSOLUTE base (`http://localhost:8082/api`, or a deployed host) means the socket
- *      goes straight there, so `http` -> `ws` and `https` -> `wss`.
+ *   2. ABSOLUTE base (`https://api.enpractice.site`, the deployed value) means the socket
+ *      goes straight there, so `http` -> `ws` and `https` -> `wss`. `VITE_API_URL` is a
+ *      BASE url — it does NOT carry the `/api` suffix, which only `axiosClient.js` adds —
+ *      but a trailing `/api` is still stripped here so an older value cannot produce
+ *      `/api/ws/...`.
  *
  *   3. `wss` is chosen from `window.location.protocol`, never from the API base —
  *      an https page must never open a `ws:` socket.
@@ -34,9 +37,10 @@ export function resolveWsUrl(path, options = {}) {
 
     const suffix = path.startsWith('/') ? path : `/${path}`;
 
-    /* Strip the API prefix so `/ws/...` is appended to the ORIGIN, not to `/api`.
-       Anchored to the end on purpose: an unanchored `.replace('/api','')` would also
-       mangle a host or path that merely contains those characters. */
+    /* Back-compat only: `VITE_API_URL` is a BASE url and does not carry `/api`, but an
+       older value that did must not produce `/api/ws/...`. Anchored to the end on purpose:
+       an unanchored `.replace('/api','')` would also mangle a host or path that merely
+       contains those characters. */
     const base = String(apiBaseUrl ?? '').replace(/\/api\/?$/, '');
 
     if (!/^https?:\/\//i.test(base)) {

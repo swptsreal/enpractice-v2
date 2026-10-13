@@ -10,6 +10,11 @@ dist-ssr/
 .env.local
 .env.*.local
 
+# Per-mode env, same reason as `.env`: it holds the DEPLOYED backend base, and a
+# committed placeholder would ship a bundle that fails for every user. Copy
+# `.env.example` to `.env.production` on the machine that runs the release build.
+.env.production
+
 # logs
 *.log
 npm-debug.log*

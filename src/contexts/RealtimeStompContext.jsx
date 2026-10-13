@@ -28,11 +28,11 @@ const INITIAL_SNAPSHOT = {
 };
 
 function getRealtimeStompUrl() {
-    /* `VITE_API_URL` là đường dẫn tương đối (`/api`) khi dev server làm proxy — chính là cấu
-       hình mặc định. Khi đó phải lấy scheme + host từ chính trang, để trang https thành
-       `wss:` và đi qua proxy `/ws` thay vì gọi thẳng cổng 8082: một socket `ws://` từ trang
-       https bị browser chặn vì mixed content TRƯỚC khi gửi frame nào, và đó chính là lý do
-       `/ai-chat`, speaking, custom-speaking không có phản hồi (broker log: 0 session).
+    /* `VITE_API_URL` để TRỐNG ở dev — nghĩa là "cùng origin", và dev server proxy `/ws`.
+       Khi đó phải lấy scheme + host từ chính trang, để trang https thành `wss:` và đi qua
+       proxy thay vì gọi thẳng cổng 8082: một socket `ws://` từ trang https bị browser chặn
+       vì mixed content TRƯỚC khi gửi frame nào, và đó chính là lý do `/ai-chat`, speaking,
+       custom-speaking không có phản hồi (broker log: 0 session).
        Quy tắc này nằm trong `lib/wsUrl.js` để socket speech dùng chung, không lặp lại lần 3. */
     return resolveWsUrl("/ws/realtime-chat");
 }

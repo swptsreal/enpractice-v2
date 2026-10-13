@@ -6,8 +6,22 @@ import { getCurrentLanguage } from "../i18n";
  * Configured with auth session helpers, refresh-token retry, and API unwrap logic.
  */
 
-const API_BASE_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:8082/api";
+/**
+ * `VITE_API_URL` is the backend BASE URL, WITHOUT the `/api` suffix — the suffix is added
+ * here and nowhere else, so the variable means the same thing to every consumer.
+ *
+ * Empty (the development value) means SAME ORIGIN: the Vite dev server proxies `/api`, so
+ * the page stays https-same-origin. An absolute `http://localhost:8082` here would be
+ * blocked as mixed content by the https dev page.
+ *
+ * A trailing `/api` is tolerated and stripped, matching `lib/wsUrl.js`: both consumers
+ * accept the same two shapes, so a value left over from the older convention (where the
+ * suffix WAS part of the variable) cannot turn every request into `/api/api`.
+ */
+export const API_ROOT = String(import.meta.env.VITE_API_URL ?? "")
+    .replace(/\/+$/, "")
+    .replace(/\/api$/, "");
+export const API_BASE_URL = `${API_ROOT}/api`;
 const LEGACY_TOKEN_KEY = "en_practice_token";
 const ACCESS_TOKEN_KEY = "en_practice_access_token";
 const REFRESH_TOKEN_KEY = "en_practice_refresh_token";
