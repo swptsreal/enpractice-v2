@@ -98,26 +98,59 @@ export function createRealtimeTransportController({
     client.onStompError = handleClosed;
     client.onWebSocketClose = handleClosed;
 
-    const deactivate = async () => {
-        rejectPending(createConnectionError('Realtime mode changed'));
-        subscriptions.unbind();
-        intentionalDisconnect = true;
-        try {
-            if (client.active) await client.deactivate();
-        } finally {
-            intentionalDisconnect = false;
+    /**
+     * DEACTIVATE IS SERIALIZED, AND THAT IS THE FIX FOR A SILENT DEAD SOCKET.
+     *
+     * The shell's provider runs `controller.deactivate()` from an effect cleanup, and React's
+     * StrictMode runs that cleanup and the re-mounted effect back to back. `deactivate()` awaits
+     * `client.deactivate()`, so it is still in flight when the re-run calls `connect()` — and its
+     * trailing `targetMode = REALTIME_MODES.IDLE` then lands AFTER `connect()` set the mode.
+     * `client.beforeConnect` reads `targetMode`, finds IDLE and throws "Realtime target mode is
+     * idle"; by then `pendingConnection` has already been nulled, so `rejectPending` is a no-op and
+     * the promise `connect()` returned NEVER SETTLES. The observable result is exactly what was
+     * reported: no WebSocket is ever constructed, nothing is logged, and the screen says
+     * "Đang kết nối tới máy chủ AI…" forever. Measured: `beforeConnect {targetMode: 'idle'}` while
+     * the requested mode was `authenticated`.
+     *
+     * So every call shares ONE in-flight promise and `connect()` awaits it before touching the
+     * mode. A second caller joins the first instead of starting a competing teardown.
+     */
+    let deactivatePromise = null;
+    const deactivate = () => {
+        if (!deactivatePromise) {
+            deactivatePromise = (async () => {
+                rejectPending(createConnectionError('Realtime mode changed'));
+                subscriptions.unbind();
+                intentionalDisconnect = true;
+                try {
+                    if (client.active) await client.deactivate();
+                } finally {
+                    intentionalDisconnect = false;
+                }
+                targetMode = REALTIME_MODES.IDLE;
+                guestSession = null;
+                client.connectHeaders = {};
+                emit({
+                    mode: REALTIME_MODES.IDLE,
+                    isConnected: false,
+                    guestSession: null,
+                });
+            })().finally(() => {
+                deactivatePromise = null;
+            });
         }
-        targetMode = REALTIME_MODES.IDLE;
-        guestSession = null;
-        client.connectHeaders = {};
-        emit({
-            mode: REALTIME_MODES.IDLE,
-            isConnected: false,
-            guestSession: null,
-        });
+        return deactivatePromise;
     };
 
     const connect = async (mode, { forceNew = false } = {}) => {
+        /* WAIT FOR A TEARDOWN IN FLIGHT *BEFORE* READING THE SNAPSHOT.
+           A `deactivate()` that has not emitted yet still reports the OLD connection, so deciding
+           first and awaiting later would early-return "already connected in this mode" — and then the
+           teardown lands and leaves the controller idle with nobody left to reconnect. Deciding on
+           the post-teardown state is also what keeps the trailing `targetMode = IDLE` from landing
+           after this call set the mode (see the note on `deactivate` above). */
+        if (deactivatePromise) await deactivatePromise.catch(() => {});
+
         if (snapshot.isConnected && snapshot.mode === mode && !forceNew) {
             return snapshot;
         }

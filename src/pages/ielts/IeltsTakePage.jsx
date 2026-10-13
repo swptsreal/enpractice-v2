@@ -153,8 +153,18 @@ export default function IeltsTakePage() {
     }
 
     return (
-        <div className="flex min-h-dvh flex-col bg-[var(--canvas)]">
-            <header className="sticky top-0 z-30 flex items-center gap-3 border-b-2 border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5">
+        /* A BOUNDED VIEWPORT, NOT A SCROLLING PAGE.
+           This is the fix for "Màn ielts/take đang scroll page nên nếu đoạn văn dài thì pagination
+           sẽ bị đẩy xuống dưới". The mechanics of the old failure: the grid below had an AUTO row,
+           so at >=1024px the passage's height BECAME the questions pane's height; `lg:overflow-y-auto`
+           on the questions pane therefore never engaged (its box had already grown), the row grew
+           past the viewport, the document scrolled, and `mt-auto` parked the navigator at the bottom
+           of a passage-height box — below the fold.
+           `h-dvh` (not `min-h-dvh`) is what makes this real. `overflow-hidden` on the grid plus
+           `grid-rows-[minmax(0,1fr)]` is what stops the row from growing, so each pane's own
+           `overflow-y-auto` finally has a bound to scroll inside. */
+        <div className="flex h-dvh flex-col overflow-hidden bg-[var(--canvas)]">
+            <header className="z-30 flex shrink-0 items-center gap-3 border-b-2 border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5">
                 <Button variant="ghost" size="sm" iconOnly aria-label={t('common.close')} onClick={() => navigate('/ielts')}>
                     <X size={18} aria-hidden="true" />
                 </Button>
@@ -207,7 +217,7 @@ export default function IeltsTakePage() {
                     <div
                         role="tablist"
                         aria-label={t('ielts.paneSwitchLabel')}
-                        className="flex gap-1.5 border-b-2 border-[var(--border)] bg-[var(--surface)] p-2 lg:hidden"
+                        className="flex shrink-0 gap-1.5 border-b-2 border-[var(--border)] bg-[var(--surface)] p-2 lg:hidden"
                     >
                         {[
                             { id: 'passage', icon: question?.audioUrl ? Headphones : BookOpen, label: question?.audioUrl ? t('ielts.audioTab') : t('ielts.passageTab') },
@@ -234,7 +244,14 @@ export default function IeltsTakePage() {
                         ))}
                     </div>
 
-                    <div className="grid min-h-0 flex-1 lg:grid-cols-2">
+                    {/* `grid-rows-[minmax(0,1fr)]` IS THE LOAD-BEARING CLASS, and it is the one that
+                        is easy to leave out. With an AUTO row the row is as tall as the tallest
+                        pane, so `overflow-y-auto` on a pane never fires (the box already grew) and
+                        `overflow-hidden` on this grid would CLIP the content instead of letting it
+                        scroll — the failure becomes "content unreachable" rather than "page
+                        scrolls", which is worse. `minmax(0,1fr)` bounds the row so both panes
+                        scroll inside their own box. */}
+                    <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] overflow-hidden lg:grid-cols-2">
                         {/* Below lg the panes are one-at-a-time; at lg both show and the
                             switch above is hidden. Visibility uses responsive utilities
                             rather than the `hidden` ATTRIBUTE, because the global
@@ -245,7 +262,7 @@ export default function IeltsTakePage() {
                             role="tabpanel"
                             aria-labelledby="tab-passage"
                             className={cn(
-                                'overflow-y-auto border-[var(--border)] bg-[var(--surface)] p-4 lg:block lg:border-r-2 lg:p-6',
+                                'min-h-0 overflow-y-auto border-[var(--border)] bg-[var(--surface)] p-4 lg:block lg:border-r-2 lg:p-6',
                                 pane === 'passage' ? 'block' : 'hidden'
                             )}
                         >
@@ -273,11 +290,25 @@ export default function IeltsTakePage() {
                             id="pane-questions"
                             role="tabpanel"
                             aria-labelledby="tab-questions"
+                            /* THE QUESTION AND ITS OPTIONS SCROLL; THE CONTROLS DO NOT.
+                               This pane is a bounded flex column: an inner `flex-1` scroller holds
+                               the fieldset, and the prev/next bar and the 40px navigator sit after
+                               it as `shrink-0` siblings — so they are pinned to the bottom of the
+                               pane by construction, at every passage length, with no `mt-auto` and
+                               no negative margins. The mockup reaches the same result with
+                               `position: sticky; bottom: 0` on the navigator
+                               (_design/mockup/18-ielts-take.html), which was needed because the
+                               mockup's own `.exam` is a document-scrolling page; inside a bounded
+                               pane a flex sibling is the simpler mechanism and cannot be defeated
+                               by a long question.
+                               The pane itself must NOT scroll (`overflow-hidden`): if it did, the
+                               navigator could still be pushed below the fold. */
                             className={cn(
-                                'flex-col gap-4 bg-[var(--canvas)] p-4 lg:flex lg:overflow-y-auto lg:p-6',
+                                'flex-col gap-4 overflow-hidden bg-[var(--canvas)] p-4 lg:flex lg:p-6',
                                 pane === 'questions' ? 'flex' : 'hidden'
                             )}
                         >
+                            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
                             <fieldset>
                                 <legend className="t-label mb-2 flex items-center gap-2">
                                     <span
@@ -325,8 +356,9 @@ export default function IeltsTakePage() {
                                     )}
                                 </div>
                             </fieldset>
+                            </div>
 
-                            <div className="mt-auto flex items-center gap-2 border-t-2 border-[var(--border)] pt-4">
+                            <div className="flex shrink-0 items-center gap-2 border-t-2 border-[var(--border)] pt-4">
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -349,7 +381,7 @@ export default function IeltsTakePage() {
                                 </Button>
                             </div>
 
-                            <div className="border-t-2 border-[var(--border)] pt-4">
+                            <div className="shrink-0 border-t-2 border-[var(--border)] pt-4">
                                 <span className="t-micro muted">{t('ielts.navigator')}</span>
                                 <div role="group" aria-label={t('ielts.navigator')} className="mt-2 flex flex-wrap gap-1.5">
                                     {questions.map((q, i) => {

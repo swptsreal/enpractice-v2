@@ -1,21 +1,22 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Gift, Coins, Check, Lock, Sparkles, Info, Star, Package } from 'lucide-react';
+import { Gift, Coins, Check, Lock, Sparkles, Info, Star } from 'lucide-react';
 import { Lexi } from '../../components/mascot/Lexi';
 import { Card, RowBox } from '../../components/ui/Card';
 import { Button, ButtonLink } from '../../components/ui/Button';
 import { Chip, SkeletonCard } from '../../components/ui/Primitives';
 import { AsyncBoundary } from '../../components/ui/AsyncBoundary';
+import { cn } from '../../lib/cn';
 import { formatDate } from '../../lib/datetime';
+import RewardsInventory from './RewardsInventory';
 import {
     useRewardMissions,
     useXpHistory,
     useXpMilestones,
-    useInventory,
     creditValueOf,
     xpValueOf,
     milestoneState,
     milestoneRewardNames,
-    inventoryTypeLabelKey,
     MILESTONE_STATE_LABEL_KEYS,
 } from '../../features/gamification/useGamification';
 
@@ -49,9 +50,11 @@ import {
  */
 export default function RewardsPage() {
     const { t } = useTranslation();
+    /* The screen-level tab. The inventory is fetched INSIDE its own tab component, so switching to
+       "Nhiệm vụ" no longer issues an inventory request at all. */
+    const [tab, setTab] = useState('missions');
     const milestones = useXpMilestones();
     const missions = useRewardMissions();
-    const inventory = useInventory({ page: 0, size: 8 });
     const xp = useXpHistory({ size: 8 });
 
     const { locked, claimed } = missions;
@@ -65,7 +68,7 @@ export default function RewardsPage() {
     });
 
     return (
-        <div className="mx-auto flex w-full max-w-[820px] flex-col gap-4">
+        <div className="mx-auto flex w-full max-w-[var(--container-wide)] flex-col gap-4">
             <p className="t-micro muted">{t('rewards.subtitle')}</p>
 
             {/* --- totals --------------------------------------------------- */}
@@ -85,6 +88,45 @@ export default function RewardsPage() {
                 </ButtonLink>
             </Card>
 
+            {/* --- the two concerns, one at a time -------------------------- */}
+            {/* THE POINT OF THE REDESIGN. Every section used to mount at once in a single 820px
+                column, so the first thing a learner saw was what they had already done and the
+                inventory was the seventh block down. The mockup's rule is "the page never renders
+                all three concerns at once", and the container is the WIDE one because three- and
+                four-column grids need it — 820px is the FOCUS width. */}
+            <div
+                role="tablist"
+                aria-label={t('rewards.screenTabsLabel')}
+                className="flex gap-1 rounded-[var(--r-control)] bg-[var(--surface-alt)] p-1"
+            >
+                {[
+                    { id: 'missions', label: t('rewards.screenTabs.missions') },
+                    { id: 'inventory', label: t('rewards.screenTabs.inventory') },
+                ].map(({ id, label }) => (
+                    <button
+                        key={id}
+                        type="button"
+                        role="tab"
+                        id={`rw-${id}-tab`}
+                        aria-controls={`rw-${id}`}
+                        aria-selected={tab === id}
+                        onClick={() => setTab(id)}
+                        className={cn(
+                            'min-h-11 flex-1 rounded-[var(--r-sm)] text-sm font-bold',
+                            tab === id
+                                ? 'bg-[var(--surface)] text-[var(--ink)] shadow-[0_2px_0_0_var(--border)]'
+                                : 'text-[var(--ink-muted)]'
+                        )}
+                    >
+                        {label}
+                    </button>
+                ))}
+            </div>
+
+            {tab === 'inventory' ? (
+                <RewardsInventory />
+            ) : (
+                <div id="rw-missions" role="tabpanel" aria-labelledby="rw-missions-tab" className="flex flex-col gap-6">
             {/* --- XP milestones: the ONE reward type with a claim action ---- */}
             <AsyncBoundary
                 loading={milestones.loading}
@@ -277,68 +319,9 @@ export default function RewardsPage() {
                 </section>
             ) : null}
 
-            {/* --- inventory ------------------------------------------------ */}
-            <AsyncBoundary
-                loading={inventory.loading}
-                error={inventory.error}
-                isEmpty={!inventory.loading && !inventory.error && inventory.items.length === 0}
-                onRetry={inventory.reload}
-                skeleton={
-                    <div className="flex flex-col gap-3">
-                        {Array.from({ length: 3 }, (_, i) => (
-                            <SkeletonCard key={i} lines={2} />
-                        ))}
-                    </div>
-                }
-                emptyTitle={t('rewards.emptyTitle')}
-                emptyBody={t('rewards.emptyBody')}
-                emptyMood="explain"
-            >
-                <section className="flex flex-col gap-3">
-                    <h2 className="t-h3 flex items-center gap-2">
-                        <Package size={18} aria-hidden="true" />
-                        {t('rewards.inventory.title')}
-                    </h2>
-                    <p className="t-micro muted -mt-1">{t('rewards.inventory.subtitle')}</p>
-                    {/* The real total, so a truncated page is visible as truncated. */}
-                    <Chip tone="neutral">{t('rewards.inventory.totalItems', { total: inventory.totalElements })}</Chip>
-
-                    <ul className="flex flex-col gap-2">
-                        {inventory.items.map((row) => {
-                            const typeKey = inventoryTypeLabelKey(row.item?.type);
-
-                            return (
-                                <li key={row.id}>
-                                    <RowBox center className="gap-3">
-                                        <span aria-hidden="true" className="text-[var(--teal)]">
-                                            <Package size={18} />
-                                        </span>
-                                        <span className="min-w-0 flex-1">
-                                            <strong className="t-label block text-[var(--ink)]">
-                                                {row.item?.name ?? t('rewards.inventory.title')}
-                                            </strong>
-                                            <span className="t-micro muted">
-                                                {row.grantedAt ? formatDate(row.grantedAt) : t('rewards.granted')}
-                                            </span>
-                                        </span>
-
-                                        <span className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
-                                            {/* A type the locale does not know renders NO chip
-                                                rather than a raw enum code. */}
-                                            {typeKey ? <Chip tone="neutral">{t(typeKey)}</Chip> : null}
-                                            {row.equipped ? (
-                                                <Chip tone="teal">{t('rewards.inventory.equipped')}</Chip>
-                                            ) : row.used ? (
-                                                <Chip tone="correct">{t('rewards.inventory.used')}</Chip>
-                                            ) : null}
-                                        </span>
-                                    </RowBox>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </section>
-            </AsyncBoundary>
+            {/* --- inventory -------------------------------------------------
+                MOVED to its own tab and its own file (`RewardsInventory.jsx`): it needs filters,
+                paging and per-item actions that the rest of this screen has no use for. */}
 
             {/* --- XP history ---------------------------------------------- */}
             <Card level="edge" padding="xl">
@@ -367,6 +350,8 @@ export default function RewardsPage() {
                 <Lock size={15} className="text-[var(--ink-faint)]" aria-hidden="true" />
                 <span className="t-micro muted">{t('rewards.noPurchase')}</span>
             </div>
+                </div>
+            )}
         </div>
     );
 }

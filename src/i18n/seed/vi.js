@@ -35,7 +35,7 @@ export default {
         primary: 'Điều hướng chính',
         more: 'Khác',
         home: 'Trang chủ',
-        learn: 'Học',
+        learn: 'Từ vựng',
         practice: 'Luyện tập',
         progress: 'Tiến độ',
         account: 'Cá nhân',
@@ -43,6 +43,9 @@ export default {
         dictionary: 'Sổ tay từ vựng',
         vocabCheck: 'Tra từ & hỏi AI',
         vocabTest: 'Test từ vựng',
+        /* The "Từ vựng" section's second destination, on the rail next to the test list. Its page
+           title is the same string, so the rail label and the header cannot drift apart. */
+        review: 'Ôn tập từ vựng',
         writing: 'Luyện Writing',
         speaking: 'Luyện Speaking',
         customSpeaking: 'Hội thoại tự chọn',
@@ -808,6 +811,12 @@ export default {
         balance: 'Còn {{count}} credit',
         send: 'Gửi',
         sendWithCost: 'Gửi · {{amount}} credit',
+        /* The floating panel (mockup 36b). It names the screen the learner is on instead of their
+           weak skills, because reading the profile would add a request to every shell screen for a
+           panel most visits never open. */
+        panelContext: 'Đang xem: {{page}}',
+        panelOpening:
+            'Bạn đang ở {{page}}. Hỏi mình về bài đang làm, hoặc nhờ mình chỉ ra chỗ hay sai nhé.',
         costNote: 'Mỗi lượt hỏi tốn credit như hiển thị trên nút.',
         insufficient: 'Bạn không đủ credit cho lượt hỏi này.',
         composerLabel: 'Câu hỏi của bạn',
@@ -868,6 +877,29 @@ export default {
         historyTitle: 'Lịch sử XP',
         noHistory: 'Chưa có XP nào. Hoàn thành một bài là bắt đầu có.',
         noPurchase: 'XP và phần thưởng không thể mua.',
+        /* Deep-merged into v1's `rewards.inventory`, which already carries title/subtitle/empty/
+           equip/unequip/use/filters/usageFilters/sort. These are the labels the screen was missing:
+           six of the nine InventoryItemType values had none (so a TITLE or BACKGROUND row rendered
+           with no type at all), and the list is paginated with no control to reach page 2. */
+        inventory: {
+            loadMore: 'Tải thêm',
+            filtersLabel: 'Lọc vật phẩm',
+            types: {
+                TITLE: 'Danh hiệu',
+                EMOTE: 'Cảm xúc',
+                STICKER: 'Sticker',
+                BACKGROUND: 'Nền',
+                CREDIT_PACK: 'Thẻ credit',
+                OTHER: 'Khác',
+            },
+        },
+        /* The screen's OWN tabs. `rewards.tabs` already means mission status (LOCKED/CLAIMED), so
+           this is a separate name rather than a second meaning on the same key. */
+        screenTabs: {
+            missions: 'Nhiệm vụ',
+            inventory: 'Vật phẩm',
+        },
+        screenTabsLabel: 'Mục',
     },
     challenges: {
         title: 'Thử thách tuần',
@@ -914,43 +946,119 @@ export default {
         wordsReviewing: 'Đang ôn',
         wordsMastered: 'Đã nhớ',
     },
+    /* NO STEPPER ANYWHERE in this flow, so it holds no step strings: the stepper was removed from
+       both step 1 and step 3, which retired `stepOf`, `stepperLabel`, `stepN`, `stepContent` and
+       `stepPractice`.
+
+       The two lines below are the SUBTITLE under the shell's `<h1>` — the mockup draws both review
+       screens with the SAME heading ("Ôn tập từ vựng", i.e. `nav.review`) and tells them apart with
+       this one `t-micro` line, so the distinction lives here rather than in a second page title. */
     review: {
         title: 'Ôn tập từ vựng',
-        stepOf: 'Bước {{step}} / {{total}}',
-        stepperLabel: 'Các bước cấu hình ôn tập',
-        stepN: 'Bước {{step}}',
-        headline: '{{count}} từ đến hạn · khoảng {{minutes}} phút',
-        headlineBody:
-            'Đây là những từ sắp bị quên theo lịch ôn của bạn. Ôn đúng lúc giúp nhớ lâu hơn nhiều so với ôn lại nhiều lần.',
-        nothingDueTitle: 'Hôm nay không có từ nào đến hạn',
-        nothingDueBody:
-            'Chu kỳ ôn dựa trên mức ghi nhớ của từng từ. Bạn vẫn có thể chọn luyện nhanh bên dưới nếu muốn học thêm.',
-        contentTitle: 'Ôn những từ nào',
-        mode: {
-            DUE: 'Từ đến hạn hôm nay',
-            QUICK: 'Luyện nhanh',
-            FAVORITES: 'Từ đã đánh dấu',
-            WEAK: 'Từ còn yếu',
+        configSubtitle: 'Chọn khoảng thời gian, nhóm từ và số từ',
+        resultSubtitle: 'Kết quả phiên ôn',
+        readyHeadline: 'Bạn có {{count}} từ đến hạn. Ôn hết sẽ mất khoảng {{minutes}} phút.',
+        readyBody: 'Bạn chọn khoảng thời gian, nhóm từ và số từ — phiên ôn chỉ gồm đúng những từ đó.',
+        emptyTitle: 'Chưa có từ nào phù hợp',
+        emptyBody:
+            'Khoảng thời gian này chưa có từ nào thuộc nhóm bạn chọn. Thử một khoảng rộng hơn, hoặc chọn nhóm khác.',
+        windowTitle: 'Khoảng thời gian',
+        windowBody: 'Ôn lại đúng giai đoạn bạn muốn: vài ngày gần đây, một tuần hoặc một tháng cụ thể.',
+        preset: {
+            allHistory: 'Toàn bộ',
+            last7: '7 ngày',
+            last30: '30 ngày',
+            thisWeek: 'Tuần này',
+            thisMonth: 'Tháng này',
+            custom: 'Tùy chỉnh',
         },
-        modeDueHint: 'Theo đúng lịch ôn tập.',
-        modeQuickHint: 'Ôn nhẹ, không theo lịch.',
-        modeFavoritesHint: 'Chỉ những từ bạn đã đánh dấu yêu thích.',
-        modeWeakHint: 'Những từ đang ở mức ghi nhớ thấp.',
-        wordCount: '{{count}} từ',
-        aboutMinutes: '~{{count}} phút',
+        weekLabel: 'Chọn tuần',
+        monthLabel: 'Chọn tháng',
+        fromDate: 'Từ ngày',
+        toDate: 'Đến ngày',
+        selectedWindow: 'Đang chọn: {{label}}',
+        groupTitle: 'Nhóm từ cần ôn',
+        groupBody: 'Ưu tiên từ chưa ôn để không bỏ sót, hoặc tập trung vào nhóm từ hay sai.',
+        group: {
+            unreviewed: 'Từ chưa ôn',
+            unreviewedHint: 'Chưa từng xuất hiện trong phiên ôn nào',
+            wrong: 'Từ hay sai',
+            wrongHint: 'Tỉ lệ sai trên 50%',
+            all: 'Toàn bộ từ',
+            allHint: 'Mọi từ trong khoảng đã chọn',
+        },
+        countTitle: 'Số từ trong phiên này',
+        countBody: 'Một lượt ôn ngắn nhưng tập trung thường hiệu quả hơn một phiên quá dài.',
+        countMax: 'Tối đa {{count}} từ — số từ chưa ôn trong khoảng đã chọn.',
         directionTitle: 'Chiều ôn',
         direction: {
             EN_TO_VI: 'Anh → Việt',
             VI_TO_EN: 'Việt → Anh',
-            MIXED: 'Trộn',
         },
-        directionNote:
-            'Chiều ôn được lưu trên thiết bị này. Hệ thống chấm điểm luôn hiển thị từ tiếng Anh làm câu hỏi, nên lựa chọn này là để bạn biết trước mình sẽ gặp gì.',
-        startWithDuration: 'Bắt đầu · {{count}} từ · {{minutes}} phút',
+        directionNote: 'Đổi hướng ôn tùy mục tiêu: nhận diện nhanh hay nhớ chủ động sâu hơn.',
+        wordCount: '{{count}} từ',
+        aboutMinutes: '~{{count}} phút',
+        startWithDuration: 'Bắt đầu ôn ({{count}} từ · {{minutes}} phút)',
         nothingToReview: 'Không có từ nào để ôn',
         later: 'Để sau',
-        scheduleNote:
-            'Chu kỳ ôn: 4 giờ, 1 ngày, 3 ngày, 1 tuần, 2 tuần — tuỳ theo mức ghi nhớ của từng từ. Bạn chọn "Quên" thì từ đó sẽ quay lại sớm hơn.',
+        back: 'Quay lại',
+        /* `noScheduleNote` used to sit here: "Phiên ôn này không đổi lịch ôn của từng từ...". It was
+           removed because NO mockup frame carries it — the code had invented it — and the rule for
+           this package is that a claim like this enters through the design, not through the
+           implementation. The boundary it described is real and is recorded in `_design/SCREENS-V2.md`
+           §15 instead of being written on the screen. */
+        practice: {
+            exit: 'Thoát phiên ôn',
+            progress: 'Tiến trình ôn tập',
+            promptEnVi: 'Từ tiếng Anh',
+            promptViEn: 'Nghĩa tiếng Việt',
+            pronounce: 'Nghe',
+            answerLabelEnVi: 'Nhập nghĩa tiếng Việt',
+            answerLabelViEn: 'Nhập từ tiếng Anh',
+            answerPlaceholderEnVi: 'Nhập nghĩa tiếng Việt…',
+            answerPlaceholderViEn: 'Nhập từ tiếng Anh…',
+            keyboardHint: 'Enter để kiểm tra · Esc để thoát',
+            check: 'Kiểm tra',
+            next: 'Tiếp theo',
+            finish: 'Hoàn thành',
+            correctTitle: 'Trả lời chính xác',
+            correctBody: 'Rất tốt. Bạn đã nhớ chắc từ này rồi.',
+            wrongTitle: 'Chưa đúng hoàn toàn',
+            wrongBody: 'Không sao cả. Xem lại đáp án đúng một lần nữa sẽ giúp bạn nhớ lâu hơn.',
+            correctAnswerEnVi: 'Nghĩa đúng',
+            correctAnswerViEn: 'Từ tiếng Anh đúng',
+            alternatives: 'Các nghĩa khác có thể chấp nhận',
+            explanation: 'Giải thích rõ hơn',
+            examples: 'Ví dụ sử dụng',
+        },
+        result: {
+            excellent: 'Xuất sắc',
+            good: 'Rất tốt',
+            improving: 'Đang tiến bộ',
+            needsReview: 'Cần ôn thêm',
+            summary: 'Bạn đã trả lời đúng {{correct}} trên {{total}} từ.',
+            meta: 'Phiên {{count}} từ · {{direction}} · {{duration}}',
+            total: 'Tổng',
+            correct: 'Đúng',
+            incorrect: 'Sai',
+            accuracy: 'Độ chính xác',
+            accuracyTitle: 'Tỉ lệ chính xác',
+            comparedToLast: '{{diff}}% so với phiên trước',
+        compareLabel: 'So với phiên trước',
+            noComparison: 'Phiên đầu tiên — chưa có gì để so sánh.',
+            detailsTitle: 'Chi tiết phiên ôn',
+            retryAll: 'Ôn lại',
+            retryWrong: 'Ôn lại {{count}} từ khó',
+            notebook: 'Sổ tay từ vựng',
+            table: {
+                prompt: 'Thẻ nhắc',
+                yourAnswer: 'Câu trả lời',
+                correctAnswer: 'Đáp án đúng',
+                result: 'Kết quả',
+                correctTag: 'Đúng',
+                incorrectTag: 'Sai',
+            },
+        },
         level0: 'ôn lại trong 4 giờ',
         level1: 'ôn lại sau 1 ngày',
         level2: 'ôn lại sau 3 ngày',
@@ -1060,9 +1168,88 @@ export default {
             US_CHIRP_F: 'Nữ siêu tự nhiên',
         },
     },
+    /**
+     * Screen 06's namespace, COPIED HERE FROM THE GENERATED LOCALE ON PURPOSE.
+     *
+     * It was in neither v1's tree nor this seed, so `npm run locales:merge` — documented in the
+     * README as the way to regenerate the locales — would have DELETED all 68 keys and left every
+     * string on `/path` rendering as a raw key. The generated files are output; this file is the
+     * input, and a namespace that exists in the output but not the input is a namespace that does
+     * not survive the next build.
+     */
+    learningPath: {
+        goalLine: 'Mục tiêu band {{band}}',
+        noGoal: 'Chưa đặt mục tiêu band',
+        currentLine: 'Band hiện tại {{band}}',
+        notMeasured: 'Chưa đo được band — cần ít nhất một bài đã chấm.',
+        xp: '{{value, number}} XP',
+        unitLabel: 'Unit {{index}}',
+        unitMeta: '{{nodes}} bài · 1 bài kiểm tra cuối unit',
+        unitProgress: 'Tiến độ unit',
+        costLine: 'Tốn {{amount}} credit',
+        unitProgressLabel: 'Tiến độ unit: {{done}} trên {{total}} bài',
+        progressRatio: '{{done}}/{{total}}',
+        drillProgress: 'câu {{answered}}/{{target}}',
+        practiceProgress: 'Xong · {{done}}/{{total}}',
+        stateDone: 'Xong',
+        stateCurrent: 'Đang học',
+        stateLocked: 'Khoá',
+        stateMilestone: 'Kiểm tra cuối unit',
+        starterTitle: 'Bắt đầu — bài chẩn đoán',
+        starterReason:
+            'Chưa đủ dữ liệu để xếp lộ trình. Làm {{nodes}} bài này trước, mình sẽ xếp lại sau bài đầu tiên.',
+        vocabUnit: 'Từ vựng — ôn theo lịch',
+        nextUnitTitle: 'Unit tiếp theo: {{unit}}',
+        nextUnitHint: 'Mở sau khi hoàn thành bài kiểm tra Unit {{index}}',
+        setGoal: 'Đặt mục tiêu band',
+        emptyTitle: 'Chưa có lộ trình để hiển thị',
+        emptyBody: 'Làm một bài bất kỳ rồi quay lại, mình sẽ xếp lộ trình theo đúng chỗ bạn còn yếu.',
+        skill: {
+            vocabulary: 'Từ vựng',
+            other: 'Kỹ năng khác',
+        },
+        writingTask1: 'Writing Task 1',
+        writingTask2: 'Writing Task 2',
+        speakingPart1: 'Speaking Part 1',
+        speakingPart2: 'Speaking Part 2',
+        speakingPart3: 'Speaking Part 3',
+        type: {
+            formCompletion: 'Điền form',
+            singleChoice: 'Chọn một đáp án',
+            multipleChoice: 'Chọn nhiều đáp án',
+            mapLabeling: 'Dán nhãn bản đồ',
+            sentenceCompletion: 'Hoàn thành câu',
+            matching: 'Nối cặp',
+            trueFalseNotGiven: 'True / False / Not Given',
+            matchingHeadings: 'Nối tiêu đề',
+            summaryCompletion: 'Hoàn thành tóm tắt',
+            yesNoNotGiven: 'Yes / No / Not Given',
+            passageCompletion: 'Hoàn thành đoạn',
+        },
+        reason: {
+            drillTargetMet: 'Bạn đã đạt mục tiêu ở dạng câu hỏi này',
+            drillInProgress: 'Dạng câu hỏi bạn đang yếu nhất',
+            drillNotStarted: 'Dạng câu hỏi bạn chưa luyện lần nào',
+            practiceCompleted: 'Bạn đã hoàn thành bài này',
+            practiceNotStarted: 'Bài luyện vừa sức tiếp theo',
+            submissionGraded: 'Bài viết đã được chấm',
+            submissionNotGraded: 'Bài viết chưa có kết quả chấm',
+            attemptGraded: 'Bài nói đã được chấm',
+            attemptNotGraded: 'Bài nói chưa có kết quả chấm',
+            vocabDue: 'Số từ đến hạn ôn hôm nay',
+            vocabClear: 'Hôm nay không còn từ đến hạn',
+            needsPreviousNode: 'Mở sau bài trước',
+            needsAllUnitNodes: 'Mở sau khi xong các bài trong unit',
+            weakestMeasuredType: 'Dạng bạn sai nhiều nhất',
+            nextInUnit: 'Bài tiếp theo trong unit',
+            unitCheck: 'Bài kiểm tra cuối unit',
+            diagnosticBaseline: 'Bài chẩn đoán để lấy mốc ban đầu',
+        },
+    },
     a11y: {
         notification: 'Thông báo',
         profile: 'Trang cá nhân',
         askLexi: 'Hỏi Lexi',
+        accountMenu: 'Menu tài khoản',
     },
 };

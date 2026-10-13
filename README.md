@@ -154,7 +154,7 @@ Honest state, so nobody assumes more than exists.
   the answered count on the tab and a 13-button navigator pinned below.
 - **The ported logic layer** — 77 modules copied verbatim, all evaluating.
   `src/api/index.js` re-exports the 9 modules v1 left out of its barrel.
-- **Locales** — 2,961 keys in parity across vi and en, generated from v1's tree
+- **Locales** — 3,038 keys in parity across vi and en, generated from v1's tree
   plus v2's seed plus a recorded patch file. The audit that got them there also
   found a live plural bug in v1 (see above). **English is not in the entry** — it
   is fetched on demand (`i18next-resources-to-backend`), because Vietnamese is the
@@ -185,12 +185,13 @@ Honest state, so nobody assumes more than exists.
   initial from the session, and the unread badge from `useUnreadCount` — which was
   also reading the wrong field (`data.count`, where the backend sends
   `data.unreadCount`), so every unread notification was invisible.
-- **Verification** — 456 tests across two runners: 385 under Vitest across 31 files
+- **Verification** — 559 tests across two runners: 488 under Vitest across 38 files
   (routes, auth guarding, the mobile pane split, the paper transformation, real
   API-response mapping, the deferred English load, the onboarding payload shape and
-  the auto-open guard, the path's node states and what it refuses to state, and the three
-  session start payloads) and 71 under `node:test` (v1's own utility and API tests, which
-  Vitest cannot run, plus the fixture helper).
+  the auto-open guard, the path's node states and what it refuses to state, the three
+  session start payloads, the login payload's exact shape, the account menu, Lexi's panel
+  and the WebSocket URL derivation) and 71 under `node:test` (v1's own utility and API tests,
+  which Vitest cannot run, plus the fixture helper).
 - **Learning path** — screen 06, at `/path`. This also fixes a live bug: the rail has
   linked to `/path` since the first v2 build with no route behind it, so the one link
   named "Lộ trình học" fell through the catch-all to `/home`. The screen renders decisions
@@ -727,9 +728,9 @@ designed version can be built honestly.
 
 ### Not built yet
 
-- **Realtime is not mounted.** `RealtimeStompContext` and
-  `VocabularyExplainContext` are ported but unused; `CreditContext` is not mounted
-  either (screens call the api directly).
+- **Realtime IS mounted — this line used to say the opposite and was stale.** `AppLayout` mounts
+  `CreditProvider` → `RealtimeStompProvider` → `VocabularyExplainProvider` (`ProviderStack`), and the
+  take surfaces get the same chain from `ProviderLayout`.
 - **The dictionary/notebook screens exist now** — `/dictionary` (list + detail
   aside, memory-tiered), `/dictionary/review` (four-button SRS) and
   `/vocabulary/check` (lookup + streamed AI explain).
@@ -745,9 +746,95 @@ designed version can be built honestly.
   might), and renders a `mode: DISABLED` action as *unavailable* rather than as free
   — `AI_CHAT` currently comes back with `cost: 0, mode: DISABLED`, and calling that
   "free" would advertise a feature that cannot be used.
-- **5 of the 36 designed screens** exist only as mockups in `_design/mockup/`,
-  not as routes. `_design/SCREENS-V2.md` specifies each one.
-- **No PWA registration, no Playwright or axe gate.** `PROPOSAL.md` §7 phases 3–4.
+- **Every one of the 36 designed screens has a route.** This line used to say five were mockup-only.
+  Three screens now have a SECOND frame for a second state, and the folder therefore holds 39 frames:
+  `07b` (the guest chrome of `/vocabulary/check`), `33b` (the account menu, open) and `36b` (Lexi's
+  panel, open). The mockups also draw the account block and the floating helper on every shell frame;
+  they used to be missing from all but one, which is how the header's top-right went undesigned.
+- **No PWA registration, and no axe gate.** Playwright has been running since the first UI review —
+  `npm run test:e2e`, two viewports, **144 tests** across the smoke sweep, layout, the realtime socket,
+  the Lexi panel, the header and tabs (including one `h1` per shell route), the review flow, and theme
+  — and `PROPOSAL.md` §7 phase 4 still owes the axe accessibility project.
+- **The suite's remaining noise is this machine's network, and the guards now say so instead of
+  failing.** The drops are visible from both sides at once: the browser logs
+  `net::ERR_NETWORK_CHANGED`, and Vite logs `ws proxy error: read ECONNRESET`, sometimes together with
+  the backend being briefly unreachable (`Failed to restore auth session … ApiError: Khong the ket noi
+  den server`). When a drop lands mid-load the route renders blank, and a screen that is genuinely
+  fine fails. Two bounded, evidence-gated responses, both of which print what they did:
+  `gotoWithRetry` retries a navigation only on `net::ERR_*`; `expectBodyHasContent` reloads at most
+  twice, only when a `net::ERR_*` entry is present, and on success clears the entries that name a URL
+  the browser itself failed to fetch (`Failed to fetch dynamically imported module: …/AppLayout.jsx`).
+  A `TypeError`, an app-origin 4xx/5xx, or a module failure with no transport failure behind it is
+  NEVER cleared, so real breakage still fails the run. Verified by re-running each failing test
+  individually on the same build: every one passes.
+- **`locales:merge` cannot run yet, and the reason is a data-loss bug it would now refuse to
+  commit.** The generated locale tree contains **276 keys in 13 namespaces that exist in neither
+  v1's tree nor `src/i18n/seed/`** (landing 99, weeklyReport 64, onboarding 50, profilePage 25,
+  vocabularyReview 22, …). Because the merge is `v1 + seed + patches`, running it deletes them and
+  every string in those namespaces renders as a raw key — it did exactly that when this was
+  discovered, and the tree was restored from git. `scripts/merge-v1-locales.mjs` now DETECTS the loss
+  and refuses to write, listing the namespaces; completing the seed is the fix, and until then new
+  keys are added to the seed AND the generated file together.
+
+### What the second UI review changed (and what it found)
+
+The review is `report-ui-2.md`; the plan it produced is `plan-fix-ui-2.md`. Two of its four top items
+turned out to be CONFIGURATION rather than UI, which is why they were invisible to every gate:
+
+- **`.env` was missing entirely (0 bytes)**, so `VITE_API_URL` was `undefined` and the browser built
+  `ws://localhost:8082/ws/realtime-chat` for a page served over https — mixed content, blocked before
+  a frame was sent. `.env` now sets `/api` — a relative base — so `/api` AND `/ws` go through the dev
+  proxy. The absolute form also broke the whole Playwright suite with `blocked by CORS policy`
+  (52 failures), because the backend's `CORS_ALLOWED_ORIGINS` names only ports 5173/5174.
+- **A StrictMode bug in the realtime provider made the socket impossible to open, silently.** The
+  connecting notice on `/vocabulary/check` survived the `.env` fix, and the reason was in
+  `RealtimeStompContext.jsx`: `new Client(...)` and `createRealtimeTransportController({ client })`
+  were two separate lazy `useState` initializers. React StrictMode invokes initializers TWICE, so the
+  second controller was constructed over the FIRST client and overwrote its `beforeConnect` /
+  `onConnect` callbacks. The live controller drove `client.activate()` while the callback read a
+  discarded controller's `targetMode` — `idle` — threw "Realtime target mode is idle", and left the
+  promise `connect()` returned UNSETTLED (`pendingConnection` had already been nulled, so
+  `rejectPending` was a no-op). The observable result: **no WebSocket was ever constructed, nothing
+  was logged, and the screen said "Đang kết nối tới máy chủ AI…" forever.** Both are created in one
+  initializer now, so a discarded pass produces a self-consistent discarded pair, and `deactivate()`
+  is serialized behind one shared in-flight promise so a StrictMode cleanup cannot clobber the mode a
+  later `connect()` just set.
+  Traced by tagging each controller with a random id: the `activating` log came from one instance and
+  the `beforeConnect` log from another. Pinned by
+  `src/contexts/RealtimeStompContext.test.jsx`, which renders the provider under `StrictMode` with a
+  fake client whose `activate()` runs its own `beforeConnect` — it reports `idle:connecting` against
+  the old code and `authenticated:connected` against the fix — and by `e2e/realtime.spec.js`, which
+  asserts a real `/ws/realtime-chat` WebSocket is constructed and the notice clears. Verified end to
+  end: `CONNECT → SUBSCRIBE → SEND` over the socket, and the AI's explanation of "mitigate" renders on
+  the page.
+- **`NINEROUTER_API_URL` pointed at port 20129 while 9router listens on 20128**, so every AI call the
+  backend made went to a dead port. Fixed in `../en-practice-be/.env`.
+- **The shell scrolls its content, not the document.** `AppLayout` is `h-dvh` with `<main>` as the
+  scrollport; `relative` on `main` is load-bearing (an `absolute` descendant like a Tailwind
+  `sr-only` span otherwise resolves against the viewport and grew the document by 49px on
+  `/profile`). Only the shell changed — landing, login, onboarding and every take screen still scroll
+  the document, which is asserted per branch in `e2e/smoke.spec.js`.
+- **The take screens are bounded viewports**, with `grid-rows-[minmax(0,1fr)]` on the pane grid. That
+  one class is the fix for "a long passage pushes the question navigator below the fold": with an auto
+  row the passage's height became the row's, so the panes' own `overflow-y-auto` never engaged. The
+  controls are now `shrink-0` siblings under an inner scroller, so they are pinned by construction.
+- **Two screens shipped one state for two audiences.** `/vocabulary/check` rendered the visitor's
+  chrome (a "Đăng nhập" button and no nav) to signed-in learners too — `VocabularyCheckLayout` now
+  picks the shell from the session. And the floating "Hỏi Lexi" was a `<Link to="/ai-chat">`, which
+  navigated AWAY from the screen the question was about; it is a non-modal panel now
+  (`LexiPanel`), sharing `useAiChat`, `ChatLog` and `ChatBubble` with the full-page coach.
+- **Two render bugs found by reading, not by a gate:** `/vocabulary/result` called
+  `vocabularyTestApi.getAttempt` (the method is `getAttemptDetail`), so reopening a finished attempt
+  threw and rendered nothing; and `/path` printed the literal `{{nodes}} bài · 1 bài kiểm tra cuối
+  unit` because the call site passed `{ count }` to a string that interpolates `{{nodes}}`.
+- **Two new gates for that class.** `scripts/i18n-audit.mjs` now fails when a locale value
+  interpolates a variable its call site does not pass (it found the same bug shape in four more
+  files), and the e2e guards fail on a raw `{{…}}` on screen. Its comment-stripper also had to stop
+  collapsing newlines, because it was reporting line numbers that pointed at unrelated code.
+- **Node 25 broke the whole unit suite** (`localStorage` is a Node global that shadows jsdom's, 28 of
+  32 test files failed to load). `src/test/setup.js` installs a real in-memory `Storage` only when the
+  platform's own is unusable, so `npm run verify` needs no environment variable.
+
 
 ### Next, in order
 

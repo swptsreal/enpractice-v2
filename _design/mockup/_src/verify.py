@@ -65,9 +65,13 @@ class Balance(HTMLParser):
 
 
 def main():
+    # `\d\d[a-z]?` — the optional letter covers VARIANT frames of the same screen, e.g.
+    # `07b-vocabulary-check-guest.html`, which is the guest chrome of screen 07. Without it a
+    # variant file is silently outside every structural check in this gate (tag balance, token
+    # stylesheet, hard-coded hex), which is exactly the kind of file that ships unreviewed.
     screens = sorted(
         f for f in os.listdir(ROOT)
-        if re.match(r'^\d\d-.*\.html$', f)
+        if re.match(r'^\d\d[a-z]?-.*\.html$', f)
     )
     failures = []
     print(f'screens found: {len(screens)}')

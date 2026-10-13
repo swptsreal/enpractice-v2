@@ -192,8 +192,21 @@ describe('signed-in routing', () => {
         });
     }
 
-    it('renders the login route outside the app shell', async () => {
-        const { container } = await renderRoute('/login');
+    it('renders /vocabulary/check INSIDE the shell for a signed-in learner', async () => {
+        /* REGRESSION: the guest-trial route was made chrome-free for visitors and stayed that way
+           for everyone, so a signed-in learner saw the visitor's header — including a "Đăng nhập"
+           button — with no sidebar and no way back into the product. The mockup draws screen 07
+           inside the shell (`_design/mockup/07-vocabulary-check.html`), and the rail links here as
+           "Học", so the signed-in view is the shell. */
+        const { container } = await renderRoute('/vocabulary/check');
+        await waitFor(() => expect(container.textContent).toMatch(/Từ cần tra/));
+
+        expect(container.querySelector('aside')).not.toBeNull();
+        expect(container.querySelector('#main')).not.toBeNull();
+        expect(screen.getByText(/bỏ qua tới nội dung/i)).toHaveAttribute('href', '#main');
+    });
+
+    it('renders the login route outside the app shell', async () => {        const { container } = await renderRoute('/login');
         // the shell's rail must not wrap a full-bleed auth screen
         expect(container.querySelector('aside')).not.toBeNull(); // the marketing column
         expect(container.querySelectorAll('img.lexi').length).toBeGreaterThan(0);

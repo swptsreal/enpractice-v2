@@ -23,9 +23,9 @@
                 <a class="nav__item" href="04-home.html"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5.5h5V20"/></svg><span>Trang chủ</span></a>
-                <a class="nav__item" href="07-vocabulary-check.html"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                <a class="nav__item" href="08-vocabulary-list.html"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Học</span></a>
+        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Từ vựng</span></a>
                 <a class="nav__item" href="16-ielts-list.html"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/></svg><span>Luyện tập</span></a>
@@ -54,7 +54,17 @@
             <a class="btn btn--primary btn--sm" href="09-vocabulary-take.html"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Tạo bài mới</a>
-        </header>
+            
+<div class="acct">
+    <button class="acct__icon" type="button" aria-label="Thông báo"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M6.5 17V11a5.5 5.5 0 0 1 11 0v6"/><path d="M4.5 17h15"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="acct__dot">3</span></button>
+    <span class="chip chip--teal only-lg">Premium</span>
+    <button class="acct__avatar" type="button" aria-haspopup="true" aria-expanded="false"
+            aria-controls="account-panel" aria-label="Menu tài khoản">M</button>
+    
+</div>
+</header>
 
         <main class="shell__content shell__content--wide" id="main">
             <!-- Tabs + filter toolbar (v1 has no mobile equivalent of this) -->
@@ -206,9 +216,9 @@
             <a class="tabbar__item" href="04-home.html"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5.5h5V20"/></svg><span>Trang chủ</span></a>
-            <a class="tabbar__item" href="07-vocabulary-check.html" aria-current="page"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
+            <a class="tabbar__item" href="08-vocabulary-list.html" aria-current="page"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Học</span></a>
+        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Từ vựng</span></a>
             <a class="tabbar__item" href="16-ielts-list.html"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/></svg><span>Luyện tập</span></a>
@@ -220,6 +230,13 @@
         aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg><span>Cá nhân</span></a>
         </nav>
     </div>
+    
+<button class="lexi-fab" type="button" aria-haspopup="dialog" aria-expanded="false"
+        aria-controls="lexi-panel" aria-label="Hỏi Lexi">
+    <img class="lexi lexi--sm " data-mood="idle"
+        src="assets/lexi-yes.webp" width="56" height="59"
+        loading="lazy" decoding="async" aria-hidden="true" />
+</button>
 </div>
 <div id="live" class="sr-only" role="status" aria-atomic="true"></div>
 <script>

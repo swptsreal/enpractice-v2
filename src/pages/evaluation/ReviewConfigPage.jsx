@@ -1,246 +1,348 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Layers, Clock, Info, ArrowRight, Star, Sparkles } from 'lucide-react';
+import { ArrowRight, CalendarDays, Clock, Layers, Target } from 'lucide-react';
 import { Lexi } from '../../components/mascot/Lexi';
-import { Card } from '../../components/ui/Card';
-import { Button, ButtonLink } from '../../components/ui/Button';
+import { Card, RowBox } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
 import { SkeletonCard } from '../../components/ui/Primitives';
 import { AsyncBoundary } from '../../components/ui/AsyncBoundary';
 import { cn } from '../../lib/cn';
+import { estimateMinutes, readReviewPrefs, writeReviewPrefs } from '../../features/evaluation/useEvaluation';
+import { useReviewCounts } from '../../features/evaluation/useReviewSession';
+import { useSetPageHeaderSubtitle } from '../../app/PageHeaderContextCore';
 import {
-    useReviewConfig,
-    REVIEW_MODES,
     REVIEW_DIRECTIONS,
-    readReviewPrefs,
-    writeReviewPrefs,
-} from '../../features/evaluation/useEvaluation';
+    REVIEW_GROUP_KEYS,
+    REVIEW_PRESETS,
+    applyPreset,
+    clampLimit,
+    describeWindow,
+    presetFor,
+    sessionSearch,
+    windowRangeLabel,
+} from '../../features/evaluation/reviewSession';
 
 /**
- * Spaced repetition config — `/review` (screen 15).
+ * Review setup — `/review` (screen 15), step 1 of the three-step review flow.
  *
- * THE SCREEN'S JOB IS TO REMOVE THE TWO REASONS PEOPLE SKIP REVIEW: not knowing what will
- * be reviewed, and not knowing how long it takes. So the copy states BOTH up front
- * ("34 từ đến hạn · khoảng 9 phút") and the primary button repeats the duration. Every one
- * of those numbers is real: the count comes from `dictionaryStats.wordsToReviewToday`, and
- * the duration is computed at a documented pace rather than guessed.
+ * THIS SCREEN WAS REBUILT AROUND THE ENDPOINTS THAT EXIST, and that is the whole change. It used to
+ * read `dictionaryStats` off the profile and offer four hand-picked content modes; only one of those
+ * four had a server meaning, "Mixed" direction could not be stored in the server's single
+ * `direction` string, and the start button handed off to `/dictionary/review` — the flashcard mode,
+ * which grades by self-rating and is a different feature. Now it composes exactly the parameters
+ * `GET /records/review-words` accepts: a time window, a word group, a direction and a count.
  *
- * DIRECTION HAS NO ENDPOINT, AND THE SCREEN SAYS SO. The backend's review flow always
- * prompts with the word, so the English→Vietnamese / Vietnamese→English / Mixed control
- * is a client-side display preference. It is still worth offering — it shapes what the
- * user expects to see — but presenting it as a server setting would be a lie the user
- * discovers on their next device.
+ * THREE THINGS ARE DELIBERATE:
  *
- * The four content options each carry their OWN count, because "which words" is exactly
- * the question this screen exists to answer.
+ *  1. **The count is capped by the group's own count.** Asking for 50 words when 8 are due is a
+ *     promise the screen cannot keep, so the slider's maximum IS "how many have I got".
+ *  2. **The button only appears when the window is complete.** A custom range with a `from` and no
+ *     `to` reaches the server as "the last 7 days", which is not the window on screen.
+ *  3. **No date arithmetic lives here.** `reviewSession.js` owns the presets, the ISO weeks and the
+ *     clamps, and its tests pin the boundaries — including the week-numbering case that only
+ *     misfires near New Year and would silently review a different week.
  */
 export default function ReviewConfigPage() {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
-    const config = useReviewConfig();
-    const [prefs, setPrefs] = useState(() => readReviewPrefs());
+    /* The mockup's header is two lines: the shared `<h1>` plus this context line. Both review screens
+       carry the SAME heading and are told apart here. */
+    useSetPageHeaderSubtitle(t('review.configSubtitle'));
 
-    function update(patch) {
-        const next = { ...prefs, ...patch };
-        setPrefs(next);
-        writeReviewPrefs(next);
+    const prefs = useMemo(() => readReviewPrefs(), []);
+    const [direction, setDirection] = useState(() =>
+        REVIEW_DIRECTIONS.includes(prefs.direction) ? prefs.direction : 'EN_TO_VI'
+    );
+    const [preset, setPreset] = useState('last7');
+    const [params, setParams] = useState(() => ({ ...applyPreset('last7'), group: 'unreviewed', limit: 20 }));
+
+    /* The direction is a device preference, and it stays one: no endpoint stores it, so claiming
+       otherwise would be a setting the learner loses on their next device. */
+    useEffect(() => {
+        writeReviewPrefs({ direction });
+    }, [direction]);
+
+    const window = describeWindow(params);
+    const rangeLabel = windowRangeLabel(window);
+    const { counts, loaded, loading, error, reload } = useReviewCounts(params);
+    const available = counts[params.group] ?? 0;
+    const limit = clampLimit(params.limit, available);
+    const minutes = estimateMinutes(limit);
+
+    function choosePreset(next) {
+        setPreset(next);
+        setParams((current) => ({ ...current, ...applyPreset(next) }));
     }
 
-    /**
-     * The count each content option would actually review.
-     *
-     * `mode` is the API's own switch: `isQuickMode` serves any words deliberately easily,
-     * while the default honours the due schedule. The other two filter the fetched list
-     * by fields it already carries.
-     */
-    const counts = {
-        DUE: config.dueCount,
-        QUICK: config.totalWords,
-        FAVORITES: config.favoriteCount,
-        WEAK: config.learningCount,
+    function patch(next) {
+        /* Merged OUTSIDE the updater. A state updater must be pure — React invokes it twice under
+           StrictMode — so setting the preset from inside it would be a side effect that runs twice, and
+           the preset is derived FROM the parameters anyway, which is the honest direction. */
+        const merged = { ...params, ...next };
+        setParams(merged);
+        /* Keep the preset chips honest: editing a custom date makes the choice "custom", it does not
+           leave "7 ngày" looking selected when the range is no longer those 7 days. */
+        setPreset(presetFor(merged));
+    }
+
+    const GROUP_META = {
+        unreviewed: { icon: Layers, hint: t('review.group.unreviewedHint') },
+        wrong: { icon: Target, hint: t('review.group.wrongHint') },
+        all: { icon: CalendarDays, hint: t('review.group.allHint') },
     };
 
-    const selectedMode = REVIEW_MODES.find((m) => m.id === prefs.contentMode) ?? REVIEW_MODES[0];
-    const selectedCount = counts[selectedMode.id] ?? 0;
-    const selectedMinutes = selectedCount
-        ? Math.max(1, Math.round((selectedCount * 16) / 60))
-        : 0;
-
-    const MODE_META = {
-        DUE: { icon: Clock, toneKey: 'review.modeDueHint' },
-        QUICK: { icon: Sparkles, toneKey: 'review.modeQuickHint' },
-        FAVORITES: { icon: Star, toneKey: 'review.modeFavoritesHint' },
-        WEAK: { icon: Layers, toneKey: 'review.modeWeakHint' },
-    };
+    const canStart = window.complete && available > 0;
 
     return (
         <div className="mx-auto flex w-full max-w-[680px] flex-col gap-4">
-            <Button
-                variant="ghost"
-                size="sm"
-                className="self-start"
-                onClick={() => navigate('/evaluation')}
-            >
-                <ArrowLeft size={16} aria-hidden="true" />
-                {t('common.back')}
-            </Button>
-
-            {/* --- the stepper ---------------------------------------------- */}
-            <div>
-                <span className="t-micro muted">{t('review.stepOf', { step: 1, total: 3 })}</span>
-                <ol aria-label={t('review.stepperLabel')} className="mt-2 flex gap-1.5">
-                    {[1, 2, 3].map((step) => (
-                        <li
-                            key={step}
-                            aria-current={step === 1 ? 'step' : undefined}
-                            className={cn(
-                                'h-1.5 flex-1 rounded-full',
-                                step === 1 ? 'bg-[var(--teal)]' : 'bg-[var(--surface-alt)]'
-                            )}
-                        >
-                            <span className="sr-only">{t('review.stepN', { step })}</span>
-                        </li>
-                    ))}
-                </ol>
-            </div>
-
-            {/* --- what will be reviewed, and how long ---------------------- */}
+            {/* NO BACK BUTTON AND NO STEPPER — both were removed on purpose.
+                `/review` is an ENTRY point: the rail ("Từ vựng") and the phone's bottom tab bar open
+                it, so a back button has nowhere honest to go. The first build pointed it at
+                `/evaluation`, a different hub the learner had never visited, so it read as "back" and
+                landed somewhere else. The stepper spent the top of the screen saying "1 of 3" before
+                anything had been agreed to; the start button already names the session it will open,
+                and the stepping is worth showing DURING the flow — which is why the result step keeps
+                its own. Asserted by `e2e/review-flow.spec.js`. */}
             <AsyncBoundary
-                loading={config.loading}
-                error={config.error}
+                /* The skeleton is for the FIRST answer only. On a refetch the previous numbers stay
+                   mounted, which is what keeps the page from jumping to the top when a preset is
+                   tapped — and the dimmed `aria-busy` region still says the numbers are being
+                   refreshed. */
+                loading={loading && !loaded}
+                error={error}
                 isEmpty={false}
-                onRetry={config.reload}
+                onRetry={reload}
                 skeleton={<SkeletonCard lines={3} />}
             >
+                <div
+                    aria-busy={loading || undefined}
+                    className={cn('flex flex-col gap-4 transition-opacity', loading && 'opacity-60')}
+                >
                 <Card level="hero" padding="xl" className="flex flex-col gap-4 md:flex-row md:items-center">
-                    <Lexi mood={config.dueCount > 0 ? 'happy' : 'sleepy'} size="md" />
+                    <Lexi mood="explain" size="sm" />
                     <div className="min-w-0 flex-1">
-                        {/* Both facts, up front — that is the whole design brief. */}
-                        <h1 className="t-h2">
-                            {config.dueCount > 0
-                                ? t('review.headline', { count: config.dueCount, minutes: config.estimatedMinutes })
-                                : t('review.nothingDueTitle')}
-                        </h1>
+                        {/* `h2`, NOT `h1`: the shell header already renders the route title as the
+                            page's `h1`, and two would compete (guarded by header-and-tabs.spec.js). */}
+                        <h2 className="t-h2">
+                            {available > 0
+                                ? t('review.readyHeadline', { count: available, minutes })
+                                : t('review.emptyTitle')}
+                        </h2>
                         <p className="t-body soft mt-1">
-                            {config.dueCount > 0 ? t('review.headlineBody') : t('review.nothingDueBody')}
+                            {available > 0 ? t('review.readyBody') : t('review.emptyBody')}
                         </p>
                     </div>
                 </Card>
 
-                {/* --- content choice --------------------------------------- */}
-                <fieldset className="flex flex-col gap-3">
-                    <legend className="t-h3 mb-2">{t('review.contentTitle')}</legend>
-                    <ul className="flex flex-col gap-2">
-                        {REVIEW_MODES.map((mode) => {
-                            const { icon: Icon, toneKey } = MODE_META[mode.id];
-                            const count = counts[mode.id] ?? 0;
-                            const minutes = count ? Math.max(1, Math.round((count * 16) / 60)) : 0;
-                            const disabled = count === 0;
-                            return (
-                                <li key={mode.id}>
-                                    <button
-                                        type="button"
-                                        aria-pressed={prefs.contentMode === mode.id}
-                                        disabled={disabled}
-                                        onClick={() => update({ contentMode: mode.id })}
-                                        className={cn(
-                                            'flex w-full items-center gap-3 rounded-[var(--r-card)] border-2 p-3.5 text-left',
-                                            prefs.contentMode === mode.id
-                                                ? 'border-[var(--teal)] bg-[var(--teal-soft)]'
-                                                : 'border-[var(--border)] bg-[var(--surface)]',
-                                            disabled && 'opacity-50'
-                                        )}
-                                    >
-                                        <span aria-hidden="true" className="shrink-0 text-[var(--teal)]">
-                                            <Icon size={18} />
-                                        </span>
-                                        <span className="min-w-0 flex-1">
-                                            <strong className="t-label block text-[var(--ink)]">
-                                                {t(`review.mode.${mode.id}`)}
-                                            </strong>
-                                            <span className="t-micro muted">{t(toneKey)}</span>
-                                        </span>
-                                        {/* Each option carries its OWN count and duration. */}
-                                        <span className="shrink-0 text-right">
-                                            <span className="t-mono block text-sm">
-                                                {t('review.wordCount', { count })}
-                                            </span>
-                                            <span className="t-micro muted">
-                                                {minutes > 0 ? t('review.aboutMinutes', { count: minutes }) : '—'}
-                                            </span>
-                                        </span>
-                                    </button>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </fieldset>
+                {/* --- the time window ------------------------------------- */}
+                <Card padding="lg">
+                    <h2 className="t-h3">{t('review.windowTitle')}</h2>
+                    <p className="t-body soft mt-1">{t('review.windowBody')}</p>
 
-                {/* --- direction -------------------------------------------- */}
-                <fieldset>
-                    <legend className="t-label mb-2">{t('review.directionTitle')}</legend>
-                    <div className="flex flex-wrap gap-1.5">
-                        {REVIEW_DIRECTIONS.map((direction) => (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                        {REVIEW_PRESETS.map((key) => (
                             <button
-                                key={direction}
+                                key={key}
                                 type="button"
-                                aria-pressed={prefs.direction === direction}
-                                onClick={() => update({ direction })}
+                                aria-pressed={preset === key}
+                                onClick={() => choosePreset(key)}
                                 className={cn(
-                                    'min-h-11 rounded-[var(--r-control)] px-3.5 text-sm font-bold',
-                                    prefs.direction === direction
-                                        ? 'bg-[var(--teal)] text-[var(--on-teal)]'
-                                        : 'bg-[var(--surface-alt)] text-[var(--ink-muted)]'
+                                    'h-9 rounded-[var(--r-control)] px-3 text-[0.8125rem] font-bold',
+                                    preset === key
+                                        ? 'bg-[var(--teal)] text-white'
+                                        : 'bg-[var(--surface-alt)] text-[var(--ink-soft)] hover:brightness-[0.97]'
                                 )}
                             >
-                                {t(`review.direction.${direction}`)}
+                                {t(`review.preset.${key}`)}
                             </button>
                         ))}
                     </div>
-                    {/* Said plainly: this one is a display preference, not a server setting. */}
-                    <p className="t-micro muted mt-2 flex items-start gap-2">
-                        <Info size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
-                        {t('review.directionNote')}
-                    </p>
+
+                    {window.kind === 'week' ? (
+                        <label className="mt-3 block">
+                            <span className="t-label">{t('review.weekLabel')}</span>
+                            <input
+                                type="week"
+                                value={params.week}
+                                onChange={(event) => patch({ week: event.target.value })}
+                                className="mt-1 h-11 w-full rounded-[var(--r-control)] border border-[var(--border)] bg-[var(--surface)] px-3"
+                            />
+                        </label>
+                    ) : null}
+
+                    {window.kind === 'month' ? (
+                        <label className="mt-3 block">
+                            <span className="t-label">{t('review.monthLabel')}</span>
+                            <input
+                                type="month"
+                                value={params.month}
+                                onChange={(event) => patch({ month: event.target.value })}
+                                className="mt-1 h-11 w-full rounded-[var(--r-control)] border border-[var(--border)] bg-[var(--surface)] px-3"
+                            />
+                        </label>
+                    ) : null}
+
+                    {window.kind === 'range' ? (
+                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                            <label className="block">
+                                <span className="t-label">{t('review.fromDate')}</span>
+                                <input
+                                    type="date"
+                                    value={params.from}
+                                    max={params.to || undefined}
+                                    onChange={(event) => patch({ from: event.target.value })}
+                                    className="mt-1 h-11 w-full rounded-[var(--r-control)] border border-[var(--border)] bg-[var(--surface)] px-3"
+                                />
+                            </label>
+                            <label className="block">
+                                <span className="t-label">{t('review.toDate')}</span>
+                                <input
+                                    type="date"
+                                    value={params.to}
+                                    min={params.from || undefined}
+                                    onChange={(event) => patch({ to: event.target.value })}
+                                    className="mt-1 h-11 w-full rounded-[var(--r-control)] border border-[var(--border)] bg-[var(--surface)] px-3"
+                                />
+                            </label>
+                        </div>
+                    ) : null}
+
+                    {/* THE RESOLVED DATES, not the name of the chip that was pressed. The mockup
+                        prints "Đang chọn: 2026-10-01 → 2026-10-13", because the pressed chip already
+                        shows its own state and the only question it cannot answer is "which days,
+                        exactly" — "Tuần này" becomes a week the learner can check.
+
+                        ONE line with two tones: muted while the window is whole, attention-coloured
+                        when it is not, where it doubles as the reason the start button is off. No
+                        second message is invented for that state. */}
+                    {rangeLabel ? (
+                        <p
+                            role={window.complete ? undefined : 'status'}
+                            className={cn(
+                                't-micro mt-3',
+                                window.complete ? 'muted' : 'text-[var(--attention)]'
+                            )}
+                        >
+                            {t('review.selectedWindow', { label: rangeLabel })}
+                        </p>
+                    ) : null}
+                </Card>
+
+                {/* --- the word group --------------------------------------- */}
+                <fieldset>
+                    <legend className="t-h3">{t('review.groupTitle')}</legend>
+                    <p className="t-body soft mt-1">{t('review.groupBody')}</p>
+                    <div className="mt-3 flex flex-col gap-2">
+                        {REVIEW_GROUP_KEYS.map((key) => {
+                            const Meta = GROUP_META[key];
+                            const on = params.group === key;
+                            return (
+                                <button
+                                    key={key}
+                                    type="button"
+                                    aria-pressed={on}
+                                    onClick={() => patch({ group: key })}
+                                    className={cn(
+                                        'flex items-start gap-3 rounded-[var(--r-card)] border-2 p-3 text-left',
+                                        on
+                                            ? 'border-[var(--teal)] bg-[var(--teal-soft)]'
+                                            : 'border-[var(--border)] bg-[var(--surface)]'
+                                    )}
+                                >
+                                    <Meta.icon size={18} aria-hidden="true" className="mt-0.5 shrink-0" />
+                                    <span className="min-w-0 flex-1">
+                                        <span className="block font-bold">{t(`review.group.${key}`)}</span>
+                                        <span className="t-micro soft block">{Meta.hint}</span>
+                                    </span>
+                                    <span className="t-h3 mono shrink-0">{counts[key] ?? 0}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
                 </fieldset>
 
-                {/* --- start ------------------------------------------------- */}
-                <Card level="edge" padding="xl" className="flex flex-col gap-3">
-                    <div className="flex flex-wrap items-center gap-3">
-                        <Button
-                            variant="primary"
-                            size="lg"
-                            disabled={selectedCount === 0}
-                            onClick={() =>
-                                navigate(
-                                    `/dictionary/review?mode=${encodeURIComponent(selectedMode.mode)}&filter=${encodeURIComponent(selectedMode.filter)}`
-                                )
-                            }
-                        >
-                            <Layers size={18} aria-hidden="true" />
-                            {/* The duration is repeated ON the button, per the design. */}
-                            {selectedCount > 0
-                                ? t('review.startWithDuration', { count: selectedCount, minutes: selectedMinutes })
-                                : t('review.nothingToReview')}
-                        </Button>
-                        <ButtonLink to="/dictionary" variant="secondary" size="lg">
-                            {t('review.later')}
-                        </ButtonLink>
+                {/* --- the direction --------------------------------------- */}
+                <fieldset>
+                    <legend className="t-h3">{t('review.directionTitle')}</legend>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                        {REVIEW_DIRECTIONS.map((key) => (
+                            <button
+                                key={key}
+                                type="button"
+                                aria-pressed={direction === key}
+                                onClick={() => setDirection(key)}
+                                className={cn(
+                                    'h-11 rounded-[var(--r-control)] border-2 font-bold',
+                                    direction === key
+                                        ? 'border-[var(--teal)] bg-[var(--teal-soft)] text-[var(--teal)]'
+                                        : 'border-[var(--border)] bg-[var(--surface)] text-[var(--ink-soft)]'
+                                )}
+                            >
+                                {t(`review.direction.${key}`)}
+                            </button>
+                        ))}
                     </div>
+                    <p className="t-micro muted mt-2">{t('review.directionNote')}</p>
+                </fieldset>
 
-                    <p className="t-micro muted border-t-2 border-[var(--border)] pt-3">
-                        {t('review.scheduleNote')}
+                {/* --- the count ------------------------------------------- */}
+                <Card padding="lg">
+                    <h2 className="t-h3">{t('review.countTitle')}</h2>
+                    <p className="t-body soft mt-1">{t('review.countBody')}</p>
+
+                    {/* ONE control for one number. A slider and quick-pick chips would be two
+                        controls claiming the same value, and both could look selected. */}
+                    <div className="mt-3 flex items-center gap-3">
+                        <input
+                            type="range"
+                            className="grow"
+                            min={1}
+                            max={Math.max(1, Math.min(available, 300))}
+                            value={limit}
+                            disabled={available === 0}
+                            aria-label={t('review.countTitle')}
+                            aria-valuetext={t('review.wordCount', { count: limit })}
+                            onChange={(event) => patch({ limit: Number(event.target.value) })}
+                        />
+                        <span className="t-h3 mono shrink-0 tabular-nums">{limit}</span>
+                    </div>
+                    <p className="t-micro muted mt-1">
+                        {t('review.countMax', { count: available })}
                     </p>
-                </Card>
-            </AsyncBoundary>
 
-            <div className="flex items-center justify-center gap-3">
-                <ArrowRight size={15} className="text-[var(--ink-faint)]" aria-hidden="true" />
-                <ButtonLink to="/dictionary" size="sm" variant="ghost">
-                    {t('vocabTest.openDictionary')}
-                </ButtonLink>
-            </div>
+                    <RowBox center className="mt-3">
+                        <Clock size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
+                        <span className="t-body">
+                            {t('review.wordCount', { count: limit })} ·{' '}
+                            {t('review.aboutMinutes', { count: minutes })}
+                        </span>
+                    </RowBox>
+
+                </Card>
+
+                {/* The mockup's two-button row: start, or leave. "Để sau" is not a second way to
+                    start — it is the exit for someone who opened the screen to see how much is
+                    waiting and has decided this is not the moment. Without it the only way out is
+                    the rail, which on a phone means the tab bar under a thumb that is already here. */}
+                <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button
+                        variant="primary"
+                        size="lg"
+                        className="sm:flex-1"
+                        disabled={!canStart}
+                        onClick={() => navigate(`/review/session?${sessionSearch({ ...params, limit }, direction)}`)}
+                    >
+                        {t('review.startWithDuration', { count: limit, minutes })}
+                        <ArrowRight size={18} aria-hidden="true" />
+                    </Button>
+                    <Button variant="ghost" size="lg" onClick={() => navigate('/home')}>
+                        {t('review.later')}
+                    </Button>
+                </div>
+                </div>
+            </AsyncBoundary>
         </div>
     );
 }

@@ -207,11 +207,20 @@ export function useXpMilestones() {
 
 /* -------------------------------------------------------------- inventory */
 
-/** Static type labels. `rewards.inventory.types.*` covers exactly these three. */
+/** Static type labels for the NINE backend values, not three. `InventoryItemType` is
+    BADGE, AVATAR_FRAME, TITLE, EMOTE, STICKER, BACKGROUND, REWARD_CARD, CREDIT_PACK, OTHER — the
+    first version of this map covered three, so a TITLE or BACKGROUND row rendered with no type at
+    all, and a template key would have been invisible to `scripts/i18n-audit.mjs`. */
 export const INVENTORY_TYPE_LABEL_KEYS = {
     BADGE: 'rewards.inventory.types.BADGE',
     AVATAR_FRAME: 'rewards.inventory.types.AVATAR_FRAME',
     REWARD_CARD: 'rewards.inventory.types.REWARD_CARD',
+    TITLE: 'rewards.inventory.types.TITLE',
+    EMOTE: 'rewards.inventory.types.EMOTE',
+    STICKER: 'rewards.inventory.types.STICKER',
+    BACKGROUND: 'rewards.inventory.types.BACKGROUND',
+    CREDIT_PACK: 'rewards.inventory.types.CREDIT_PACK',
+    OTHER: 'rewards.inventory.types.OTHER',
 };
 
 /** null rather than a raw type code when the backend adds a type the locale lacks. */
@@ -219,10 +228,26 @@ export function inventoryTypeLabelKey(type) {
     return INVENTORY_TYPE_LABEL_KEYS[type] ?? null;
 }
 
-export function useInventory({ page = 0, size = 8 } = {}) {
-    const key = `inventory|${page}|${size}`;
+/**
+ * One page of the learner's inventory.
+ *
+ * THE FILTERS ARE THE API'S OWN, and they are passed through rather than applied client-side: the
+ * endpoint accepts `inventoryItemType` (`InventoryItemType`), `used` (boolean) and `name`, and it
+ * PAGES. Filtering a single fetched page in the browser would silently answer "no badges" for a
+ * learner whose badges are on page 2.
+ */
+export function useInventory({ page = 0, size = 8, inventoryItemType, used } = {}) {
+    const key = `inventory|${page}|${size}|${inventoryItemType ?? 'ALL'}|${used ?? 'ALL'}`;
     const loader = useCallback(
-        () => inventoryApi.getMine({ page, size }).then(readPage),
+        () =>
+            inventoryApi
+                .getMine({
+                    page,
+                    size,
+                    ...(inventoryItemType ? { inventoryItemType } : {}),
+                    ...(typeof used === 'boolean' ? { used } : {}),
+                })
+                .then(readPage),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [key]
     );
@@ -235,6 +260,54 @@ export function useInventory({ page = 0, size = 8 } = {}) {
         error,
         reload,
     };
+}
+
+/**
+ * The three actions an inventory row actually offers.
+ *
+ * `equip(userInventoryItemId)` and `useItem(userInventoryItemId)` take the ROW id, while
+ * `unequip(type)` takes the item TYPE — an asymmetry of the API, not a choice here: unequipping
+ * removes whatever is equipped in that slot, which is why it cannot take a row id.
+ *
+ * The error is kept and surfaced rather than swallowed: a failed equip that silently does nothing
+ * leaves the learner pressing the same button.
+ */
+export function useInventoryActions(reload) {
+    const [pendingId, setPendingId] = useState(null);
+    const [actionError, setActionError] = useState(null);
+
+    const run = useCallback(
+        async (row, action) => {
+            setPendingId(row.id);
+            setActionError(null);
+            try {
+                await action(row);
+                await reload();
+                return true;
+            } catch (error) {
+                setActionError(error);
+                return false;
+            } finally {
+                setPendingId(null);
+            }
+        },
+        [reload]
+    );
+
+    const equip = useCallback((row) => run(row, (r) => inventoryApi.equip(r.id)), [run]);
+    const use = useCallback((row) => run(row, (r) => inventoryApi.useItem(r.id)), [run]);
+    const unequip = useCallback(
+        (row) => run(row, (r) => inventoryApi.unequip(r.item?.type ?? r.type)),
+        [run]
+    );
+
+    /** Equipped items unequip; everything else equips. One control, two directions. */
+    const toggleEquip = useCallback(
+        (row) => (row.equipped ? unequip(row) : equip(row)),
+        [equip, unequip]
+    );
+
+    return { equip, unequip, use, toggleEquip, pendingId, actionError };
 }
 
 export function useWeeklyChallenges() {

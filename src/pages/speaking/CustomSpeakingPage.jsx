@@ -114,7 +114,10 @@ export default function CustomSpeakingPage() {
                 <Card level="hero" padding="xl" className="flex flex-col gap-3 md:flex-row md:items-center">
                     <Lexi mood="excited" size="lg" />
                     <div className="min-w-0 flex-1">
-                        <h1 className="t-h2">{t('customSpeaking.setupTitle')}</h1>
+                        {/* `h2`: the shell header already renders this route's title as the page's
+                            `h1`. (The live-conversation screen below is full-bleed and keeps its own
+                            `h1`.) */}
+                        <h2 className="t-h2">{t('customSpeaking.setupTitle')}</h2>
                         <p className="t-body soft mt-1">{t('customSpeaking.setupBody')}</p>
                     </div>
                 </Card>

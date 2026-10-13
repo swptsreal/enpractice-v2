@@ -23,8 +23,19 @@ const BASE =
     'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--teal)] ' +
     'motion-reduce:transition-none';
 
+/**
+ * Every state carries the 4px press edge (`--edge`), as the mockup draws it: the edge is the
+ * product's one way of saying "this is a physical control", and giving it only to the current
+ * node made the finished and locked nodes read as flat decoration next to it.
+ *
+ * STATE IS NEVER COLOUR ALONE. Each state carries its own icon (check / play / lock / trophy)
+ * and its own accessible name, so the four states survive greyscale, forced colours and a
+ * screen reader. Colour is the fastest signal, not the only one.
+ */
 const STATE_CLASSES = {
-    [NODE_STATES.DONE]: 'border-[var(--teal)] bg-[var(--teal-soft)] text-[var(--teal)]',
+    [NODE_STATES.DONE]:
+        'border-[var(--teal)] bg-[var(--teal-soft)] text-[var(--teal)] ' +
+        'shadow-[0_var(--edge)_0_0_var(--border-strong)]',
     [NODE_STATES.CURRENT]:
         'border-[var(--teal)] bg-[var(--teal)] text-[var(--on-teal)] ' +
         'shadow-[0_var(--edge)_0_0_var(--teal-strong)] active:translate-y-[var(--edge)] active:shadow-none',
@@ -34,7 +45,8 @@ const STATE_CLASSES = {
            needs. The contrast gate only lists `ink-faint` as decoration (on canvas and
            surface), which is exactly why this pair had to be measured by hand. `ink-muted`
            on `surface-alt` is a gate-covered pair at 4.51:1. */
-        'border-[var(--border)] bg-[var(--surface-alt)] text-[var(--ink-muted)] cursor-not-allowed',
+        'border-[var(--border)] bg-[var(--surface-alt)] text-[var(--ink-muted)] cursor-not-allowed ' +
+        'shadow-[0_var(--edge)_0_0_var(--border)]',
     [NODE_STATES.MILESTONE]:
         'size-24 border-[var(--amber)] bg-[var(--amber-soft)] text-[var(--attention)] ' +
         'shadow-[0_var(--edge)_0_0_var(--amber-edge)]',
@@ -50,6 +62,7 @@ const STATE_ICONS = {
 export function PathNode({ state = NODE_STATES.LOCKED, label, disabled = false, onClick }) {
     const Icon = STATE_ICONS[state] ?? Play;
     const isMilestone = state === NODE_STATES.MILESTONE;
+    const isCurrent = state === NODE_STATES.CURRENT;
 
     return (
         <button
@@ -57,11 +70,27 @@ export function PathNode({ state = NODE_STATES.LOCKED, label, disabled = false, 
             aria-label={label}
             disabled={disabled}
             onClick={onClick}
+            /* `aria-current="step"` is the token for "the step in a process the user is on", and
+               `_design/LEARNING-PATH.md` requires the current node to expose one. Without it the
+               only difference between the current node and a finished one is colour, which the
+               accessibility floor forbids. */
+            aria-current={isCurrent ? 'step' : undefined}
             className={cn(BASE, STATE_CLASSES[state] ?? STATE_CLASSES[NODE_STATES.LOCKED])}
         >
+            {/* A RESTING ring, not only the expanding pulse. The mockup draws both
+               (`.path__ring` inset -6px in teal at 35%), and without the static half the current
+               node is only distinguishable WHILE the animation runs — which `prefers-reduced-motion`
+               stops, leaving no marker at all. Decoration, so hidden from assistive tech: the state
+               is already in the accessible name and in `aria-current`. */}
+            {isCurrent ? (
+                <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -inset-1.5 rounded-full border-[3px] border-[var(--teal)] opacity-35"
+                />
+            ) : null}
             {/* The pulse is decoration and is hidden from assistive tech: the state is already
                 in the accessible name. */}
-            {state === NODE_STATES.CURRENT ? (
+            {isCurrent ? (
                 <span aria-hidden="true" className="path-pulse absolute inset-0 rounded-full" />
             ) : null}
             <Icon size={isMilestone ? 34 : 28} aria-hidden="true" className="relative" />

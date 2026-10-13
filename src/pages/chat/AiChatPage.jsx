@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Send, Loader2, Coins, AlertTriangle, RefreshCw, Sparkles } from 'lucide-react';
+import { Send, Loader2, Coins, Sparkles } from 'lucide-react';
 import { Lexi } from '../../components/mascot/Lexi';
 import { Card } from '../../components/ui/Card';
 import { Button, ButtonLink } from '../../components/ui/Button';
 import { Chip, SkeletonCard } from '../../components/ui/Primitives';
 import { AsyncBoundary } from '../../components/ui/AsyncBoundary';
-import { Markdown } from '../../components/ui/Markdown';
-import { cn } from '../../lib/cn';
 import { useAiChat } from '../../features/chat/useAiChat';
+import { ChatLog } from '../../features/chat/ChatLog';
 import { useProfile } from '../../features/profile/useProfile';
 import { useCredit } from '../../contexts/CreditContextCore';
 import { CREDIT_ACTIONS } from '../../features/credits/creditConstants';
@@ -104,7 +103,8 @@ export default function AiChatPage() {
             <Card level="edge" padding="xl" className="flex flex-wrap items-center gap-4">
                 <Lexi mood="explain" size="md" />
                 <div className="min-w-0 flex-1">
-                    <h1 className="t-h3">{t('aiChat.title')}</h1>
+                    {/* `h2`: the shell header already renders this route's title as the page's `h1`. */}
+                    <h2 className="t-h3">{t('aiChat.title')}</h2>
                     <p className="t-micro muted">{t('aiChat.subtitle')}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -130,71 +130,14 @@ export default function AiChatPage() {
                 }
                 isEmpty={false}
             >
-                <div
-                    ref={logRef}
-                    aria-live="polite"
-                    aria-label={t('aiChat.logLabel')}
+                {/* The log is shared with the floating panel (`ChatLog`), so the two cannot drift:
+                    the failed-send retry and the skeleton-inside-the-bubble live in one place. */}
+                <ChatLog
+                    chat={chat}
+                    opening={opening}
+                    logRef={logRef}
                     className="flex max-h-[52vh] min-h-[240px] flex-col gap-3 overflow-y-auto p-1"
-                >
-                    {/* Lexi opens, demonstrating what she knows — or saying she does not
-                        know yet, which is the honest version for a new account. */}
-                    <Bubble role="assistant" lexiMood="explain">
-                        <p>{t(opening.key, opening.values)}</p>
-                    </Bubble>
-
-                    {chat.messages.map((message) => {
-                        const isUser = message.role === 'user';
-                        const failed = message.status === 'failed';
-                        return (
-                            <Bubble
-                                key={message.id}
-                                role={isUser ? 'user' : 'assistant'}
-                                failed={failed}
-                                streaming={message.status === 'streaming'}
-                            >
-                                {isUser ? (
-                                    <p className="whitespace-pre-line">{message.content}</p>
-                                ) : (
-                                    <Markdown content={message.content} />
-                                )}
-
-                                {/* The streaming state is a skeleton INSIDE the bubble,
-                                    so the answer grows where it will end up. */}
-                                {message.status === 'streaming' && !message.content ? (
-                                    <span aria-hidden="true" className="mt-2 flex flex-col gap-2">
-                                        <span className="block h-3.5 w-full animate-pulse rounded bg-[var(--surface-alt)]" />
-                                        <span className="block h-3.5 w-3/5 animate-pulse rounded bg-[var(--surface-alt)]" />
-                                    </span>
-                                ) : null}
-
-                                {failed ? (
-                                    <span className="t-micro mt-2 flex flex-wrap items-center gap-2 text-[var(--wrong)]">
-                                        <AlertTriangle size={14} aria-hidden="true" />
-                                        {t('aiChat.sendFailed')}
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() => chat.retry(message.content)}
-                                        >
-                                            <RefreshCw size={14} aria-hidden="true" />
-                                            {t('common.retry')}
-                                        </Button>
-                                    </span>
-                                ) : null}
-                            </Bubble>
-                        );
-                    })}
-
-                    {chat.streaming && chat.messages.at(-1)?.role === 'user' ? (
-                        <Bubble role="assistant" streaming>
-                            <span aria-hidden="true" className="flex flex-col gap-2">
-                                <span className="block h-3.5 w-full animate-pulse rounded bg-[var(--surface-alt)]" />
-                                <span className="block h-3.5 w-2/5 animate-pulse rounded bg-[var(--surface-alt)]" />
-                            </span>
-                            <span className="sr-only">{t('aiChat.thinking')}</span>
-                        </Bubble>
-                    ) : null}
-                </div>
+                />
             </AsyncBoundary>
 
             {/* --- suggestions --------------------------------------------- */}
@@ -269,38 +212,6 @@ export default function AiChatPage() {
                     ) : null}
                 </form>
             </Card>
-        </div>
-    );
-}
-
-/**
- * One conversation bubble.
- *
- * `role="log"` lives on the container, so each bubble is just a group with a speaker
- * label that is read once rather than repeated per line. Lexi's bubbles carry her face;
- * the user's are tinted instead, so the two are distinguishable without relying on
- * left/right alignment alone (which breaks down on a narrow screen).
- */
-function Bubble({ role, children, failed = false, streaming = false, lexiMood = null }) {
-    const { t } = useTranslation();
-    const isUser = role === 'user';
-
-    return (
-        <div className={cn('flex items-start gap-2.5', isUser && 'flex-row-reverse')}>
-            {!isUser ? <Lexi mood={lexiMood ?? (streaming ? 'thinking' : 'idle')} size="xs" /> : null}
-            <div
-                className={cn(
-                    'min-w-0 max-w-[86%] rounded-[var(--r-card)] border-2 p-3.5',
-                    isUser
-                        ? 'border-[var(--teal)] bg-[var(--teal-soft)]'
-                        : failed
-                          ? 'border-[var(--wrong)] bg-[var(--surface)]'
-                          : 'border-[var(--border)] bg-[var(--surface)]'
-                )}
-            >
-                <span className="t-micro muted mb-1 block">{isUser ? t('aiChat.you') : t('aiChat.lexi')}</span>
-                {children}
-            </div>
         </div>
     );
 }

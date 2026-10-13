@@ -6,6 +6,51 @@ Every screen below has a working mockup in `mockup/` — open `mockup/index.html
 ## How to read this
 **Coverage.** 53 routes in `../en-practice/src/AppShell.jsx` map to **36 mockups**; several routes share a page component (e.g. `/speaking/conversation/:topicId` and `/speaking/conversation/resume/:conversationId` both render `SpeakingConversationPage`). Three routes are pure redirects (`/`, `/speaking/conversation/history`, `/vocabulary/test/:testId`) and get no mockup.
 
+**One screen has two frames.** `07b-vocabulary-check-guest.html` is the guest chrome of screen 07 —
+same screen number, different shell — so the folder holds 37 frames for 36 screens. It exists because
+`/vocabulary/check` is reachable both signed in and signed out, and those two states must not show the
+same page furniture. Every other screen draws one frame.
+
+**The rail's section tabs.** The rail (≥1024px) and the tab bar (<1024px) carry **five primary
+destinations**, and each one is a *section*, so its `href` is that section's **landing** page — not
+"the first frame I happened to write in the section". The vocabulary module is the case that got this
+wrong:
+
+| Primary tab | Landing | The section also contains |
+|---|---|---|
+| **Từ vựng** | `08-vocabulary-list.html` → `/vocabulary` | 07 Tra từ & hỏi AI, 09/10/11 test take · result · history, 12 notebook, 13 flashcard review, 14 evaluation, **15 Ôn tập từ vựng** |
+
+The tab is **named after the section**, not after a screen or the activity: the section is the
+vocabulary module — where you test words (08) and where you review them (15) — so "Học" was wrong for
+the same reason its `href` was. Because a tab can only open one screen, the section's other
+destinations are rail entries of their own; `/review` (15) is one of them, and the app now lists it.
+
+The tab stays **current** for the whole module (it is set on 07–12 in the frames, and
+`src/app/navigation.js` → `activePrimaryId` does the same), which is what a section tab is for. Two
+traps this rule avoids, both of which shipped:
+
+- **The `href` was a copy-paste artefact.** Every hand-rolled rail in 07–12 wrote
+  `href="07-vocabulary-check.html"` on the tab while ALSO marking it `aria-current="page"` — the
+  current-state was right (the module belongs to the section) and the landing was wrong. The app had
+  copied the href, so the sidebar's tab opened a dictionary lookup.
+- **One screen must not be listed twice.** Because the tab pointed at 07 and the group's own "Tra từ &
+  hỏi AI" item also points at 07, the rail listed one screen under two labels. With the landing fixed
+  to 08 the same trap moved to 08, so **08 is no longer repeated inside the "Từ vựng" group**: the
+  primary tab already goes there, and the group lists the section's *other* destinations. The label
+  "Test từ vựng" still names the screen — `src/app/pageTitles.js` maps `/vocabulary` to
+  `nav.vocabTest` for its header.
+
+**Why `activePrimaryId` and not `NavLink`'s own `to`.** Section membership is not a URL prefix: no
+path in the vocabulary section *starts with* `/vocabulary` except `/vocabulary/check`, yet `/review`,
+`/dictionary` and `/evaluation` all belong to it. `NavLink` decides its own `aria-current` from a
+prefix match on `to` and discards any value passed in, so a section tab built on it renders
+**highlighted but not announced** on every route of the section except the landing. `src/app/Shell.jsx`
+therefore computes both the colour and the attribute from `activePrimaryId` and renders a plain
+`Link`.
+
+Every rail destination is asserted to have a real `<Route path>` in `src/App.jsx` and to be unique,
+by `src/app/navigation.test.js`.
+
 **Evidence markers.** The proposal's §2.1 explains these; they are repeated on every screen because the confidence is not uniform:
 
 - **`[code-verified]`** — I read v1's implementation of this screen. Its v2 spec preserves actual behaviour and data.
@@ -99,6 +144,33 @@ data:
 - **The streaming state is designed:** the answer renders progressively with two skeleton lines at the bottom. There is no bare spinner.
 - **The answer explains the user's own sentence** ("Vì sao hợp với câu của bạn") rather than printing a dictionary definition, and it shows common confusions with a wrong/near-synonym split.
 
+**TWO CHROMES, ONE SCREEN — `mockup/07-vocabulary-check.html` and `mockup/07b-vocabulary-check-guest.html`.**
+This is the one screen in the product that a visitor and a learner reach by the same URL, and they
+must not see the same page furniture:
+
+| | Frame | Who | Why |
+|---|---|---|---|
+| **07** | inside the shell (rail + header + tab bar) | signed-in | A learner needs the way back into the product |
+| **07b** | full-bleed, slim bar (brand + "Đăng nhập") | no session | The no-account trial the landing page and the login card both promise ("Học thử không cần tài khoản") — rail, tab bar and bell belong to an account the visitor does not have |
+
+**The rail's "Từ vựng" tab does NOT land here.** It lands on **08** (`/vocabulary`, the vocabulary
+test list) — see "The rail's section tabs" below. This screen is the section's own item, **"Tra từ &
+hỏi AI"**, and it is still the "Từ vựng" section for highlight purposes (the tab stays current on 07).
+
+The split is decided from the session by `src/app/VocabularyCheckLayout.jsx`, not by two pages, so
+the screen itself is identical in both frames. The guest frame is also the one that states the
+caveat in words ("Học thử không cần tài khoản… tiến độ không được lưu"), because a chrome-free
+surface with no explanation reads as a broken page.
+
+**07b is deliberately a smaller page than 07.** A visitor has no recent lookups and no saved words,
+so the "Gần đây" strip has nothing truthful to render; drawing it would be a mockup of data the
+viewer cannot have.
+
+**This was a real defect, found in review:** the guest chrome was applied to everyone, so a
+signed-in learner saw the visitor's bar — including a "Đăng nhập" button — with no sidebar and no
+way back into the app. The fix is the split above.
+
+
 ### 08 · Vocabulary test list — `/vocabulary` `[code-verified]`
 - **Layout:** List. Tabs (all / not done / done) + filter + a responsive card grid.
 - **Three states all designed:** populated grid, a real empty state with Lexi (`explain` mood) and a create action, and a loading state of skeleton cards — not a spinner.
@@ -129,6 +201,7 @@ data:
 - **Memory is the organising idea, not alphabetisation:** the "Hay quên" filter and the tier colour are the primary sort affordances.
 
 ### 13 · Flashcard SRS review — `/dictionary/review` `[code-verified]`
+- **This is NOT step 2 of the review flow in §15.** The two are different features that both say "review": this one shows a card, the learner rates their own recall 0/2/4/5, and the rating moves that word's `nextReviewAt`. §15's step 2 asks for a typed answer, grades it against the word's accepted meanings, and explicitly does **not** touch the schedule. This frame is unchanged by the §15 rebuild.
 - **Layout:** Take, single card.
 - **Anatomy:** card with tag + TTS → word as the prompt → the user's own example sentence with the target word marked → "Hiện nghĩa" → revealed meaning and note → **four recall buttons**.
 - **The four recall buttons are the design:** Quên / Khó / Được / Dễ, each at least 56px tall, each showing the resulting interval (`<1 ngày`, `2 ngày`, `5 ngày`, `12 ngày`), and each distinguished by border colour *and* a text label. Showing the consequence of each choice is what makes spaced repetition legible to a user who has never heard the term.
@@ -139,11 +212,57 @@ data:
 - **The honesty requirement is structural, not copy:** the estimated band is labelled "Band ước tính từ dữ liệu luyện tập", followed by an explicit line that it is not an official test result and that ±0.5 is normal. `PRODUCT.md` forbids band-improvement claims, so the trend chip reports a measured delta ("+0.5 trong 30 ngày") and never a promise.
 - Two columns split strengths from weaknesses by question type, and the weakness column ends in "Đưa vào lộ trình" — the bridge from diagnosis to the path.
 
-### 15 · Spaced repetition config — `/review` `[code-verified]`
-- **Layout:** Focus. Step 1 of 3, with a labelled stepper.
-- **The screen's job is to remove the two reasons people skip review:** not knowing what will be reviewed, and not knowing how long it takes. So the copy states both up front ("34 từ đến hạn · khoảng 9 phút") and the primary button repeats the duration.
-- Content choice is a 4-option select group with the due-count and duration on each; direction is a segmented control (Anh→Việt / Việt→Anh / Trộn).
-- "Để sau" is a full-size secondary action.
+### 15 · Review setup — `/review` `[code-verified]`
+- **Frames:** `15-review.html` (step 1), `15b-review-practice.html` (step 2), `15c-review-result.html` (step 3).
+  All three are held to their decisions by `python _design/mockup/_src/check_review_frames.py`.
+- **Layout:** Focus. A Lexi summary card, then four control groups. **No stepper and no back button.**
+  `/review` is an ENTRY point — the rail opens it, and so does the phone's tab bar — so a back button
+  there has nowhere honest to go: the first build pointed it at `/evaluation`, a hub the learner had
+  never visited, which read as "back" and landed somewhere else. The "1 of 3" strip spent the top of
+  the screen asking for attention before anything had been chosen, and the start button already names
+  the session it will open; the stepping is worth showing *during* the flow, which is why `15c` keeps
+  its own stepper. Both removals are pinned by `check_review_frames.py`.
+- **Changing the window never blanks the screen.** Every preset refetches the counts, and the refetch
+  used to swap the whole body for a skeleton: the scrollport became shorter than the current scroll
+  offset, the browser clamped it, and the page snapped to the top the moment a preset was tapped. The
+  previous numbers now stay mounted and the region is marked `aria-busy` instead.
+- **This screen is the rail's "Từ vựng" section's second destination**, beside `08` (`/vocabulary`): the section is where you test words and where you review them. Its rail label and its page title are the same string (`nav.review`), so the two cannot drift.
+- **The screen's job is to remove the two reasons people skip review:** not knowing what will be reviewed, and not knowing how long it takes. The headline states both ("Bạn có 26 từ để ôn. Ôn hết sẽ mất khoảng 5 phút.") and the primary button repeats them.
+- **The four groups are the endpoints' own parameters, not a design invention.** `GET /records/review-words` accepts `rangeMode` ∈ {all, range, week, month}, `group` ∈ {unreviewed, wrong, all}, `direction` and `limit`; `GET /records/review-counts` answers all three group counts for the chosen window. So the controls are: a time window (6 presets + custom dates), a word group carrying its OWN count, a direction, and a count.
+- **There are exactly TWO directions.** The server keeps one `direction` string verbatim and has no per-word direction, so the earlier "Trộn" (Mixed) option was a label that could not be honoured. It is gone.
+- **The count is ONE control, a slider whose maximum is the selected group's own count.** A slider AND quick-pick chips are two controls claiming one number and both render as selected; and asking for 50 words when 8 are due is a promise the screen cannot keep. The maximum IS "how many have I got".
+- **The start button refuses a half-set window.** A custom `from` with no `to` reaches the server as "the last 7 days", which is not the window on screen, so the button stays disabled instead of sending it.
+- Face, not chrome: the direction is a stored device preference, and the screen says a session here does **not** move the review schedule — `13` is the mode that reschedules.
+
+### 15b · Review practice — `/review/session` `[code-verified]`
+- **Layout:** Take — full-bleed, no rail, action in a sticky footer. One question per screen.
+- **The learner TYPES the answer.** v1 graded typed answers; v2 had replaced this step with `13`'s self-rating, which is a different feature. This frame restores the typed-answer session.
+- Both directions are supported: `Anh → Việt` prompts with the English word and asks for the meaning, `Việt → Anh` prompts with the meaning and asks for the word. A speaker button reads the English word aloud in the first.
+- **The verdict stays on screen until the learner moves on.** Auto-advancing on a correct answer would skip the example sentence — the part that turns a correct guess into knowledge — and on a wrong answer it would skip the correction, which is the only reason to show a wrong answer at all.
+- The verdict carries a glyph, a colour AND words ("Trả lời chính xác" / "Chưa đúng hoàn toàn"), so it survives grayscale and colour blindness. On a miss it shows the correct answer, any accepted alternatives, the explanation and the examples — all inset rows, never nested cards.
+- **"Giải thích rõ hơn" is MARKDOWN, not a string.** The field is model-written and uses bold, italic and lists to separate the rule from the collocations it applies to; rendered as plain text, the asterisks and dashes appeared on screen. It goes through the shared `Markdown` renderer — markdown only, no `rehype-raw`, because the source is untrusted model output.
+- **The frame draws ONE verdict, so the MISSING one is specified here.** A frame is a picture of a moment and a session has more than one. Answering wrong renders the same card with exactly these differences:
+  - glyph and border take `--wrong` instead of `--correct`;
+  - title "Chưa đúng hoàn toàn" (not "Trả lời chính xác");
+  - body "Không sao cả. Xem lại đáp án đúng một lần nữa sẽ giúp bạn nhớ lâu hơn.";
+  - the answer row's label is "Từ tiếng Anh đúng" and the row shows the English word when the direction is `Việt → Anh`, so it always names the half the learner did **not** supply;
+  - "Các nghĩa khác có thể chấp nhận" appears whenever the word HAS alternatives — **on a correct answer too**, which is why the frame draws those chips in its correct state. Hiding them on a hit withholds the one thing that turns a lucky match into a known word;
+  - the explanation and the examples render exactly as they do in the frame.
+  The alternative rows stay absent when the word has none, in either direction.
+- **The frame may not promise data the API cannot return.** It used to draw a topic chip ("Environment") and an IPA line (`/ˈmɪtɪɡeɪt/`). `ReviewWordDto` carries `englishWord`, `normalizedWord`, `correctMeaning`, `alternatives`, `acceptedMeaningsVi`, `meaningExplanation` and `exampleSentences` — there is no topic, deck or part-of-speech field, and no IPA. Both were removed, and `check_review_frames.py` keeps them out.
+
+### 15c · Review result — `/review/result` `[code-verified]`
+- **Layout:** Focus, step 3 of 3. **Inside the app shell**, unlike 15b: the session is over and its exits are navigation rather than a decision to make under time.
+- A verdict at v1's four thresholds (≥90 Xuất sắc, ≥70 Rất tốt, ≥50 Đang tiến bộ, else Cần ôn thêm) with the count, the direction and the duration, then four tiles (Tổng / Đúng / Sai / Độ chính xác).
+- **"so với phiên trước" is a real comparison**, read from `GET /reviews/last` BEFORE this session is stored — that endpoint answers with the *second* latest row, so reading it afterwards would compare against the wrong one.
+- The per-word detail is a table on a wide screen and a list on a phone: five columns at 390px scroll sideways and hide the column that matters, which is the answer.
+- Three exits: "Ôn lại N từ khó" (the misses, by name, via the endpoint's `words` filter), "Ôn lại" (back to step 1) and "Sổ tay từ vựng" (`12`).
+- **The verdict glyph is an EMOJI at `t-display-xl`, not a line icon.** The frame heads the result with 🌟 and puts the verdict in a separate `h2` under it, with the sentence about the session under that — three sizes on one line of sight, so the reader gets "how did it go" before "17 on 20 before 5 minutes 12 seconds". Only the "Rất tốt" case is drawn, so the other three take a glyph from the same family and this list IS the design: `excellent → 🌟`, `good → ✨`, `improving → 📈`, `needsReview → 📚`. The glyph carries `aria-hidden`, because the `h2` under it already says the verdict in words and a screen reader announcing a star is noise.
+- **The first-session state, specified here because the frame draws a learner who has been here before.** With no previous session there is nothing to compare against, so the accuracy card keeps its title and drops the comparison **sentence**: it does not print "0% so với phiên trước", which reads as a collapse rather than as a first attempt. The chip is replaced by "Phiên đầu tiên — chưa có gì để so sánh.", and the accuracy bar still renders, because a first number is worth as much as a delta.
+- The accuracy card is a `between` row — title plus the "So với phiên trước" caption on the left, the delta as a `chip--correct` with an arrow on the right — over a bar at the accuracy percentage. The delta is a chip, not a sentence: a signed number is a token to be scanned, not read.
+
+**One flow, three routes, and the split was v1's too:** v1 had all three phases in ONE route (`pages/Review.jsx`, phases `config · practice · result`, namespace `vocabularyReview.*`); v2 splits them across `/review`, `/review/session` and `/review/result` so each step has a URL, a reload and a shareable state. `13` (`/dictionary/review`) remains the separate flashcard/SRS mode, and it is still the only one that reschedules a word.
+
 
 ---
 
@@ -243,10 +362,33 @@ data:
 - One active challenge as a hero with progress and reward, then a list of others, then an explicit opt-out row: "Thử thách không ảnh hưởng đến band hay lộ trình. Bỏ qua cũng không mất gì." with "Tắt thử thách".
 
 ### 31 · Rewards — `/rewards` `[code-verified]`
-- **v1's version of this page is a single 1,604-line file.** v2 splits it into three real tabs — Nhiệm vụ / Vật phẩm / Đổi thưởng — each with its own layout, so the page never renders all three concerns at once.
-- **Missions:** a card grid, each with reward XP, progress, and a done/claim state.
-- **Inventory:** what is owned, what is equipped, what is still locked.
-- **Shop:** decorative items only, priced in coins. **Streak freeze appears as an explicitly disabled card** reading "v2 không bán streak freeze — ngày nghỉ được tặng tự động". That is a deliberate product statement, not a placeholder: a purchasable streak repair converts encouragement into debt (DESIGN-V2.md §9).
+- **v1's version of this page is a single 1,604-line file.** v2 splits it into **two tabs — Nhiệm vụ / Vật phẩm** — each with its own layout, so the page never renders both concerns at once.
+- **Missions:** a card grid, each with the credit reward, progress, and a done/granted state.
+- **Inventory:** a four-column grid of item tiles — art, name, type, state, and the one action the item
+  has (equip / unequip / use), with the API's own filters above it and "Tải thêm" paging below.
+
+**THREE THINGS THE FIRST DRAFT DREW THAT THE BACKEND CANNOT SUPPORT — measured, then removed from the
+mockup rather than left as a screen the app could never build.**
+
+| Drawn | Reality | Resolution |
+|---|---|---|
+| A per-mission **"Đã nhận"** claim button | `RewardMissionStatus` is only `LOCKED`/`CLAIMED`, `/user/reward-missions` is GET-only, and the server stamps `claimedAt` itself | removed; a finished mission says the reward is automatic. XP MILESTONES keep their claim button — `/user/xp-milestones/{code}/claim` is real |
+| A per-mission **"+50 XP"** chip | `rewardDefinitions` is a sealed interface whose only members are `CREDIT` and `INVENTORY_ITEM`, so `xpValueOf` returns null every time | removed; the chip shows CREDIT only, and a mission with no credit reward gets NO chip rather than "0 credit" |
+| An inventory card reading **"Chưa mở"** | the item catalogue is admin-only (`/api/admin/inventory/items`, `@PreAuthorize("hasRole('ADMIN')")`), so a learner's inventory contains only what they own | removed; there is no data behind a locked tile |
+
+**The third tab, "Đổi thưởng", is designed but BLOCKED — it is not in the mockup.** No controller in
+`en-practice-be` maps to a purchase, redeem or spend route, and `src/api` has no such call, so the
+prices the first draft quoted (120/150/300 …) had no source. The one statement that tab carried is a
+product commitment rather than a feature — *"v2 không bán streak freeze. Ngày nghỉ được tặng tự
+động"* (`DESIGN-V2.md` §9) — and it moved to the inventory tab's footer. Implementing the shop needs a
+backend contract first: what is for sale, at what price, and what a purchase debits.
+
+**Inventory: what the tiles are built from** (`UserInventoryItemResponse`) — `item.type`,
+`item.usageType` (`EQUIPPABLE` / `CONSUMABLE`, which decides whether the action is *equip* or *use*),
+`item.name`, `item.description`, `item.assetUrl`, `grantedAt`, `equipped`, `used`. All nine
+`InventoryItemType` values have a label; six of them had none, so a `TITLE` or `BACKGROUND` row used
+to render with no type at all.
+
 
 ### 32 · Credits — `/credits` `[code-verified]`
 - **Layout:** Focus with two columns.

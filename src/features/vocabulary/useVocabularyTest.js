@@ -445,8 +445,13 @@ export function useVocabularyAttemptResult(attemptId) {
             return undefined;
         }
         setLoading(true);
+        /* `getAttemptDetail`, not `getAttempt`. The name that does not exist threw
+           `TypeError: vocabularyTestApi.getAttempt is not a function` and `/vocabulary/result`
+           rendered nothing — while line ~341 in THIS SAME FILE already called the real
+           name correctly, which is why the list → take → submit path worked and only
+           reopening a finished attempt broke. */
         vocabularyTestApi
-            .getAttempt(attemptId)
+            .getAttemptDetail(attemptId)
             .then((response) => {
                 if (!cancelled) setResult(unwrapData(response));
             })

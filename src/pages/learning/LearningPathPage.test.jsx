@@ -29,6 +29,14 @@ vi.mock('../../contexts/CreditContextCore', () => ({
 
 const { i18nReady } = await import('../../i18n');
 const { default: LearningPathPage } = await import('./LearningPathPage');
+const { PageHeaderProvider } = await import('../../app/PageHeaderContext');
+const { usePageHeaderSubtitle } = await import('../../app/PageHeaderContextCore');
+
+/** Stands in for the shell: renders the subtitle the page publishes. */
+function HeaderProbe() {
+    const subtitle = usePageHeaderSubtitle();
+    return subtitle ? <p>{subtitle}</p> : null;
+}
 
 beforeAll(async () => {
     await i18nReady;
@@ -237,8 +245,97 @@ describe('LearningPathPage — cost before the press', () => {
     });
 });
 
-describe('LearningPathPage — the empty path', () => {
-    const DIAGNOSTIC = {
+describe('LearningPathPage — the header line, and the placeholder bug', () => {
+    /**
+     * `{{nodes}} bài · 1 bài kiểm tra cuối unit` shipped on this screen: the locale string
+     * interpolates `{{nodes}}` and the call site passed `{ count: nodes.length }`, so i18next
+     * had nothing to substitute and printed the placeholder verbatim to the learner.
+     *
+     * Two assertions, because they fail differently: the count must be there (the fix works),
+     * and no `{{` may survive anywhere on the screen (it cannot come back on a sibling string).
+     */
+    it('renders the node count instead of a raw {{nodes}} placeholder', async () => {
+        getPath.mockResolvedValue(envelope(PATH));
+        renderPage();
+
+        expect(await screen.findByText('4 bài · 1 bài kiểm tra cuối unit')).toBeInTheDocument();
+        expect(document.body.textContent).not.toContain('{{');
+    });
+
+    it('substitutes the placeholder for a diagnostic account too', async () => {
+        /* The second call site of the same bug: `starterReason`. A brand-new account sees this. */
+        getPath.mockResolvedValue(
+            envelope({
+                ...PATH,
+                targetBand: null,
+                unit: { ...PATH.unit, focusType: 'DIAGNOSTIC', nodes: [node({ key: 'd1', state: 'CURRENT' })] },
+            })
+        );
+        renderPage();
+
+        expect(await screen.findByText(/Làm 1 bài này trước/)).toBeInTheDocument();
+        expect(document.body.textContent).not.toContain('{{');
+    });
+
+    it('publishes "goal · unit position" as the shell header subtitle', async () => {
+        /* The mockup puts this line in the shell header (_design/mockup/06-path.html), not in the
+           body: two `t-body` lines in the body put the word "band" twice in a row, once as the
+           target and once as the unmeasured value. `unitIndex`/`unitCount` are in the payload and
+           were rendered nowhere, so "Unit 2 / 6" could not appear at all. */
+        getPath.mockResolvedValue(envelope(PATH));
+
+        render(
+            <MemoryRouter initialEntries={['/path']}>
+                <PageHeaderProvider>
+                    <HeaderProbe />
+                    <Routes>
+                        <Route path="/path" element={<LearningPathPage />} />
+                    </Routes>
+                </PageHeaderProvider>
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByText('Mục tiêu band 6.5 · Unit 2 / 6')).toBeInTheDocument();
+    });
+
+    it('says the goal is unset in the header, and keeps the CTA as the only other mention', async () => {
+        getPath.mockResolvedValue(envelope({ ...PATH, targetBand: null }));
+
+        render(
+            <MemoryRouter initialEntries={['/path']}>
+                <PageHeaderProvider>
+                    <HeaderProbe />
+                    <Routes>
+                        <Route path="/path" element={<LearningPathPage />} />
+                    </Routes>
+                </PageHeaderProvider>
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByText('Chưa đặt mục tiêu band · Unit 2 / 6')).toBeInTheDocument();
+        /* The button, and NOT a second sentence repeating the same fact. */
+        expect(screen.getByRole('button', { name: 'Đặt mục tiêu band' })).toBeInTheDocument();
+        expect(screen.getAllByText(/Chưa đặt mục tiêu band/)).toHaveLength(1);
+    });
+
+    it('centres the next-unit Lexi with flex, because text-align cannot centre a block image', async () => {
+        /* The app reset makes `img` block-level (src/styles/index.css), so `text-center` alone
+           leaves Lexi flush left while the heading and chips below her are centred — which reads
+           as a broken layout. This pins the flex centring that actually works. */
+        getPath.mockResolvedValue(envelope(PATH));
+        const { container } = renderPage();
+
+        await screen.findByText('Unit tiếp theo: Writing — Writing Task 1');
+        const lexi = container.querySelector('img[alt=""]');
+        const centred = lexi?.closest('div[class*="items-center"]');
+
+        expect(centred, 'the next-unit card must centre its children with flex').not.toBeNull();
+        expect(centred.className).toContain('flex-col');
+        expect(centred.className).toContain('text-center');
+    });
+});
+
+describe('LearningPathPage — the empty path', () => {    const DIAGNOSTIC = {
         targetBand: null,
         currentBand: null,
         xp: 0,

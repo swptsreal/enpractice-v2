@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { getCurrentLanguage } from '../i18n';
+import axios from "axios";
+import { getCurrentLanguage } from "../i18n";
 
 /**
  * EN Practice — Custom Axios Client
@@ -7,12 +7,12 @@ import { getCurrentLanguage } from '../i18n';
  */
 
 const API_BASE_URL =
-    import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-const LEGACY_TOKEN_KEY = 'en_practice_token';
-const ACCESS_TOKEN_KEY = 'en_practice_access_token';
-const REFRESH_TOKEN_KEY = 'en_practice_refresh_token';
-const ACCESS_TOKEN_EXPIRES_AT_KEY = 'en_practice_access_token_expires_at';
-const REFRESH_TOKEN_EXPIRES_AT_KEY = 'en_practice_refresh_token_expires_at';
+    import.meta.env.VITE_API_URL || "http://localhost:8082/api";
+const LEGACY_TOKEN_KEY = "en_practice_token";
+const ACCESS_TOKEN_KEY = "en_practice_access_token";
+const REFRESH_TOKEN_KEY = "en_practice_refresh_token";
+const ACCESS_TOKEN_EXPIRES_AT_KEY = "en_practice_access_token_expires_at";
+const REFRESH_TOKEN_EXPIRES_AT_KEY = "en_practice_refresh_token_expires_at";
 const TIMEOUT = 15000;
 const EXPIRY_SKEW_MS = 30 * 1000;
 
@@ -21,12 +21,12 @@ function clearLegacyToken() {
 }
 
 function unwrapApiBody(body, fallbackStatus = 200) {
-    if (body && typeof body === 'object' && 'success' in body) {
+    if (body && typeof body === "object" && "success" in body) {
         if (!body.success) {
             throw new ApiError(
-                body.message || 'Yeu cau that bai.',
+                body.message || "Yeu cau that bai.",
                 fallbackStatus,
-                body.data
+                body.data,
             );
         }
 
@@ -126,7 +126,7 @@ export function setAuthSession(session) {
     if (refreshTokenExpiresAt) {
         localStorage.setItem(
             REFRESH_TOKEN_EXPIRES_AT_KEY,
-            refreshTokenExpiresAt
+            refreshTokenExpiresAt,
         );
     } else {
         localStorage.removeItem(REFRESH_TOKEN_EXPIRES_AT_KEY);
@@ -156,7 +156,7 @@ export function removeToken() {
 export class ApiError extends Error {
     constructor(message, status, data = null) {
         super(message);
-        this.name = 'ApiError';
+        this.name = "ApiError";
         this.status = status;
         this.data = data;
     }
@@ -166,19 +166,19 @@ const axiosClient = axios.create({
     baseURL: API_BASE_URL,
     timeout: TIMEOUT,
     headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-Internal-Key': import.meta.env.VITE_INTERNAL_KEY,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "X-Internal-Key": import.meta.env.VITE_INTERNAL_KEY,
     },
 });
 
 let refreshPromise = null;
 
-function dispatchLogoutEvent(reason = 'unknown') {
+function dispatchLogoutEvent(reason = "unknown") {
     window.dispatchEvent(
-        new CustomEvent('auth:logout', {
+        new CustomEvent("auth:logout", {
             detail: { reason },
-        })
+        }),
     );
 }
 
@@ -186,24 +186,24 @@ function dispatchUserEvent(user) {
     if (!user) return;
 
     window.dispatchEvent(
-        new CustomEvent('auth:user', {
+        new CustomEvent("auth:user", {
             detail: { user },
-        })
+        }),
     );
 }
 
 function isRefreshRequest(config) {
-    return config?.url?.includes('/auth/refresh');
+    return config?.url?.includes("/auth/refresh");
 }
 
 function shouldSkipRefresh(config) {
-    const url = config?.url || '';
+    const url = config?.url || "";
     return (
         !!config?.skipAuthRefresh ||
         isRefreshRequest(config) ||
-        url.includes('/auth/login') ||
-        url.includes('/auth/register') ||
-        url.includes('/auth/logout')
+        url.includes("/auth/login") ||
+        url.includes("/auth/register") ||
+        url.includes("/auth/logout")
     );
 }
 
@@ -214,8 +214,8 @@ async function requestRefreshToken() {
     if (!refreshToken || isTokenExpired(refreshTokenExpiresAt, 0)) {
         clearAuthSession();
         throw new ApiError(
-            'Phien dang nhap het han. Vui long dang nhap lai.',
-            401
+            "Phien dang nhap het han. Vui long dang nhap lai.",
+            401,
         );
     }
 
@@ -225,12 +225,12 @@ async function requestRefreshToken() {
         {
             timeout: TIMEOUT,
             headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                'Accept-Language': getCurrentLanguage(),
-                'X-Internal-Key': import.meta.env.VITE_INTERNAL_KEY,
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                "Accept-Language": getCurrentLanguage(),
+                "X-Internal-Key": import.meta.env.VITE_INTERNAL_KEY,
             },
-        }
+        },
     );
 
     const data = unwrapApiBody(response.data, response.status);
@@ -251,7 +251,7 @@ export async function refreshAccessToken() {
         refreshPromise = requestRefreshToken()
             .catch((error) => {
                 clearAuthSession();
-                dispatchLogoutEvent('expired');
+                dispatchLogoutEvent("expired");
                 throw error;
             })
             .finally(() => {
@@ -305,33 +305,30 @@ axiosClient.interceptors.request.use(
             config.headers.Authorization = `Bearer ${accessToken}`;
         }
 
-        config.headers['Accept-Language'] = getCurrentLanguage();
+        config.headers["Accept-Language"] = getCurrentLanguage();
 
         if (import.meta.env.DEV && shouldLogApiPayload(config)) {
             console.log(
                 `%c[API] ${config.method?.toUpperCase()} ${config.url}`,
-                'color: #6366f1; font-weight: bold;',
-                config.data || ''
+                "color: #6366f1; font-weight: bold;",
+                config.data || "",
             );
         }
 
         return config;
     },
-    () => Promise.reject(new ApiError('Loi cau hinh request.', 0))
+    () => Promise.reject(new ApiError("Loi cau hinh request.", 0)),
 );
 
 axiosClient.interceptors.response.use(
     (response) => {
         const body = response.data;
 
-        if (
-            import.meta.env.DEV &&
-            shouldLogApiPayload(response.config)
-        ) {
+        if (import.meta.env.DEV && shouldLogApiPayload(response.config)) {
             console.log(
                 `%c[API] ✓ ${response.status} ${response.config.url}`,
-                'color: #10b981; font-weight: bold;',
-                body
+                "color: #10b981; font-weight: bold;",
+                body,
             );
         }
 
@@ -340,18 +337,15 @@ axiosClient.interceptors.response.use(
     async (error) => {
         if (!error.response) {
             const message =
-                error.code === 'ECONNABORTED'
-                    ? 'Request timeout. Vui long kiem tra ket noi mang.'
-                    : 'Khong the ket noi den server. Vui long thu lai.';
+                error.code === "ECONNABORTED"
+                    ? "Request timeout. Vui long kiem tra ket noi mang."
+                    : "Khong the ket noi den server. Vui long thu lai.";
 
-            if (
-                import.meta.env.DEV &&
-                shouldLogApiPayload(error.config)
-            ) {
+            if (import.meta.env.DEV && shouldLogApiPayload(error.config)) {
                 console.error(
-                    '%c[API] ✗ Network Error',
-                    'color: #ef4444; font-weight: bold;',
-                    error.message
+                    "%c[API] ✗ Network Error",
+                    "color: #ef4444; font-weight: bold;",
+                    error.message,
                 );
             }
 
@@ -361,14 +355,11 @@ axiosClient.interceptors.response.use(
         const { status, data, config } = error.response;
         const originalRequest = error.config || config || {};
 
-        if (
-            import.meta.env.DEV &&
-            shouldLogApiPayload(originalRequest)
-        ) {
+        if (import.meta.env.DEV && shouldLogApiPayload(originalRequest)) {
             console.error(
                 `%c[API] ✗ ${status} ${originalRequest?.url}`,
-                'color: #ef4444; font-weight: bold;',
-                data
+                "color: #ef4444; font-weight: bold;",
+                data,
             );
         }
 
@@ -392,34 +383,34 @@ axiosClient.interceptors.response.use(
 
         if (status === 401) {
             clearAuthSession();
-            dispatchLogoutEvent('expired');
+            dispatchLogoutEvent("expired");
             const message =
                 data?.message ||
-                'Phien dang nhap het han. Vui long dang nhap lai.';
+                "Phien dang nhap het han. Vui long dang nhap lai.";
             return Promise.reject(new ApiError(message, 401, data?.data));
         }
 
         if (status === 403) {
             const message =
-                data?.message || 'Ban khong co quyen truy cap tai nguyen nay.';
+                data?.message || "Ban khong co quyen truy cap tai nguyen nay.";
             return Promise.reject(new ApiError(message, 403, data?.data));
         }
 
         if (status === 422) {
-            const message = data?.message || 'Du lieu khong hop le.';
+            const message = data?.message || "Du lieu khong hop le.";
             return Promise.reject(new ApiError(message, 422, data?.data));
         }
 
         if (status >= 500) {
             const message =
-                data?.message || 'Loi server. Vui long thu lai sau.';
+                data?.message || "Loi server. Vui long thu lai sau.";
             return Promise.reject(new ApiError(message, status, data?.data));
         }
 
         const message =
             data?.message || data?.error || `Request failed (${status})`;
         return Promise.reject(new ApiError(message, status, data?.data));
-    }
+    },
 );
 
 export default axiosClient;

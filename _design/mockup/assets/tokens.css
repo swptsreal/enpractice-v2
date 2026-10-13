@@ -199,6 +199,7 @@ a { color: var(--teal); text-decoration: none; }
 }
 .rowbox--center { align-items: center; }
 .rowbox--wrap { flex-wrap: wrap; }
+.rowbox--between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
 .hr { height: 2px; background: var(--border); border: 0; }
 
@@ -393,7 +394,18 @@ a { color: var(--teal); text-decoration: none; }
     display: flex; align-items: stretch;
     background: var(--surface); border-top: 2px solid var(--border);
     padding-bottom: env(safe-area-inset-bottom, 0px);
+    /**
+     * FIXED, because the tab bar is the phone's only navigation and it must not scroll away.
+     *
+     * The surrounding rules already assume this: `shell.css` gives `.shell__main` a
+     * `padding-bottom: calc(var(--shell-tabbar) + safe-area)` below 1024px, which is space reserved
+     * for a fixed bar. Without `position: fixed` that padding was simply a gap, and on any page
+     * longer than the viewport — i.e. most of them — the five destinations disappeared off the
+     * bottom of the phone review.
+     */
+    position: fixed; inset-inline: 0; bottom: 0; z-index: 20;
 }
+@media (min-width: 1024px) { .tabbar { position: static; } }
 .tabbar__item {
     flex: 1 1 0; min-height: var(--shell-tabbar);
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
@@ -523,6 +535,19 @@ a { color: var(--teal); text-decoration: none; }
 @media (max-width: 1023px) { .hide-lg { display: none !important; } }
 @media (min-width: 1024px) { .only-mobile { display: none !important; } .only-lg { display: block; } }
 @media (max-width: 1023px) { .only-lg { display: none !important; } .only-mobile { display: block; } }
+
+/**
+ * THE TAB BAR IS A FLEX ROW AT EVERY WIDTH, and this line is load-bearing.
+ *
+ * `.only-mobile` above forces `display: block`, which lands AFTER `.tabbar { display: flex }` and
+ * therefore wins — so the tab bar rendered as a vertical stack of five items in every phone review.
+ * That is the exact layout the phone pass exists to judge, and `_design/README.md` tells the
+ * reviewer to check phone width FIRST. Nothing else in the package caught it: the structural gate
+ * reads markup, and a stacked flex container is valid markup.
+ *
+ * `.tabbar.only-mobile` is specificity 0-2-0 against 0-1-0, so it holds wherever the rule sits.
+ */
+.tabbar.only-mobile { display: flex; }
 
 .scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
 .sticky-top { position: sticky; top: 0; z-index: 10; }

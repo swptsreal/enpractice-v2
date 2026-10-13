@@ -3,17 +3,22 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Ôn tập ngắt quãng · EN Practice v2</title>
+<title>Ôn tập từ vựng · EN Practice v2</title>
 <link rel="stylesheet" href="assets/tokens.css" />
 <link rel="stylesheet" href="assets/shell.css" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" />
 <style>
-.stepper { display: flex; gap: 8px; align-items: center; padding: 0; }
-.stepper__i { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: var(--r-chip); background: var(--surface-alt); }
-.stepper__i.is-on { background: var(--teal-soft); }
-.stepper__d { width: 22px; height: 22px; border-radius: 999px; background: var(--surface); display: grid; place-items: center; font-size: .6875rem; }
-.stepper__i.is-on .stepper__d { background: var(--teal); color: var(--on-teal); }
 .answer[aria-pressed='true'] { border-color: var(--teal); background: var(--teal-soft); box-shadow: 0 4px 0 0 var(--teal-strong); }
+.answer[aria-pressed='true'] .answer__key { border-color: var(--teal); color: var(--teal); }
+.review-two { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 640px) { .review-two { grid-template-columns: 1fr 1fr; } }
+/* A native range, because a slider built from divs cannot be dragged by keyboard. Track and thumb
+   are the only two parts that need colour, and both take tokens. */
+.range { -webkit-appearance: none; appearance: none; height: 24px; background: transparent; }
+.range::-webkit-slider-runnable-track { height: 10px; border-radius: var(--r-chip); background: var(--surface-alt); border: 2px solid var(--border); }
+.range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; margin-top: -10px; border-radius: 999px; background: var(--teal); border: 2px solid var(--teal-strong); }
+.range::-moz-range-track { height: 10px; border-radius: var(--r-chip); background: var(--surface-alt); border: 2px solid var(--border); }
+.range::-moz-range-thumb { width: 24px; height: 24px; border-radius: 999px; background: var(--teal); border: 2px solid var(--teal-strong); }
 </style>
 </head>
 <body>
@@ -30,9 +35,9 @@
                 <a class="nav__item" href="04-home.html"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5.5h5V20"/></svg><span>Trang chủ</span></a>
-                <a class="nav__item" href="07-vocabulary-check.html" aria-current="page"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                <a class="nav__item" href="08-vocabulary-list.html" aria-current="page"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Học</span></a>
+        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Từ vựng</span></a>
                 <a class="nav__item" href="16-ielts-list.html"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/></svg><span>Luyện tập</span></a>
@@ -48,65 +53,110 @@
 
     <div class="shell__main">
         <header class="shell__header">
-            <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Ôn tập ngắt quãng</h1>
-            <p class="t-micro muted">Bước 1 / 3 — chọn nội dung ôn</p></div>
-        </header>
+            <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Ôn tập từ vựng</h1>
+            <p class="t-micro muted">Chọn khoảng thời gian, nhóm từ và số từ</p></div>
+            
+<div class="acct">
+    <button class="acct__icon" type="button" aria-label="Thông báo"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M6.5 17V11a5.5 5.5 0 0 1 11 0v6"/><path d="M4.5 17h15"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="acct__dot">3</span></button>
+    <span class="chip chip--teal only-lg">Premium</span>
+    <button class="acct__avatar" type="button" aria-haspopup="true" aria-expanded="false"
+            aria-controls="account-panel" aria-label="Menu tài khoản">M</button>
+    
+</div>
+</header>
 
         <main class="shell__content shell__content--focus" id="main">
-            <ol class="stepper" aria-label="Tiến trình">
-                
-                    <li class="stepper__i is-on"><span class="stepper__d mono">1</span><span class="t-micro ">Chọn nội dung</span></li>
-                    <li class="stepper__i "><span class="stepper__d mono">2</span><span class="t-micro muted">Ôn</span></li>
-                    <li class="stepper__i "><span class="stepper__d mono">3</span><span class="t-micro muted">Kết quả</span></li>
-            </ol>
-
-            <section class="card card--edge pad-x" style="margin-top:20px">
+            <section class="card card--edge pad-x">
                 <div class="row g12">
                     <span><img class="lexi lexi--sm " data-mood="explain"
         src="assets/lexi-study-1.webp" width="56" height="68"
         loading="lazy" decoding="async" aria-hidden="true" /></span>
                     <p class="t-body grow">Bạn có <strong>34 từ</strong> đến hạn. Ôn hết sẽ mất khoảng <strong>9 phút</strong>.</p>
                 </div>
+            </section>
 
-                <fieldset style="border:0;padding:0;margin-top:20px">
-                    <legend class="t-label" style="margin-bottom:10px">Nội dung ôn</legend>
-                    <div class="stack g8" data-group>
-                        
-                            <button class="answer" type="button" data-select aria-pressed="true" style="min-height:58px">
-                                <span class="answer__key" style="border-radius:999px"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+            <!-- 1 · the window. Presets first: the common answer is one tap, and
+                 "Tùy chỉnh" is the only one that needs a date input. -->
+            <section class="card card--edge pad-x" style="margin-top:16px">
+                <span class="t-label" style="display:block">Khoảng thời gian</span>
+                <p class="t-micro muted" style="margin-top:2px">Ôn lại đúng giai đoạn bạn muốn: vài ngày gần đây, một tuần hoặc một tháng cụ thể.</p>
+
+                <div class="pills" style="margin-top:12px" data-group role="group" aria-label="Khoảng thời gian">
+                    <button class="pill" type="button" data-select aria-pressed="false">Toàn bộ</button><button class="pill" type="button" data-select aria-pressed="false">7 ngày</button><button class="pill" type="button" data-select aria-pressed="false">30 ngày</button><button class="pill" type="button" data-select aria-pressed="false">Tuần này</button><button class="pill" type="button" data-select aria-pressed="false">Tháng này</button><button class="pill" type="button" data-select aria-pressed="true">Tùy chỉnh</button>
+                </div>
+
+                <div class="row g8 wrap" style="margin-top:12px">
+                    <span class="field grow"><span class="field__label">Từ ngày</span>
+                        <input class="input" type="date" value="2026-10-01" aria-label="Từ ngày"></span>
+                    <span class="field grow"><span class="field__label">Đến ngày</span>
+                        <input class="input" type="date" value="2026-10-13" aria-label="Đến ngày"></span>
+                </div>
+                <p class="t-micro muted" style="margin-top:8px">Đang chọn: 2026-10-01 → 2026-10-13</p>
+            </section>
+
+            <!-- 2 · the group. Each option carries ITS OWN count, because "which
+                 words" is the question this screen exists to answer. -->
+            <section class="card card--edge pad-x" style="margin-top:16px">
+                <span class="t-label" style="display:block">Nhóm từ cần ôn</span>
+                <p class="t-micro muted" style="margin-top:2px">Ưu tiên từ chưa ôn để không bỏ sót, hoặc tập trung vào nhóm từ hay sai.</p>
+
+                <div class="stack g8" style="margin-top:12px" data-group role="group" aria-label="Nhóm từ">
+                    
+                        <button class="answer" type="button" data-select aria-pressed="true" style="min-height:58px">
+                            <span class="answer__key" style="border-radius:999px"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="M4.5 12.5 9.5 18 19.5 6.5"/></svg></span>
-                                <span class="grow"><strong class="t-label" style="display:block">Ôn từ vựng đến hạn</strong><span class="t-micro muted">34 từ · 9 phút</span></span>
-                            </button>
-                            <button class="answer" type="button" data-select aria-pressed="false" style="min-height:58px">
-                                <span class="answer__key" style="border-radius:999px"></span>
-                                <span class="grow"><strong class="t-label" style="display:block">Từ hay quên</strong><span class="t-micro muted">8 từ · 3 phút</span></span>
-                            </button>
-                            <button class="answer" type="button" data-select aria-pressed="false" style="min-height:58px">
-                                <span class="answer__key" style="border-radius:999px"></span>
-                                <span class="grow"><strong class="t-label" style="display:block">Theo thẻ bạn chọn</strong><span class="t-micro muted">Environment, Health</span></span>
-                            </button>
-                            <button class="answer" type="button" data-select aria-pressed="false" style="min-height:58px">
-                                <span class="answer__key" style="border-radius:999px"></span>
-                                <span class="grow"><strong class="t-label" style="display:block">Ôn tất cả sổ tay</strong><span class="t-micro muted">128 từ · 34 phút</span></span>
-                            </button>
-                    </div>
-                </fieldset>
+                            <span class="grow"><strong class="t-label" style="display:block">Từ chưa ôn</strong><span class="t-micro muted">Chưa từng xuất hiện trong phiên ôn nào</span></span>
+                            <span class="mono" style="flex:0 0 auto">26 từ</span>
+                        </button>
+                        <button class="answer" type="button" data-select aria-pressed="false" style="min-height:58px">
+                            <span class="answer__key" style="border-radius:999px"></span>
+                            <span class="grow"><strong class="t-label" style="display:block">Từ hay sai</strong><span class="t-micro muted">Tỉ lệ sai trên 50%</span></span>
+                            <span class="mono" style="flex:0 0 auto">8 từ</span>
+                        </button>
+                        <button class="answer" type="button" data-select aria-pressed="false" style="min-height:58px">
+                            <span class="answer__key" style="border-radius:999px"></span>
+                            <span class="grow"><strong class="t-label" style="display:block">Toàn bộ từ</strong><span class="t-micro muted">Mọi từ trong khoảng đã chọn</span></span>
+                            <span class="mono" style="flex:0 0 auto">41 từ</span>
+                        </button>
+                </div>
+            </section>
 
-                <div class="row g12 wrap" style="margin-top:20px">
-                    <div class="grow">
-                        <span class="t-micro muted">Chiều ôn</span>
-                        <div class="segmented" style="margin-top:4px">
-                            <button aria-pressed="true">Anh → Việt</button>
-                            <button aria-pressed="false">Việt → Anh</button>
-                            <button aria-pressed="false">Trộn</button>
+            <!-- 3 · direction and count, side by side once there is room. -->
+            <section class="card card--edge pad-x" style="margin-top:16px">
+                <div class="review-two">
+                    <div>
+                        <span class="t-label" style="display:block">Chiều ôn</span>
+                        <p class="t-micro muted" style="margin-top:2px">Đổi hướng ôn tùy mục tiêu: nhận diện nhanh hay nhớ chủ động sâu hơn.</p>
+                        <div class="segmented" style="margin-top:10px" data-group role="group" aria-label="Chiều ôn">
+                            <button type="button" data-select aria-pressed="true">Anh → Việt</button>
+                            <button type="button" data-select aria-pressed="false">Việt → Anh</button>
                         </div>
+                    </div>
+
+                    <div>
+                        <span class="t-label" style="display:block">Số từ trong phiên này</span>
+                        <p class="t-micro muted" style="margin-top:2px">Một lượt ôn ngắn nhưng tập trung thường hiệu quả hơn một phiên quá dài.</p>
+                        <!-- ONE control for one number. A slider AND quick-pick chips would be two
+                             controls claiming the same value, and the mockup's own selection script
+                             would happily show "10" and "20" pressed at once. The marks answer the
+                             only question the slider raises: what is the maximum, and why. -->
+                        <div class="row g12" style="margin-top:14px">
+                            <input class="range grow" type="range" min="1" max="26" value="20" aria-label="Số từ trong phiên này" aria-describedby="count-range">
+                            <span class="t-h3 mono" style="flex:0 0 auto">20</span>
+                        </div>
+                        <div id="count-range" class="row between mono t-micro muted" style="margin-top:4px">
+                            <span>1</span><span>13</span><span>26</span>
+                        </div>
+                        <p class="t-micro muted" style="margin-top:6px">Tối đa 26 từ — số từ chưa ôn trong khoảng đã chọn.</p>
                     </div>
                 </div>
             </section>
 
-            <div class="row g12" style="margin-top:16px">
-                <a class="btn btn--primary btn--lg grow" href="13-dictionary-review.html">Bắt đầu ôn (9 phút)</a>
+            <div class="row g12 wrap" style="margin-top:16px">
+                <a class="btn btn--primary btn--lg grow" href="15b-review-practice.html">Bắt đầu ôn (20 từ · 5 phút)</a>
                 <a class="btn btn--ghost btn--lg" href="04-home.html">Để sau</a>
             </div>
         </main>
@@ -115,9 +165,9 @@
             <a class="tabbar__item" href="04-home.html"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5.5h5V20"/></svg><span>Trang chủ</span></a>
-            <a class="tabbar__item" href="07-vocabulary-check.html" aria-current="page"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
+            <a class="tabbar__item" href="08-vocabulary-list.html" aria-current="page"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Học</span></a>
+        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Từ vựng</span></a>
             <a class="tabbar__item" href="16-ielts-list.html"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/></svg><span>Luyện tập</span></a>
@@ -129,6 +179,13 @@
         aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg><span>Cá nhân</span></a>
         </nav>
     </div>
+    
+<button class="lexi-fab" type="button" aria-haspopup="dialog" aria-expanded="false"
+        aria-controls="lexi-panel" aria-label="Hỏi Lexi">
+    <img class="lexi lexi--sm " data-mood="idle"
+        src="assets/lexi-yes.webp" width="56" height="59"
+        loading="lazy" decoding="async" aria-hidden="true" />
+</button>
 </div>
 <div id="live" class="sr-only" role="status" aria-atomic="true"></div>
 <script>

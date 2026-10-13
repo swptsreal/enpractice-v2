@@ -52,6 +52,22 @@ function countLeaves(obj) {
     return n;
 }
 
+/**
+ * Every leaf as a `dotted.path -> value` map.
+ *
+ * `countLeaves` answers "how many", which is what the progress line needs; this answers "WHICH
+ * ones", which is what the data-loss guard needs. A count alone cannot tell a key that was never
+ * written from one that was dropped.
+ */
+function collectLeaves(obj, prefix = '', out = new Map()) {
+    for (const [k, v] of Object.entries(obj)) {
+        const key = prefix ? `${prefix}.${k}` : k;
+        if (isPlainObject(v)) collectLeaves(v, key, out);
+        else out.set(key, v);
+    }
+    return out;
+}
+
 async function load(path, label) {
     if (!existsSync(path)) {
         console.error(`missing ${label}: ${path}`);
@@ -127,6 +143,7 @@ function setPath(obj, path, value) {
 }
 
 let changed = 0;
+const dataLoss = [];
 for (const lang of ['vi', 'en']) {
     const v1 = await load(join(v1Locales, `${lang}.js`), `v1 ${lang}`);
     /* Read v2's overrides from the SEED, never from the output file. Merging
@@ -145,6 +162,36 @@ for (const lang of ['vi', 'en']) {
     const patches = expandPluralPatches()[lang];
     for (const [key, value] of Object.entries(patches)) setPath(merged, key, value);
 
+    /**
+     * REFUSE TO DELETE KEYS THE SEED DOES NOT KNOW ABOUT.
+     *
+     * The merge is `v1 + seed + patches`, so a namespace that lives ONLY in the generated output —
+     * never added to the seed when it was introduced — is silently destroyed by this script. That
+     * is not hypothetical: running it deleted **276 keys across 13 namespaces** (landing 99,
+     * weeklyReport 64, onboarding 50, profilePage 25, vocabularyReview 22, …) and left every string
+     * in them rendering as a raw key, while the README described the step as the way to regenerate
+     * the locales and claimed idempotency.
+     *
+     * The output files are the only place those strings exist, so the check reads them (this is the
+     * one place where reading the output is correct) and refuses to write when the result would be
+     * smaller. Completing the seed is the fix; until then this fails loudly instead of quietly.
+     */
+    const current = await load(join(v2Locales, `${lang}.js`), `current ${lang}`);
+    const currentLeaves = collectLeaves(current);
+    const mergedLeaves = collectLeaves(merged);
+    const lost = [...currentLeaves.keys()].filter((key) => !mergedLeaves.has(key));
+    if (lost.length) {
+        const namespaces = [...new Set(lost.map((key) => key.split('.')[0]))].sort();
+        dataLoss.push(
+            `${lang}: ${lost.length} key(s) would be deleted, in namespace(s): ${namespaces.join(', ')}\n` +
+                lost
+                    .slice(0, 12)
+                    .map((key) => `      - ${key}`)
+                    .join('\n') +
+                (lost.length > 12 ? `\n      … and ${lost.length - 12} more` : '')
+        );
+    }
+
     const before = countLeaves(v2);
     const after = countLeaves(merged);
 
@@ -152,10 +199,21 @@ for (const lang of ['vi', 'en']) {
         `${lang}: v1=${countLeaves(v1)} leaves, v2 seed=${before}, patches=${Object.keys(patches).length}, merged=${after} (+${after - before})`
     );
 
-    if (!checkOnly) {
+    if (!checkOnly && !lost.length) {
         writeFileSync(join(v2Locales, `${lang}.js`), serialise(merged), 'utf8');
         changed += 1;
     }
+}
+
+if (dataLoss.length) {
+    console.error('\nREFUSING TO WRITE — the merge would delete keys that exist only in the output:');
+    for (const report of dataLoss) console.error(`  ${report}`);
+    console.error(
+        '\n  These namespaces were never added to src/i18n/seed/, so `v1 + seed` cannot reproduce\n' +
+            '  them. Add them to the seed (copy the values out of the generated file), then re-run.\n' +
+            '  Nothing was written this run.'
+    );
+    process.exitCode = 1;
 }
 
 console.log(checkOnly ? '\n--check: nothing written.' : `\nwrote ${changed} locale file(s).`);

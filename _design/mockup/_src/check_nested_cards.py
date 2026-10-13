@@ -49,7 +49,9 @@ class Cards(HTMLParser):
 
 
 def main():
-    names = sorted(f for f in os.listdir(ROOT) if re.match(r'^\d\d-.*\.html$', f))
+    # `\d\d[a-z]?` — the optional letter includes VARIANT frames of a screen (07b is the guest
+    # chrome of 07). A variant is still a shipped screen, so it must be inside this gate.
+    names = sorted(f for f in os.listdir(ROOT) if re.match(r'^\d\d[a-z]?-.*\.html$', f))
     failures = 0
     for name in names:
         src = open(os.path.join(ROOT, name), encoding='utf-8').read()

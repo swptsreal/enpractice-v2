@@ -22,9 +22,9 @@
             <a class="nav__item" href="04-home.html" ><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5.5h5V20"/></svg><span>Trang chủ</span></a>
-            <a class="nav__item" href="07-vocabulary-check.html" ><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            <a class="nav__item" href="08-vocabulary-list.html" ><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Học</span></a>
+        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Từ vựng</span></a>
             <a class="nav__item" href="16-ielts-list.html" ><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/></svg><span>Luyện tập</span></a>
@@ -58,6 +58,12 @@
             <a class="nav__item" href="12-dictionary.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Sổ tay</span></a>
+                <a class="nav__item" href="07-vocabulary-check.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><span>Tra từ &amp; hỏi AI</span></a>
+                <a class="nav__item" href="15-review.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span>Ôn tập từ vựng</span></a>
             <a class="nav__item" href="36-ai-chat.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="M12 3.5 13.8 9l5.7 1.8-5.7 1.8L12 18.2 10.2 12.6 4.5 10.8 10.2 9z"/><path d="M18.5 3.5v3M20 5h-3"/></svg><span>AI Coach</span></a>
@@ -96,20 +102,47 @@
         <span class="chip chip--teal"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="m12 3.5 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 10l6.1-.9z"/></svg> 2,480 XP</span></div>
+    
+<div class="acct">
+    <button class="acct__icon" type="button" aria-label="Thông báo"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M6.5 17V11a5.5 5.5 0 0 1 11 0v6"/><path d="M4.5 17h15"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="acct__dot">3</span></button>
+    <span class="chip chip--teal only-lg">Premium</span>
+    <button class="acct__avatar" type="button" aria-haspopup="true" aria-expanded="false"
+            aria-controls="account-panel" aria-label="Menu tài khoản">M</button>
+    
+</div>
 </header>
 <main class="shell__content shell__content--wide" id="main" data-tabs="rw">
     <div class="segmented" role="tablist" aria-label="Mục" style="margin-bottom:16px">
         <button role="tab" id="rw-mission-tab" aria-controls="rw-mission" aria-selected="true" data-tab="rw-mission">Nhiệm vụ</button>
         <button role="tab" id="rw-inv-tab" aria-controls="rw-inv" aria-selected="false" data-tab="rw-inv">Vật phẩm</button>
-        <button role="tab" id="rw-shop-tab" aria-controls="rw-shop" aria-selected="false" data-tab="rw-shop">Đổi thưởng</button>
     </div>
 
+    <!--
+        WHAT THIS TAB MAY AND MAY NOT SHOW — measured against the backend, not assumed.
+
+        UserRewardMissionResponse.rewardDefinitions is a SEALED interface: its only members are
+        CREDIT {amount, expiryDays} and INVENTORY_ITEM {itemCode, quantity}. There is no XP reward,
+        so xpValueOf in useGamification always returns null and the "+50 XP" chip this mockup used to
+        draw had NO SOURCE. Only CREDIT entries can be summed, and a mission with no credit reward
+        gets NO chip rather than a "0 credit" chip.
+
+        RewardMissionStatus is LOCKED or CLAIMED and there is no claim route: the backend grants the
+        reward when the trigger fires (claimedAt is set by the server). So the "Đã nhận" button that
+        used to sit on a finished mission was a control that could only do nothing.
+
+        NOTE FOR WHOEVER EDITS THIS FILE: this comment lives INSIDE a template literal, so a
+        backtick anywhere in the prose ends the string. Use plain quotes.
+    -->
     <div data-panel="rw-mission" role="tabpanel" aria-labelledby="rw-mission-tab">
         <h2 class="t-h2" style="margin-bottom:12px">Nhiệm vụ đang mở</h2>
         <div class="grid g-3">
             
                 <article class="card card--edge pad-x">
-                    <div class="between"><span class="chip chip--amber">+50 XP</span>
+                    <div class="between"><span class="chip chip--amber"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg> +2 credit</span>
                         <span class="chip chip--correct"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="M4.5 12.5 9.5 18 19.5 6.5"/></svg> Xong</span></div>
@@ -118,10 +151,12 @@
                     <div style="margin-top:10px"><div class="bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
         <div class="bar__fill " style="width:100%"></div>
     </div></div>
-                    <button class="btn btn--ghost btn--sm btn--block" style="margin-top:12px" type="button">Đã nhận</button>
+                    <p class="t-micro muted" style="margin-top:12px">Phần thưởng được cộng tự động</p>
                 </article>
                 <article class="card card--edge pad-x">
-                    <div class="between"><span class="chip chip--amber">+120 XP</span>
+                    <div class="between"><span class="chip chip--amber"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg> +5 credit</span>
                         </div>
                     <h3 class="t-h3" style="margin-top:12px">Hoàn thành 5 bài Reading</h3>
                     <p class="t-micro muted">3 / 5</p>
@@ -131,7 +166,7 @@
                     <a class="btn btn--primary btn--sm btn--block" style="margin-top:12px" href="04-home.html">Làm ngay</a>
                 </article>
                 <article class="card card--edge pad-x">
-                    <div class="between"><span class="chip chip--amber">+80 XP</span>
+                    <div class="between"><span></span>
                         </div>
                     <h3 class="t-h3" style="margin-top:12px">Đạt 80% bài test từ vựng</h3>
                     <p class="t-micro muted">0 / 1</p>
@@ -141,7 +176,9 @@
                     <a class="btn btn--primary btn--sm btn--block" style="margin-top:12px" href="04-home.html">Làm ngay</a>
                 </article>
                 <article class="card card--edge pad-x">
-                    <div class="between"><span class="chip chip--amber">+100 XP</span>
+                    <div class="between"><span class="chip chip--amber"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg> +3 credit</span>
                         </div>
                     <h3 class="t-h3" style="margin-top:12px">Nói 10 phút trong tuần</h3>
                     <p class="t-micro muted">6 / 10</p>
@@ -151,7 +188,7 @@
                     <a class="btn btn--primary btn--sm btn--block" style="margin-top:12px" href="04-home.html">Làm ngay</a>
                 </article>
                 <article class="card card--edge pad-x">
-                    <div class="between"><span class="chip chip--amber">+60 XP</span>
+                    <div class="between"><span></span>
                         </div>
                     <h3 class="t-h3" style="margin-top:12px">Ôn hết từ đến hạn</h3>
                     <p class="t-micro muted">12 / 34</p>
@@ -161,7 +198,9 @@
                     <a class="btn btn--primary btn--sm btn--block" style="margin-top:12px" href="04-home.html">Làm ngay</a>
                 </article>
                 <article class="card card--edge pad-x">
-                    <div class="between"><span class="chip chip--amber">+150 XP</span>
+                    <div class="between"><span class="chip chip--amber"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg> +10 credit</span>
                         <span class="chip chip--correct"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="M4.5 12.5 9.5 18 19.5 6.5"/></svg> Xong</span></div>
@@ -170,13 +209,33 @@
                     <div style="margin-top:10px"><div class="bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
         <div class="bar__fill " style="width:100%"></div>
     </div></div>
-                    <button class="btn btn--ghost btn--sm btn--block" style="margin-top:12px" type="button">Đã nhận</button>
+                    <p class="t-micro muted" style="margin-top:12px">Phần thưởng được cộng tự động</p>
                 </article>
         </div>
     </div>
 
+    <!--
+        INVENTORY. The fields below are the ones UserInventoryItemResponse actually returns:
+        item.type, item.usageType, item.name, item.description, item.assetUrl, item.rarity,
+        grantSource, grantedAt, equipped, used.
+
+        The filter row is buildable rather than decorative, because inventoryItemType, used and name
+        are real query parameters — and it is needed: the list is paginated, and the screen used to
+        show the first 8 rows with no way to reach the rest.
+
+        A LOCKED CARD IS GONE. The item catalogue is admin-only (/api/admin/inventory/items), so a
+        user's inventory contains only what they own and there is no data behind "Chưa mở".
+    -->
     <div data-panel="rw-inv" hidden role="tabpanel" aria-labelledby="rw-inv-tab">
-        <h2 class="t-h2" style="margin-bottom:12px">Vật phẩm của bạn</h2>
+        <div class="between wrap g12" style="margin-bottom:12px">
+            <h2 class="t-h2">Vật phẩm của bạn · 12</h2>
+            <div class="pills" role="group" aria-label="Lọc vật phẩm">
+                <button class="pill" type="button" aria-pressed="true">Tất cả</button>
+                <button class="pill" type="button" aria-pressed="false">Huy hiệu</button>
+                <button class="pill" type="button" aria-pressed="false">Khung avatar</button>
+                <button class="pill" type="button" aria-pressed="false">Thẻ thưởng</button>
+            </div>
+        </div>
         <div class="grid g-4">
             
                 <article class="card card--edge pad-x" style="text-align:center">
@@ -184,100 +243,51 @@
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="M12 3l7.5 3v6c0 4.5-3 7.5-7.5 9-4.5-1.5-7.5-4.5-7.5-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
                     <h3 class="t-h3" style="margin-top:12px">Khung avatar: Lá</h3>
-                    <p class="t-micro muted">Đã trang bị</p>
+                    <p class="t-micro muted">Khung avatar · Đã trang bị</p>
+                    <button class="btn btn--ghost btn--sm btn--block" style="margin-top:12px" type="button">Bỏ trang bị</button>
                 </article>
                 <article class="card card--edge pad-x" style="text-align:center">
                     <span style="display:inline-grid;place-items:center;width:64px;height:64px;border-radius:var(--r-card);background:var(--surface-alt);color:var(--teal)"><svg class="" width="28" height="28" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="M12 3.5 13.8 9l5.7 1.8-5.7 1.8L12 18.2 10.2 12.6 4.5 10.8 10.2 9z"/><path d="M18.5 3.5v3M20 5h-3"/></svg></span>
                     <h3 class="t-h3" style="margin-top:12px">Hiệu ứng tên: Sóng</h3>
-                    <p class="t-micro muted">Đã mở</p>
+                    <p class="t-micro muted">Hiệu ứng · Đã mở</p>
+                    <button class="btn btn--primary btn--sm btn--block" style="margin-top:12px" type="button">Trang bị</button>
                 </article>
                 <article class="card card--edge pad-x" style="text-align:center">
                     <span style="display:inline-grid;place-items:center;width:64px;height:64px;border-radius:var(--r-card);background:var(--surface-alt);color:var(--teal)"><svg class="" width="28" height="28" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="m12 3.5 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 10l6.1-.9z"/></svg></span>
                     <h3 class="t-h3" style="margin-top:12px">Lexi: Khăn quàng</h3>
-                    <p class="t-micro muted">Đã mở</p>
+                    <p class="t-micro muted">Trang trí · Đã dùng</p>
+                    <button class="btn btn--primary btn--sm btn--block" style="margin-top:12px" type="button">Trang bị</button>
                 </article>
                 <article class="card card--edge pad-x" style="text-align:center">
                     <span style="display:inline-grid;place-items:center;width:64px;height:64px;border-radius:var(--r-card);background:var(--surface-alt);color:var(--teal)"><svg class="" width="28" height="28" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></span>
-                    <h3 class="t-h3" style="margin-top:12px">Chủ đề tối: Rừng</h3>
-                    <p class="t-micro muted">Chưa mở</p>
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg></span>
+                    <h3 class="t-h3" style="margin-top:12px">Thẻ cộng 5 credit</h3>
+                    <p class="t-micro muted">Thẻ thưởng · Đã dùng</p>
+                    <button class="btn btn--primary btn--sm btn--block" style="margin-top:12px" type="button">Trang bị</button>
                 </article>
         </div>
-    </div>
-
-    <div data-panel="rw-shop" hidden role="tabpanel" aria-labelledby="rw-shop-tab">
-        <h2 class="t-h2" style="margin-bottom:12px">Đổi thưởng</h2>
-        <div class="grid g-3">
-            
-                <article class="card card--edge pad-x">
-                    <h3 class="t-h3">Khung avatar: Biển</h3>
-                    <p class="t-micro muted" style="margin-top:6px">Vật phẩm trang trí, không ảnh hưởng việc học</p>
-                    <button class="btn btn--primary btn--sm btn--block" style="margin-top:12px" type="button" >
-                        <svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg> 120
-                    </button>
-                </article>
-                <article class="card card--edge pad-x">
-                    <h3 class="t-h3">Hiệu ứng tên: Lửa</h3>
-                    <p class="t-micro muted" style="margin-top:6px">Vật phẩm trang trí, không ảnh hưởng việc học</p>
-                    <button class="btn btn--primary btn--sm btn--block" style="margin-top:12px" type="button" >
-                        <svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg> 150
-                    </button>
-                </article>
-                <article class="card card--edge pad-x">
-                    <h3 class="t-h3">Lexi: Kính học giả</h3>
-                    <p class="t-micro muted" style="margin-top:6px">Vật phẩm trang trí, không ảnh hưởng việc học</p>
-                    <button class="btn btn--primary btn--sm btn--block" style="margin-top:12px" type="button" >
-                        <svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg> 300
-                    </button>
-                </article>
-                <article class="card card--edge pad-x">
-                    <h3 class="t-h3">Chủ đề tối: Đại dương</h3>
-                    <p class="t-micro muted" style="margin-top:6px">Vật phẩm trang trí, không ảnh hưởng việc học</p>
-                    <button class="btn btn--primary btn--sm btn--block" style="margin-top:12px" type="button" >
-                        <svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg> 200
-                    </button>
-                </article>
-                <article class="card card--edge pad-x">
-                    <h3 class="t-h3">Streak freeze</h3>
-                    <p class="t-micro" style="color:var(--attention);margin-top:6px"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><path d="M12 3l7.5 3v6c0 4.5-3 7.5-7.5 9-4.5-1.5-7.5-4.5-7.5-9V6z"/><path d="M9 12l2 2 4-4"/></svg> v2 không bán streak freeze. Ngày nghỉ được tặng tự động.</p>
-                    <button class="btn btn--ghost btn--sm btn--block" style="margin-top:12px" type="button" disabled>
-                        Không bán
-                    </button>
-                </article>
-                <article class="card card--edge pad-x">
-                    <h3 class="t-h3">Huy hiệu đặc biệt</h3>
-                    <p class="t-micro muted" style="margin-top:6px">Vật phẩm trang trí, không ảnh hưởng việc học</p>
-                    <button class="btn btn--primary btn--sm btn--block" style="margin-top:12px" type="button" >
-                        <svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg> 500
-                    </button>
-                </article>
+        <div class="row" style="justify-content:center;margin-top:16px">
+            <button class="btn btn--ghost" type="button">Tải thêm</button>
         </div>
+        <!-- The one product statement the removed shop tab carried, kept because it is a commitment
+             rather than a feature: a purchasable streak repair turns encouragement into debt. -->
+        <p class="t-micro muted" style="text-align:center;margin-top:12px">
+            v2 không bán streak freeze. Ngày nghỉ được tặng tự động, không mua được.
+        </p>
     </div>
 </main>
 <nav class="tabbar only-mobile" aria-label="Điều hướng chính">
     <a class="tabbar__item" href="04-home.html" ><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5.5h5V20"/></svg><span>Trang chủ</span></a>
-    <a class="tabbar__item" href="07-vocabulary-check.html" ><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
+    <a class="tabbar__item" href="08-vocabulary-list.html" ><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Học</span></a>
+        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Từ vựng</span></a>
     <a class="tabbar__item" href="16-ielts-list.html" ><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/></svg><span>Luyện tập</span></a>
@@ -287,7 +297,13 @@
     <a class="tabbar__item" href="33-profile.html" ><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg><span>Cá nhân</span></a>
-</nav></div></div>
+</nav></div>
+<button class="lexi-fab" type="button" aria-haspopup="dialog" aria-expanded="false"
+        aria-controls="lexi-panel" aria-label="Hỏi Lexi">
+    <img class="lexi lexi--sm " data-mood="idle"
+        src="assets/lexi-yes.webp" width="56" height="59"
+        loading="lazy" decoding="async" aria-hidden="true" />
+</button></div>
 <div id="live" class="sr-only" role="status" aria-atomic="true"></div>
 <script>
 /* A mockup that cannot be pressed cannot be judged, so the interactions that

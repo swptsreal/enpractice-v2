@@ -1,5 +1,5 @@
 /* Screens 04–06 — Daily learning. */
-import { shell, icon, stat, bar, emptyState } from '../assets/shell.js';
+import { shell, icon, stat, bar, emptyState, accountHeader, lexiFab, lexiPanel } from '../assets/shell.js';
 import { lexi } from '../assets/lexi.js';
 
 export const screens = {
@@ -21,7 +21,7 @@ export const screens = {
         <nav class="shell__nav" aria-label="Điều hướng chính">
             <div class="nav">
                 <a class="nav__item" href="04-home.html" aria-current="page">${icon('home', 20)}<span>Trang chủ</span></a>
-                <a class="nav__item" href="07-vocabulary-check.html">${icon('book', 20)}<span>Học</span></a>
+                <a class="nav__item" href="08-vocabulary-list.html">${icon('book', 20)}<span>Từ vựng</span></a>
                 <a class="nav__item" href="16-ielts-list.html">${icon('target', 20)}<span>Luyện tập</span></a>
                 <a class="nav__item" href="29-weekly-report.html">${icon('chart', 20)}<span>Tiến độ</span></a>
                 <a class="nav__item" href="33-profile.html">${icon('user', 20)}<span>Cá nhân</span></a>
@@ -30,6 +30,8 @@ export const screens = {
             <div class="nav">
                 <a class="nav__item" href="06-path.html">${icon('target', 18)}<span>Lộ trình học</span></a>
                 <a class="nav__item" href="12-dictionary.html">${icon('book', 18)}<span>Sổ tay từ vựng</span></a>
+                <a class="nav__item" href="07-vocabulary-check.html">${icon('search', 18)}<span>Tra từ &amp; hỏi AI</span></a>
+                <a class="nav__item" href="15-review.html">${icon('clock', 18)}<span>Ôn tập từ vựng</span></a>
                 <a class="nav__item" href="21-writing-list.html">${icon('pen', 18)}<span>Luyện Writing</span></a>
                 <a class="nav__item" href="24-speaking-list.html">${icon('mic', 18)}<span>Luyện Speaking</span></a>
                 <a class="nav__item" href="27-custom-speaking.html">${icon('chat', 18)}<span>Hội thoại tự chọn</span></a>
@@ -55,11 +57,11 @@ export const screens = {
                 <h1 class="t-h1 truncate">Chào Minh 👋</h1>
                 <p class="t-micro muted">Thứ Ba, 13/10 · Còn 20 phút là đủ cho hôm nay</p>
             </div>
-            <a class="btn btn--ghost btn--icon btn--sm" href="34-notifications.html" aria-label="Thông báo" style="position:relative">
-                ${icon('bell', 18)}<span class="badge" style="position:absolute;top:-6px;right:-6px">3</span>
-            </a>
-            <a href="33-profile.html" aria-label="Trang cá nhân" style="width:44px;height:44px;border-radius:999px;background:var(--teal);color:var(--on-teal);display:grid;place-items:center;font-weight:800">M</a>
-        </header>
+            <!-- The account block, once. This frame used to hand-roll its own bell and avatar as
+                 well, so when the block was added to every header this one rendered two of each.
+                 The hand-rolled pair is gone: one destination, one control. -->
+            ${accountHeader()}
+</header>
 
         <main class="shell__content shell__content--wide" id="main">
 
@@ -163,13 +165,13 @@ export const screens = {
 
         <nav class="tabbar only-mobile" aria-label="Điều hướng chính">
             <a class="tabbar__item" href="04-home.html" aria-current="page">${icon('home', 22)}<span>Trang chủ</span></a>
-            <a class="tabbar__item" href="07-vocabulary-check.html">${icon('book', 22)}<span>Học</span></a>
+            <a class="tabbar__item" href="08-vocabulary-list.html">${icon('book', 22)}<span>Từ vựng</span></a>
             <a class="tabbar__item" href="16-ielts-list.html">${icon('target', 22)}<span>Luyện tập</span></a>
             <a class="tabbar__item" href="29-weekly-report.html">${icon('chart', 22)}<span>Tiến độ</span></a>
             <a class="tabbar__item" href="33-profile.html">${icon('user', 22)}<span>Cá nhân</span></a>
         </nav>
     </div>
-    <a class="lexi-fab" href="36-ai-chat.html" aria-label="Hỏi Lexi"><span data-lexi="idle" data-size="sm"></span></a>
+    ${lexiFab()}
 </div>`,
     style: `
 .greet { display: flex; gap: 20px; align-items: flex-start; }
@@ -301,7 +303,7 @@ export const screens = {
         <nav class="shell__nav" aria-label="Điều hướng chính">
             <div class="nav">
                 <a class="nav__item" href="04-home.html">${icon('home', 20)}<span>Trang chủ</span></a>
-                <a class="nav__item" href="07-vocabulary-check.html">${icon('book', 20)}<span>Học</span></a>
+                <a class="nav__item" href="08-vocabulary-list.html">${icon('book', 20)}<span>Từ vựng</span></a>
                 <a class="nav__item" href="16-ielts-list.html">${icon('target', 20)}<span>Luyện tập</span></a>
                 <a class="nav__item" href="29-weekly-report.html">${icon('chart', 20)}<span>Tiến độ</span></a>
                 <a class="nav__item" href="33-profile.html">${icon('user', 20)}<span>Cá nhân</span></a>
@@ -322,7 +324,8 @@ export const screens = {
                 <p class="t-micro muted">Mục tiêu band 6.5 · Unit 2 / 6</p>
             </div>
             <span class="chip chip--teal">${icon('star', 14)} 2,480 XP</span>
-        </header>
+            ${accountHeader()}
+</header>
 
         <main class="shell__content shell__content--focus" id="main">
             <!-- Unit header -->
@@ -377,12 +380,13 @@ export const screens = {
 
         <nav class="tabbar only-mobile" aria-label="Điều hướng chính">
             <a class="tabbar__item" href="04-home.html">${icon('home', 22)}<span>Trang chủ</span></a>
-            <a class="tabbar__item" href="07-vocabulary-check.html">${icon('book', 22)}<span>Học</span></a>
+            <a class="tabbar__item" href="08-vocabulary-list.html">${icon('book', 22)}<span>Từ vựng</span></a>
             <a class="tabbar__item" href="16-ielts-list.html">${icon('target', 22)}<span>Luyện tập</span></a>
             <a class="tabbar__item" href="29-weekly-report.html">${icon('chart', 22)}<span>Tiến độ</span></a>
             <a class="tabbar__item" href="33-profile.html">${icon('user', 22)}<span>Cá nhân</span></a>
         </nav>
     </div>
+    ${lexiFab()}
 </div>`,
     style: `
 .unit { border-color: var(--border-strong); }

@@ -41,10 +41,21 @@ export default function LoginPage() {
         setError(null);
         setBusy(true);
         try {
+            /* POSITIONAL ARGUMENTS, NOT AN OBJECT.
+               `AuthContext` is part of the verbatim-ported v1 layer, and its signatures
+               are `login(email, password)` / `register(email, password, displayName)`.
+               Passing one object made `email` arrive at the API as an OBJECT, and the
+               backend answered
+                 MismatchedInputException: Cannot deserialize value of type
+                 java.lang.String from Object value (token START_OBJECT)
+                 ... LoginRequest["email"]
+               The body was `{ email: { email, password }, password: undefined }`, and
+               `axios` drops the undefined key — which is why the error names `email`
+               at column 10 and nothing else. */
             if (isRegister) {
-                await register({ email, password, displayName });
+                await register(email, password, displayName);
             } else {
-                await login({ email, password });
+                await login(email, password);
             }
             navigate(redirectTo, { replace: true });
         } catch (err) {

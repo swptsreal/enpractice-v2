@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Flame, Coins } from 'lucide-react';
 import { PRIMARY_NAV, SECONDARY_NAV, activePrimaryId } from './navigation';
@@ -13,6 +13,32 @@ const itemBase =
     'hover:bg-[var(--surface-alt)] hover:text-[var(--ink)]';
 
 /**
+ * The PRIMARY items are plain `Link`s, not `NavLink`s, and that is deliberate.
+ *
+ * `NavLink` computes `aria-current` itself: `isActive ? ariaCurrentProp : undefined`, where `isActive`
+ * is a URL-PREFIX match on its own `to`. These five items are SECTIONS, and their current-state comes
+ * from `activePrimaryId` — `/review` and `/dictionary` belong to "Từ vựng" even though neither path
+ * starts with `/vocabulary`. Inside `NavLink` the passed value was therefore DISCARDED whenever the
+ * path was in the section but not at its landing, so the tab was painted as current and not announced
+ * as current: a screen reader heard five plain links while the eye saw one highlighted. (Caught by
+ * `e2e/header-and-tabs.spec.js`, which asserts the attribute on `/review`.)
+ *
+ * Section membership is a routing decision, so it is computed here from `activePrimaryId` and applied
+ * to a plain link — one source for both the colour and the attribute, which cannot disagree.
+ */
+function primaryItemState(activeId, id) {
+    const isCurrent = activeId === id;
+    return {
+        isCurrent,
+        ariaCurrent: isCurrent ? 'page' : undefined,
+        className: cn(
+            itemBase,
+            isCurrent && 'bg-[var(--teal-soft)] text-[var(--teal)] hover:bg-[var(--teal-soft)]'
+        ),
+    };
+}
+
+/**
  * Sidebar rail, >=1024px only.
  *
  * Destinations are flat: no submenus, because a submenu hides its contents
@@ -21,7 +47,8 @@ const itemBase =
  */
 export function Sidebar({ streakDays = 0, credits = 0, className }) {
     const { t } = useTranslation();
-    const active = activePrimaryId(window.location.pathname);
+    const { pathname } = useLocation();
+    const active = activePrimaryId(pathname);
 
     return (
         <aside
@@ -45,24 +72,17 @@ export function Sidebar({ streakDays = 0, credits = 0, className }) {
 
             <nav className="min-h-0 flex-1 overflow-y-auto p-3">
                 <ul className="flex flex-col gap-1">
-                    {PRIMARY_NAV.map(({ id, to, labelKey, icon: Icon }) => (
-                        <li key={id}>
-                            <NavLink
-                                to={to}
-                                aria-current={active === id ? 'page' : undefined}
-                                className={({ isActive }) =>
-                                    cn(
-                                        itemBase,
-                                        (isActive || active === id) &&
-                                            'bg-[var(--teal-soft)] text-[var(--teal)] hover:bg-[var(--teal-soft)]'
-                                    )
-                                }
-                            >
-                                <Icon size={20} aria-hidden="true" />
-                                <span>{t(labelKey)}</span>
-                            </NavLink>
-                        </li>
-                    ))}
+                    {PRIMARY_NAV.map(({ id, to, labelKey, icon: Icon }) => {
+                        const { ariaCurrent, className: itemClass } = primaryItemState(active, id);
+                        return (
+                            <li key={id}>
+                                <Link to={to} aria-current={ariaCurrent} className={itemClass}>
+                                    <Icon size={20} aria-hidden="true" />
+                                    <span>{t(labelKey)}</span>
+                                </Link>
+                            </li>
+                        );
+                    })}
                 </ul>
 
                 <p className="px-3.5 pt-4 pb-1.5 text-xs font-extrabold tracking-[0.08em] text-[var(--ink-muted)] uppercase">
@@ -117,7 +137,8 @@ export function Sidebar({ streakDays = 0, credits = 0, className }) {
  */
 export function TabBar({ className }) {
     const { t } = useTranslation();
-    const active = activePrimaryId(window.location.pathname);
+    const { pathname } = useLocation();
+    const active = activePrimaryId(pathname);
 
     return (
         <nav
@@ -130,21 +151,21 @@ export function TabBar({ className }) {
         >
             <ul className="flex">
                 {PRIMARY_NAV.map(({ id, to, labelKey, icon: Icon }) => {
-                    const isActive = active === id;
+                    const { isCurrent, ariaCurrent } = primaryItemState(active, id);
                     return (
                         <li key={id} className="flex-1">
-                            <NavLink
+                            <Link
                                 to={to}
-                                aria-current={isActive ? 'page' : undefined}
+                                aria-current={ariaCurrent}
                                 className={cn(
                                     'flex h-[var(--shell-tabbar)] flex-col items-center justify-center gap-1',
                                     'text-[0.6875rem] font-bold',
-                                    isActive ? 'text-[var(--teal)]' : 'text-[var(--ink-muted)]'
+                                    isCurrent ? 'text-[var(--teal)]' : 'text-[var(--ink-muted)]'
                                 )}
                             >
                                 <Icon size={22} aria-hidden="true" />
                                 <span>{t(labelKey)}</span>
-                            </NavLink>
+                            </Link>
                         </li>
                     );
                 })}

@@ -1,23 +1,24 @@
-import { Client } from '@stomp/stompjs';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ensureValidAccessToken } from '../api';
-import { guestSessionApi } from '../api/guestSessionApi';
+import { Client } from "@stomp/stompjs";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ensureValidAccessToken } from "../api";
+import { guestSessionApi } from "../api/guestSessionApi";
 import {
     GUEST_ERROR_CODES,
     GUEST_TRIAL_STATUSES,
     REALTIME_MODES,
-} from '../features/guest-ai-trial/guestAiTrialConstants';
-import { createGuestSessionManager } from '../features/guest-ai-trial/guestAiTrialSession';
+} from "../features/guest-ai-trial/guestAiTrialConstants";
+import { createGuestSessionManager } from "../features/guest-ai-trial/guestAiTrialSession";
 import {
     getGuestErrorAction,
     getGuestRetryDelay,
     getRealtimeAuthAction,
     parseGuestErrorCode,
-} from '../features/guest-ai-trial/guestAiTrialState';
-import { createRealtimeStompSubscriptions } from '../features/realtime/realtimeStompSubscriptions';
-import { createRealtimeTransportController } from '../features/realtime/realtimeTransportController';
-import { useAuth } from './AuthContext';
-import RealtimeStompContext from './RealtimeStompContextCore';
+} from "../features/guest-ai-trial/guestAiTrialState";
+import { createRealtimeStompSubscriptions } from "../features/realtime/realtimeStompSubscriptions";
+import { createRealtimeTransportController } from "../features/realtime/realtimeTransportController";
+import { resolveWsUrl } from "../lib/wsUrl";
+import { useAuth } from "./AuthContext";
+import RealtimeStompContext from "./RealtimeStompContextCore";
 
 const INITIAL_SNAPSHOT = {
     mode: REALTIME_MODES.IDLE,
@@ -27,52 +28,68 @@ const INITIAL_SNAPSHOT = {
 };
 
 function getRealtimeStompUrl() {
-    const httpUrl =
-        import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-    const baseUrl = httpUrl.replace(/\/api\/?$/, '');
     /* `VITE_API_URL` là đường dẫn tương đối (`/api`) khi dev server làm proxy — chính là cấu
-       hình mặc định bây giờ. Khi đó base rỗng và brokerURL sẽ thành `/ws/realtime-chat`, một
-       URL tương đối mà STOMP không mở được: phải lấy scheme + host từ chính trang, để trang
-       https thành `wss:` và đi qua proxy `/ws` thay vì gọi thẳng cổng 8082. */
-    if (!/^https?:\/\//i.test(baseUrl)) {
-        const scheme = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        return `${scheme}//${window.location.host}/ws/realtime-chat`;
-    }
-    return `${baseUrl.replace(/^http/, 'ws')}/ws/realtime-chat`;
+       hình mặc định. Khi đó phải lấy scheme + host từ chính trang, để trang https thành
+       `wss:` và đi qua proxy `/ws` thay vì gọi thẳng cổng 8082: một socket `ws://` từ trang
+       https bị browser chặn vì mixed content TRƯỚC khi gửi frame nào, và đó chính là lý do
+       `/ai-chat`, speaking, custom-speaking không có phản hồi (broker log: 0 session).
+       Quy tắc này nằm trong `lib/wsUrl.js` để socket speech dùng chung, không lặp lại lần 3. */
+    return resolveWsUrl("/ws/realtime-chat");
 }
 
 export function RealtimeStompProvider({ children }) {
     const { isAuthenticated, loading } = useAuth();
     const [snapshot, setSnapshot] = useState(INITIAL_SNAPSHOT);
     const [guestTrialStatus, setGuestTrialStatus] = useState(
-        GUEST_TRIAL_STATUSES.IDLE
+        GUEST_TRIAL_STATUSES.IDLE,
     );
     const guestRetryRef = useRef({ attempt: 0, retryAt: 0 });
     const guestRenewPromiseRef = useRef(null);
     const [guestManager] = useState(() =>
         createGuestSessionManager({
             createSession: guestSessionApi.createSession,
-        })
+        }),
     );
     const [subscriptions] = useState(createRealtimeStompSubscriptions);
-    const [client] = useState(
-        () =>
-            new Client({
-                brokerURL: getRealtimeStompUrl(),
-                reconnectDelay: 5000,
-                heartbeatIncoming: 10000,
-                heartbeatOutgoing: 10000,
-            })
-    );
-    const [controller] = useState(() =>
-        createRealtimeTransportController({
+
+    /**
+     * THE CLIENT AND ITS CONTROLLER ARE CREATED TOGETHER, IN ONE INITIALIZER, AND THAT IS
+     * LOAD-BEARING.
+     *
+     * They used to be two separate lazy `useState` initializers, which React StrictMode invokes
+     * TWICE. The second invocation of `new Client(...)` produced a discarded client, but the second
+     * `createRealtimeTransportController({ client })` received the FIRST client and re-assigned its
+     * `beforeConnect` / `onConnect` / `onDisconnect` callbacks. So the live controller drove
+     * `client.activate()` while the callbacks belonged to a discarded controller with its own
+     * `targetMode` — which read `idle`, threw "Realtime target mode is idle", and left the promise
+     * `connect()` returned UNSETTLED (its `pendingConnection` had already been nulled, so
+     * `rejectPending` was a no-op).
+     *
+     * The symptom was exactly what was reported and had NO error anywhere: no WebSocket was ever
+     * constructed (`page.on('websocket')` saw only Vite's HMR socket) and the screen sat on
+     * "Đang kết nối tới máy chủ AI…" forever. Traced by tagging each controller with an id — the
+     * `activating` log came from one instance and the `beforeConnect` log from another.
+     *
+     * Creating both here means a discarded second pass produces a SELF-CONSISTENT discarded pair
+     * (its own client AND its own controller), so it cannot reach into the live one.
+     */
+    const [realtime] = useState(() => {
+        const client = new Client({
+            brokerURL: getRealtimeStompUrl(),
+            reconnectDelay: 5000,
+            heartbeatIncoming: 10000,
+            heartbeatOutgoing: 10000,
+        });
+        const controller = createRealtimeTransportController({
             client,
             subscriptions,
             getAuthToken: ensureValidAccessToken,
             getGuestSession: (options) => guestManager.getOrCreate(options),
             onSnapshot: setSnapshot,
-        })
-    );
+        });
+        return { client, controller };
+    });
+    const { controller } = realtime;
 
     const markGuestUnavailable = useCallback(() => {
         const attempt = guestRetryRef.current.attempt;
@@ -88,12 +105,12 @@ export function RealtimeStompProvider({ children }) {
             const errorCode = parseGuestErrorCode(value);
             const action = getGuestErrorAction(errorCode);
 
-            if (action === 'disable') {
+            if (action === "disable") {
                 setGuestTrialStatus(GUEST_TRIAL_STATUSES.DISABLED);
                 await controller.deactivate();
                 return false;
             }
-            if (action === 'renew') {
+            if (action === "renew") {
                 if (!guestRenewPromiseRef.current) {
                     guestManager.clear();
                     guestRenewPromiseRef.current = controller
@@ -112,12 +129,12 @@ export function RealtimeStompProvider({ children }) {
                     return false;
                 }
             }
-            if (action === 'backoff') {
+            if (action === "backoff") {
                 markGuestUnavailable();
             }
             return false;
         },
-        [controller, guestManager, markGuestUnavailable]
+        [controller, guestManager, markGuestUnavailable],
     );
 
     useEffect(() => {
@@ -130,12 +147,12 @@ export function RealtimeStompProvider({ children }) {
             return controller.connectAuthenticated();
         }
         if (guestTrialStatus === GUEST_TRIAL_STATUSES.DISABLED) {
-            const error = new Error('Guest AI trial is disabled');
+            const error = new Error("Guest AI trial is disabled");
             error.code = GUEST_ERROR_CODES.TRIAL_DISABLED;
             throw error;
         }
         if (guestRetryRef.current.retryAt > Date.now()) {
-            const error = new Error('Guest AI trial retry is delayed');
+            const error = new Error("Guest AI trial retry is delayed");
             error.code = GUEST_ERROR_CODES.TRIAL_UNAVAILABLE;
             throw error;
         }
@@ -153,11 +170,11 @@ export function RealtimeStompProvider({ children }) {
 
     useEffect(() => {
         const action = getRealtimeAuthAction({ loading, isAuthenticated });
-        if (action === 'wait') return undefined;
+        if (action === "wait") return undefined;
         let cancelled = false;
 
         const syncMode = async () => {
-            if (action === 'connect-authenticated') {
+            if (action === "connect-authenticated") {
                 await controller.connectAuthenticated();
                 return;
             }
@@ -168,10 +185,10 @@ export function RealtimeStompProvider({ children }) {
         };
 
         syncMode().catch((error) => {
-            if (!cancelled && action === 'connect-authenticated') {
+            if (!cancelled && action === "connect-authenticated") {
                 console.error(
-                    'Failed to connect authenticated realtime',
-                    error
+                    "Failed to connect authenticated realtime",
+                    error,
                 );
             }
         });
@@ -184,12 +201,12 @@ export function RealtimeStompProvider({ children }) {
         () => () => {
             controller.deactivate();
         },
-        [controller]
+        [controller],
     );
 
     const subscribe = useCallback(
         (destination, handler) => subscriptions.subscribe(destination, handler),
-        [subscriptions]
+        [subscriptions],
     );
 
     const value = useMemo(
@@ -211,7 +228,7 @@ export function RealtimeStompProvider({ children }) {
             handleGuestError,
             snapshot,
             subscribe,
-        ]
+        ],
     );
 
     return (

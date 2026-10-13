@@ -1,10 +1,13 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import {
     collectPageProblems,
+    expectBodyHasContent,
     expectNoErrorOverlay,
     expectNoProblems,
     expectNoRawKeyOrCrash,
+    gotoWithRetry,
 } from './helpers/guards.js';
+import { captureScreen, expectShellScrollport } from './helpers/screenshot.js';
 
 /**
  * Every screen the shell can reach, driven in a real browser.
@@ -28,6 +31,11 @@ const SIGNED_IN_SCREENS = [
     ['ielts-history', '/ielts/history'],
     ['learning-path', '/path'],
     ['vocabulary', '/vocabulary'],
+    /* THE SAME URL TWICE, ON PURPOSE. `/vocabulary/check` is the one screen with two chromes —
+       full-bleed for a visitor (see GUEST_SCREENS, below) and inside the shell for a learner
+       (`VocabularyCheckLayout`). One visit cannot prove both, and asserting the shell contract on
+       the guest frame would fail on a screen that is exactly where it should be. */
+    ['vocabulary-check-signed-in', '/vocabulary/check'],
     ['vocabulary-history', '/vocabulary/history'],
     ['dictionary', '/dictionary'],
     ['evaluation', '/evaluation'],
@@ -70,22 +78,24 @@ test.describe('signed-in screens', () => {
         test(`${name} (${path}) renders without crashing`, async ({ page }, testInfo) => {
             const problems = collectPageProblems(page);
 
-            await page.goto(path, { waitUntil: 'domcontentloaded' });
+            await gotoWithRetry(page, path);
             await settle(page);
 
             await expectNoErrorOverlay(page);
             await expectNoRawKeyOrCrash(page);
 
             /* "Drew something": the shell always has a header, so an empty <main> means the screen
-               itself produced nothing. 40 characters is a low bar on purpose — this is a smoke
-               check, not a copy assertion. */
-            const text = (await page.locator('body').innerText()).trim();
-            expect(text.length, `body text was only ${text.length} characters`).toBeGreaterThan(40);
+               itself produced nothing. Polled rather than read once — a slow API is not a blank
+               screen, and a fixed sleep cannot tell the difference. */
+            await expectBodyHasContent(page, { problems });
 
-            await page.screenshot({
-                path: `e2e/__screenshots__/${testInfo.project.name}/${name}.png`,
-                fullPage: true,
-            });
+            /* THE SHELL SCROLLS ITS CONTENT, NOT THE DOCUMENT — measured in a real browser, because
+               jsdom has no layout engine and cannot see this at all. `/onboarding` is the one
+               signed-in route mounted OUTSIDE the shell (it is a focused flow with no nav), so it
+               keeps scrolling the document and has no `#main`. */
+            if (path !== '/onboarding') await expectShellScrollport(page);
+
+            await captureScreen(page, `e2e/__screenshots__/${testInfo.project.name}/${name}.png`);
 
             expectNoProblems(problems);
         });
@@ -99,19 +109,18 @@ test.describe('guest screens — no session at all', () => {
         test(`${name} (${path}) renders for a visitor`, async ({ page }, testInfo) => {
             const problems = collectPageProblems(page);
 
-            await page.goto(path, { waitUntil: 'domcontentloaded' });
+            await gotoWithRetry(page, path);
             await settle(page);
 
             await expectNoErrorOverlay(page);
             await expectNoRawKeyOrCrash(page);
 
-            const text = (await page.locator('body').innerText()).trim();
-            expect(text.length, `body text was only ${text.length} characters`).toBeGreaterThan(40);
+            await expectBodyHasContent(page, { problems });
 
-            await page.screenshot({
-                path: `e2e/__screenshots__/${testInfo.project.name}/${name}.png`,
-                fullPage: true,
-            });
+            /* Guest surfaces live OUTSIDE the shell (landing, login, /vocabulary/check) and scroll
+               the document, which is the intended difference — so this branch asserts nothing about
+               an inner scrollport. */
+            await captureScreen(page, `e2e/__screenshots__/${testInfo.project.name}/${name}.png`);
 
             expectNoProblems(problems);
         });

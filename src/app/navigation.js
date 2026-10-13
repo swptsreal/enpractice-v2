@@ -16,6 +16,7 @@ import {
     Search,
     BookMarked,
     Route,
+    Clock,
 } from 'lucide-react';
 
 /**
@@ -34,9 +35,29 @@ import {
  * same rail, one click away.
  */
 
+/**
+ * The five primary destinations, each a SECTION, and each href that section's LANDING page.
+ *
+ * `Học` pointed at `/vocabulary/check` — the dictionary lookup — which was wrong twice over. It made
+ * the primary tab and the group's own "Tra từ & hỏi AI" item the SAME destination (the rail listed it
+ * twice), and it hid the section's actual work: `/vocabulary` (the test list), `/vocabulary/test`,
+ * `/vocabulary/result` and `/vocabulary/history` sat one level deeper than the tab that claims to
+ * lead into them. The mockup's rail had the same artefact — `Học` → `07-vocabulary-check.html` while
+ * every vocabulary frame marked it `aria-current="page"` — and it is fixed there first
+ * (`_design/mockup/assets/shell.js` PRIMARY), because the design is the source of truth.
+ *
+ * THE LABEL IS THE SECTION. The section is the vocabulary module — where you TEST words
+ * (`/vocabulary`) and where you REVIEW them (`/review`, now listed below) — so the tab reads
+ * "Từ vựng" (`nav.learn`) and lands on the test list. "Học" named neither the section nor a
+ * destination: it read as if the whole product were "học", which is exactly how a tab that opened a
+ * dictionary lookup went unnoticed.
+ *
+ * `activePrimaryId` covers the whole module, so the tab stays highlighted on the lookup, the review
+ * and the evaluation screens too. A section tab highlights for its section; only its landing changes.
+ */
 export const PRIMARY_NAV = [
     { id: 'home', to: '/home', labelKey: 'nav.home', icon: Home },
-    { id: 'learn', to: '/vocabulary/check', labelKey: 'nav.learn', icon: BookOpen },
+    { id: 'learn', to: '/vocabulary', labelKey: 'nav.learn', icon: BookOpen },
     { id: 'practice', to: '/ielts', labelKey: 'nav.practice', icon: Target },
     { id: 'progress', to: '/weekly-report', labelKey: 'nav.progress', icon: ChartLine },
     { id: 'account', to: '/profile', labelKey: 'nav.account', icon: UserRound },
@@ -46,7 +67,15 @@ export const SECONDARY_NAV = [
     { to: '/path', labelKey: 'nav.path', icon: Route },
     { to: '/dictionary', labelKey: 'nav.dictionary', icon: BookMarked },
     { to: '/vocabulary/check', labelKey: 'nav.vocabCheck', icon: Search },
-    { to: '/vocabulary', labelKey: 'nav.vocabTest', icon: BookOpen },
+    /* The "Từ vựng" section's OTHER destination, beside the test list the tab opens. A section tab
+       can only open one screen, so the review needs its own entry or a designed screen has no way in
+       — which is the state this was in. Same label as its page title (`nav.review`), so the rail and
+       the header cannot disagree. */
+    { to: '/review', labelKey: 'nav.review', icon: Clock },
+    /* `/vocabulary` — "Test từ vựng" — is deliberately NOT listed here. It is the "Từ vựng" section's
+       LANDING, and the primary tab already goes there, so listing it again put two rail entries on
+       one screen (both highlighted at once). The label still names the screen: `pageTitles` maps
+       `/vocabulary` to `nav.vocabTest` for its header. */
     { to: '/writing', labelKey: 'nav.writing', icon: PenLine },
     { to: '/speaking', labelKey: 'nav.speaking', icon: Mic },
     { to: '/custom-speaking', labelKey: 'nav.customSpeaking', icon: MessagesSquare },

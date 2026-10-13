@@ -89,7 +89,11 @@ export default function ProfilePage() {
                     )}
 
                     <div className="min-w-0 flex-1">
-                        <h1 className="t-h1 break-words">{profile?.displayName ?? t('profile.unnamed')}</h1>
+                        {/* `h2` on purpose: the shell header's `h1` is this page's title ("Cá nhân"),
+                            and the learner's name is the card's heading, not a second page title.
+                            The `t-h1` class is kept so the visual weight the design asks for is
+                            unchanged. */}
+                        <h2 className="t-h1 break-words">{profile?.displayName ?? t('profile.unnamed')}</h2>
                         <p className="t-micro muted">{profile?.email}</p>
                         <div className="mt-2 flex flex-wrap items-center gap-2">
                             <Chip tone="neutral" icon={Sparkles}>

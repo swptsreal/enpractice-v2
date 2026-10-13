@@ -33,6 +33,7 @@ import RootRedirect from './app/RootRedirect';
  */
 const AppLayout = lazy(() => import('./app/AppLayout'));
 const ProviderLayout = lazy(() => import('./app/ProviderLayout'));
+const VocabularyCheckLayout = lazy(() => import('./app/VocabularyCheckLayout'));
 const HomePage = lazy(() => import('./pages/home/HomePage'));
 const IeltsListPage = lazy(() => import('./pages/ielts/IeltsListPage'));
 const IeltsTakePage = lazy(() => import('./pages/ielts/IeltsTakePage'));
@@ -68,6 +69,8 @@ const RewardsPage = lazy(() => import('./pages/gamification/RewardsPage'));
 const ChallengesPage = lazy(() => import('./pages/gamification/ChallengesPage'));
 const EvaluationPage = lazy(() => import('./pages/evaluation/EvaluationPage'));
 const ReviewConfigPage = lazy(() => import('./pages/evaluation/ReviewConfigPage'));
+const ReviewSessionPage = lazy(() => import('./pages/evaluation/ReviewSessionPage'));
+const ReviewResultPage = lazy(() => import('./pages/evaluation/ReviewResultPage'));
 const OnboardingPage = lazy(() => import('./pages/onboarding/OnboardingPage'));
 const LearningPathPage = lazy(() => import('./pages/learning/LearningPathPage'));
 
@@ -336,6 +339,14 @@ export default function App() {
                             </RequireAuth>
                         }
                     />
+                    <Route
+                        path="/review/result"
+                        element={
+                            <RequireAuth>
+                                <ReviewResultPage />
+                            </RequireAuth>
+                        }
+                    />
 <Route path="*" element={<Navigate to="/home" replace />} />
                 </Route>
 
@@ -368,28 +379,45 @@ export default function App() {
                     but keeping them in separate branches makes the intent explicit. */}
                 <Route path="/ielts/take" element={<IeltsTakePage />} />
                 <Route path="/vocabulary/test" element={<VocabularyTakePage />} />
+                {/* The review PRACTICE step sits here too, for the same reason as the test screens:
+                    a session is a focused surface, so it carries no rail to wander into and keeps its
+                    action in a sticky footer. The RESULT step is deliberately inside the shell above,
+                    because once the session is over its exits are navigation rather than a decision
+                    to make under time. */}
+                <Route
+                    path="/review/session"
+                    element={
+                        <RequireAuth>
+                            <ReviewSessionPage />
+                        </RequireAuth>
+                    }
+                />
                 <Route path="/dictionary/review" element={<DictionaryReviewPage />} />
 
                 {/* Public surfaces. The landing page is the root for a visitor; the
                     guest trial is a real no-account surface, matching the promise made
                     on the landing page and the login card.
 
-                    /vocabulary/check is deliberately NOT inside AppLayout: it needs the
-                    provider chain (credit + STOMP + explain) but must not render the
-                    sidebar, tab bar or floating Lexi. It is also NOT behind RequireAuth
-                    — an earlier version had it guarded, so a guest clicking the trial
-                    was redirected to /login and the promised free trial was impossible.
+                    /vocabulary/check wears TWO chromes, decided by `VocabularyCheckLayout`:
+                    a visitor gets the full-bleed trial (provider chain, no sidebar / tab bar /
+                    floating Lexi — chrome that belongs to an account they do not have), and a
+                    signed-in learner gets it INSIDE the shell, which is how the mockup draws
+                    screen 07 and what the rail's "Học" destination implies. Showing the guest
+                    chrome to a signed-in learner was the reported defect: the page read as guest
+                    mode with a "Đăng nhập" button in its header and no way back into the app.
 
-                    THE OTHER TWO ROUTES HERE NEED THE SAME CHAIN, and did not have it:
-                    /writing/task/:taskId and /speaking/practice/:topicId both read the
-                    credit price before the press, so both threw
+                    THE OTHER TWO ROUTES HERE ARE ALWAYS CHROME-FREE, and they need the same
+                    chain: /writing/task/:taskId and /speaking/practice/:topicId both read the
+                    credit price before the press, so without it they threw
                     "useCredit must be used inside CreditProvider" and rendered nothing.
                     A timed surface without chrome is the intent; a timed surface
                     without its providers is a blank screen. */}
                 <Route element={<ProviderLayout />}>
-                    <Route path="/vocabulary/check" element={<VocabularyCheckPage />} />
                     <Route path="/writing/task/:taskId" element={<WritingTakePage />} />
                     <Route path="/speaking/practice/:topicId" element={<SpeakingPracticePage />} />
+                </Route>
+                <Route element={<VocabularyCheckLayout />}>
+                    <Route path="/vocabulary/check" element={<VocabularyCheckPage />} />
                 </Route>
 
                 {/* Onboarding is a focused flow, so it is outside the shell: no sidebar, no

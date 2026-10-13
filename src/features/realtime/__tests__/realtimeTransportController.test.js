@@ -136,6 +136,82 @@ test('intentional deactivate does not report transport error', async () => {
         connectionVersion: 1,
     });
 });
+test('a deactivate still in flight cannot clobber the mode a later connect set', async () => {
+    /* THE STRICTMODE REMOUNT RACE. The provider deactivates from an effect cleanup and re-runs the
+       connect effect immediately, so `deactivate()` — which awaits `client.deactivate()` — is still
+       in flight when `connectAuthenticated()` runs. Its trailing `targetMode = IDLE` used to land
+       after `connect()` had set the mode, so `beforeConnect` read `idle`, threw, and left the promise
+       `connect()` returned unsettled: no socket, no error, "Đang kết nối" forever.
+       The slow deactivate below is the whole point — a fast one hides the race. */
+    const client = createFakeClient();
+    client.deactivate = async function slowDeactivate() {
+        this.deactivateCalls += 1;
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        this.active = false;
+        this.connected = false;
+    };
+
+    /* Signals the moment a connect reaches activation, one shot per activation. The handshake below
+       has to be driven against the SECOND activation, not the first, so the signal is re-armed. */
+    let signalActivation = null;
+    const nextActivation = () =>
+        new Promise((resolve) => {
+            signalActivation = resolve;
+        });
+    const nativeActivate = client.activate.bind(client);
+    client.activate = function instrumentedActivate() {
+        nativeActivate();
+        const resolve = signalActivation;
+        signalActivation = null;
+        resolve?.();
+    };
+
+    const controller = createRealtimeTransportController({
+        client,
+        subscriptions: { bind() {}, unbind() {} },
+        getAuthToken: async () => 'auth-token',
+        getGuestSession: async () => null,
+    });
+
+    /* Connect first so there is something to tear down, then start the teardown without awaiting it
+       and connect again — exactly the cleanup-then-remount order. */
+    const first = controller.connectAuthenticated();
+    await client.beforeConnect();
+    client.connected = true;
+    client.onConnect();
+    await first;
+
+    const teardown = controller.deactivate();
+    const secondActivation = nextActivation();
+    const second = controller.connectAuthenticated();
+
+    /* Bounded, so a regression fails with a sentence instead of hanging the runner. */
+    const outcome = await Promise.race([
+        secondActivation.then(() => 'activated'),
+        new Promise((resolve) => setTimeout(() => resolve('never-activated'), 500)),
+    ]);
+    assert.equal(
+        outcome,
+        'activated',
+        'connect() never reached activation — the teardown clobbered the mode it had set'
+    );
+
+    await client.beforeConnect();
+    assert.deepEqual(
+        client.connectHeaders,
+        { Authorization: 'Bearer auth-token' },
+        'beforeConnect read the wrong target mode, so the CONNECT frame would go out unauthenticated'
+    );
+
+    client.connected = true;
+    client.onConnect();
+    await second;
+    await teardown;
+
+    assert.equal(controller.getSnapshot().mode, REALTIME_MODES.AUTHENTICATED);
+    assert.equal(controller.getSnapshot().isConnected, true);
+});
+
 test('updates transport error handler without rebuilding controller', () => {
     const client = createFakeClient();
     let errorCalls = 0;

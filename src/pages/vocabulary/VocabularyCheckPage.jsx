@@ -12,6 +12,7 @@ import { Markdown } from '../../components/ui/Markdown';
    there resolves to nothing and the build fails. */
 import { useVocabularyExplain } from '../../contexts/VocabularyExplainContextCore';
 import { useCredit } from '../../contexts/CreditContextCore';
+import { useAuth } from '../../contexts/AuthContext';
 import { getCreditCostDisplay } from '../../features/credits/creditPolicy';
 import { useWordMutations } from '../../features/vocabulary/useDictionary';
 
@@ -55,6 +56,7 @@ import { useWordMutations } from '../../features/vocabulary/useDictionary';
  */
 export default function VocabularyCheckPage() {
     const { t } = useTranslation();
+    const { isAuthenticated } = useAuth();
 
     const { start, cancel, requestsById, isConnected, costEntry } = useVocabularyExplain();
     const credit = useCredit();
@@ -140,31 +142,43 @@ export default function VocabularyCheckPage() {
 
     return (
         <>
-            {/* The anchor strip. Same surface/border tokens as the landing header
-                and the shell header, but slimmer and with nothing in it that needs
-                an account. Deliberately NOT a <nav>: this surface has no
-                navigation, and App.test.jsx asserts that no nav landmark renders
-                here. A fragment rather than a page wrapper: `body` already carries
-                the canvas background and `min-height: 100dvh`, so nothing else is
-                needed to keep this surface full-bleed. */}
-            <header className="sticky top-0 z-30 border-b-2 border-[var(--border)] bg-[var(--surface)]">
-                <div className="mx-auto flex min-h-14 w-full max-w-[820px] items-center gap-3 px-3.5">
-                    <Link to="/" className="flex items-center gap-2.5">
-                        <Lexi mood="idle" size="xs" eager />
-                        <span className="t-label">{t('common.appName')}</span>
-                    </Link>
-                    <span className="flex-1" />
-                    <ButtonLink to="/login" size="sm" variant="primary">
-                        {t('common.login')}
-                    </ButtonLink>
-                </div>
-            </header>
+            {/* The anchor strip — FOR A VISITOR ONLY.
+                Inside the shell this page already has a header (title, notification bell, avatar)
+                and two navigation affordances, so rendering this strip too would stack two headers
+                and offer a "Đăng nhập" button to someone who is already signed in.
+                It exists at all because the guest surface has no chrome of its own: without it the
+                page opened straight onto an input card floating on the canvas with no brand above
+                it and no way back to the product, which reads as a broken app rather than as a
+                deliberate no-chrome trial.
+
+                Same surface/border tokens as the landing header and the shell header, but slimmer
+                and with nothing in it that needs an account. Deliberately NOT a <nav>: this surface
+                has no navigation, and App.test.jsx asserts that no nav landmark renders for a
+                guest. A fragment rather than a page wrapper: `body` already carries the canvas
+                background and `min-height: 100dvh`, so nothing else is needed to keep the guest
+                surface full-bleed. */}
+            {!isAuthenticated ? (
+                <header className="sticky top-0 z-30 border-b-2 border-[var(--border)] bg-[var(--surface)]">
+                    <div className="mx-auto flex min-h-14 w-full max-w-[820px] items-center gap-3 px-3.5">
+                        <Link to="/" className="flex items-center gap-2.5">
+                            <Lexi mood="idle" size="xs" eager />
+                            <span className="t-label">{t('common.appName')}</span>
+                        </Link>
+                        <span className="flex-1" />
+                        <ButtonLink to="/login" size="sm" variant="primary">
+                            {t('common.login')}
+                        </ButtonLink>
+                    </div>
+                </header>
+            ) : null}
 
             <div className="mx-auto flex w-full max-w-[820px] flex-col gap-4 px-3.5 pt-5 pb-10">
                 <p className="t-micro muted">{t('vocabCheck.subtitle')}</p>
                 {/* Why this screen has no shell around it, said in words rather than
-                    left for the visitor to interpret as a broken page. */}
-                <p className="t-micro muted">{t('landing.guestCaveat')}</p>
+                    left for the visitor to interpret as a broken page. Only true for a visitor —
+                    a signed-in learner IS inside the shell, so the sentence would contradict what
+                    is on screen. */}
+                {!isAuthenticated ? <p className="t-micro muted">{t('landing.guestCaveat')}</p> : null}
 
                 {/* --- the input ------------------------------------------------ */}
                 <Card level="edge" padding="xl">

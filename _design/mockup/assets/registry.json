@@ -42,6 +42,12 @@
     "n": "Ô nhập là trọng tâm · credit hiển thị trước khi tốn"
   },
   {
+    "f": "07b-vocabulary-check-guest",
+    "t": "Tra từ & hỏi AI — khách",
+    "g": "Từ vựng",
+    "n": "Biến thể KHÁCH của 07 · cùng màn, khác chrome · hạn mức AI mỗi ngày"
+  },
+  {
     "f": "08-vocabulary-list",
     "t": "Test từ vựng",
     "g": "Từ vựng",
@@ -85,9 +91,21 @@
   },
   {
     "f": "15-review",
-    "t": "Ôn tập ngắt quãng",
+    "t": "Ôn tập từ vựng",
     "g": "Từ vựng",
-    "n": "Bước 1/3 · cho thấy trước sẽ mất bao lâu"
+    "n": "nói trước sẽ ôn gì và mất bao lâu"
+  },
+  {
+    "f": "15b-review-practice",
+    "t": "Ôn tập · đang làm",
+    "g": "Từ vựng",
+    "n": "Một từ một màn · bàn phím là chính"
+  },
+  {
+    "f": "15c-review-result",
+    "t": "Ôn tập · kết quả",
+    "g": "Từ vựng",
+    "n": "kết quả dẫn thẳng tới lượt ôn từ sai"
   },
   {
     "f": "16-ielts-list",
@@ -183,13 +201,19 @@
     "f": "31-rewards",
     "t": "Phần thưởng & nhiệm vụ",
     "g": "Tiến độ",
-    "n": "v1 là 1 file 1.604 dòng · v2 tách thành tab rõ ràng"
+    "n": "Hai tab: Nhiệm vụ · Vật phẩm. Tab Đổi thưởng CẦN backend mua/đổi (chưa có endpoint nào) — xem SCREENS-V2 §31."
   },
   {
     "f": "32-credits",
     "t": "Ví credit",
     "g": "Tiến độ",
     "n": "Bảng phí công khai · nói rõ cái gì miễn phí"
+  },
+  {
+    "f": "33b-account-menu",
+    "t": "Menu tài khoản (đang mở)",
+    "g": "Tài khoản",
+    "n": "Disclosure, không phải role=menu: panel chỉ có link nên không hứa điều hướng bằng phím mũi tên"
   },
   {
     "f": "33-profile",
@@ -208,6 +232,12 @@
     "t": "Cài đặt",
     "g": "Tài khoản",
     "n": "Hai công tắc gamification nằm ở nhóm đầu tiên, một chạm"
+  },
+  {
+    "f": "36b-lexi-panel",
+    "t": "Lexi — panel nổi",
+    "g": "Tài khoản",
+    "n": "Dialog KHÔNG modal: trang phía sau vẫn đọc được · cùng nội dung với AI Coach"
   },
   {
     "f": "36-ai-chat",

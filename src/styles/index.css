@@ -16,10 +16,24 @@
 
     html {
         -webkit-text-size-adjust: 100%;
-        /* Anchor targets must not land underneath the sticky shell header. Settings'
-           section links (`#reminders`, `#learning`, …) jumped to a heading that was then
-           covered by the header. One line on the scroll container beats a scroll-margin
-           on every section, and it covers links added later. */
+    }
+
+    /**
+     * THE SHELL'S SCROLLPORT IS `<main>`, NOT THE DOCUMENT — so the anchor offset has to live
+     * there too.
+     *
+     * `scroll-padding-top` was on `html`, which was correct while the document scrolled. Once
+     * `AppLayout` became a fixed viewport (`h-dvh`) with an inner scrollport, the rule went
+     * inert: Settings' section links (`#reminders`, `#learning`, `#appearance`, `#data`) jumped
+     * to a heading that the 64/72px header then covered — the exact bug the rule was written for.
+     *
+     * It stays on the SCROLL CONTAINER rather than becoming a `scroll-margin` on each section, so
+     * links added later are covered too. Surfaces outside the shell (landing, login, onboarding,
+     * `/vocabulary/check`, every take screen) still scroll the document, which is why the rule is
+     * kept on `html` as well.
+     */
+    html,
+    #main {
         scroll-padding-top: calc(var(--shell-header) + 12px);
     }
 

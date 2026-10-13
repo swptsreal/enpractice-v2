@@ -81,9 +81,17 @@ function walk(dir, files = []) {
  * argument for fixing the scanner rather than the wording.
  *
  * The `[^:]` guard keeps `https://...` inside a string literal from being read as a comment.
+ *
+ * A BLOCK COMMENT IS REPLACED BY SPACES, NEWLINES INCLUDED, not by a single space. Collapsing
+ * it removed the newlines inside `/* … *\/` and shifted every reported line number after it —
+ * the interpolation check named `ReviewConfigPage.jsx:79`, which is a `<Button`, for a call
+ * that is eighty lines further down. Blanking the characters instead keeps byte offsets and
+ * line numbers identical to the file on disk, which is the only thing a reader can act on.
  */
 function stripComments(source) {
-    return source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+    return source
+        .replace(/\/\*[\s\S]*?\*\//g, (block) => block.replace(/[^\n]/g, ' '))
+        .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
 }
 
 const files = walk(srcDir);
@@ -101,6 +109,81 @@ for (const file of files) {
         const loc = `${rel}:${i + 1}`;
         if (!ALLOWED_DEFAULT_VALUES.has(loc)) inlineDefaults.push(loc);
     });
+}
+
+/* ------------------------------------------------- interpolation check */
+
+/**
+ * A key can exist, be in parity, and STILL print a raw placeholder to the learner.
+ *
+ * This is the third failure mode, and it shipped: `/path` rendered
+ * `{{nodes}} bài · 1 bài kiểm tra cuối unit` because the locale string interpolates
+ * `{{nodes}}` while the call site passed `{ count: nodes.length }`. i18next
+ * substitutes only the variables present in the options object, and `count` is not
+ * one of them — it selects a plural form, and neither key has `_one`/`_other`
+ * variants, which is why text appeared at all rather than a raw `namespace.key`.
+ *
+ * Nothing caught it: this audit checked key presence only; the e2e raw-key guard
+ * matches `namespace.key` text, never `{{…}}`; and the page's own test asserted a
+ * substring that still matched with the placeholder unresolved. It shipped in the
+ * bundle twice (`index-*.js` and `en-*.js`).
+ *
+ * So: for every literal `t('key', { …options… })` call, every `{{var}}` in that key's
+ * vi AND en value must appear in the options. Calls whose second argument is not an
+ * object literal (a spread variable, a helper-built options bag) are skipped rather
+ * than guessed at — a false failure here would be worse than no gate.
+ */
+const PLACEHOLDER = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
+
+function placeholdersIn(value) {
+    if (typeof value !== 'string') return [];
+    return [...value.matchAll(PLACEHOLDER)].map((m) => m[1]);
+}
+
+/**
+ * Names an options object provides — including SHORTHAND.
+ *
+ * `t('review.stepN', { step })` is the same call as `{ step: step }`, and the first version of
+ * this check only understood the second, so it reported two perfectly correct call sites in
+ * `ReviewConfigPage.jsx` as failures. A gate that cries wolf gets switched off, so shorthand is
+ * handled explicitly rather than left as an allowlist entry.
+ */
+function optionsNames(body) {
+    const names = new Set();
+    for (const part of body.split(',')) {
+        const trimmed = part.trim();
+        if (!trimmed || trimmed.startsWith('...')) continue; // a spread is not a name we can know
+        const named = trimmed.match(/^([A-Za-z_$][\w$]*)\s*:/);
+        if (named) {
+            names.add(named[1]);
+            continue;
+        }
+        const shorthand = trimmed.match(/^([A-Za-z_$][\w$]*)$/);
+        if (shorthand) names.add(shorthand[1]);
+    }
+    return names;
+}
+
+const interpolationProblems = [];
+const CALL_WITH_OPTIONS = /\bt\(\s*['"`]([a-zA-Z0-9_.]+)['"`]\s*,\s*\{([^{}]*)\}/g;
+
+for (const file of files) {
+    const src = stripComments(readFileSync(file, 'utf8'));
+    const rel = relative(srcDir, file).split('\\').join('/');
+    const lineOf = (index) => src.slice(0, index).split('\n').length;
+
+    for (const m of src.matchAll(CALL_WITH_OPTIONS)) {
+        const [, key, body] = m;
+        const provided = optionsNames(body);
+        for (const [lang, tree] of [['vi', viKeys], ['en', enKeys]]) {
+            for (const variable of placeholdersIn(tree.get(key))) {
+                if (provided.has(variable)) continue;
+                interpolationProblems.push(
+                    `${rel}:${lineOf(m.index)}  t('${key}') missing { ${variable} }  (${lang} value)`
+                );
+            }
+        }
+    }
 }
 
 /* --------------------------------------------------------------- report */
@@ -149,6 +232,16 @@ if (inlineDefaults.length) {
     for (const loc of inlineDefaults.slice(0, 25)) console.log('  -', loc);
 } else {
     console.log('PASS — no inline defaultValue fallbacks');
+}
+
+if (interpolationProblems.length) {
+    failed = true;
+    console.log(`\nFAIL — ${interpolationProblems.length} interpolation mismatch(es):`);
+    console.log('  The value interpolates a variable the call site does not pass, so the');
+    console.log('  learner sees the literal {{placeholder}} on screen.');
+    for (const problem of interpolationProblems.slice(0, 25)) console.log('  -', problem);
+} else {
+    console.log('PASS — every interpolated variable is passed at its call site');
 }
 
 /* Unused keys are reported, never failed: a key can legitimately exist before

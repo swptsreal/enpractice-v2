@@ -1,17 +1,18 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { ensureValidAccessToken } from '../api/axiosClient';
+import { useState, useRef, useEffect, useCallback } from "react";
+import { ensureValidAccessToken } from "../api/axiosClient";
+import { resolveWsUrl } from "../lib/wsUrl";
 
 function getSupportedMimeType() {
     const types = [
-        'audio/webm;codecs=opus',
-        'audio/webm',
-        'audio/ogg;codecs=opus',
-        'audio/mp4',
+        "audio/webm;codecs=opus",
+        "audio/webm",
+        "audio/ogg;codecs=opus",
+        "audio/mp4",
     ];
     for (const type of types) {
         if (MediaRecorder.isTypeSupported(type)) return type;
     }
-    return '';
+    return "";
 }
 
 function float32ToInt16(buffer) {
@@ -25,7 +26,7 @@ function float32ToInt16(buffer) {
 
 export function useWsSpeechRecording({ onError, onWarning } = {}) {
     const [recording, setRecording] = useState(false);
-    const [transcript, setTranscriptState] = useState('');
+    const [transcript, setTranscriptState] = useState("");
     const [timer, setTimer] = useState(0);
     const [sttSupported, setSttSupported] = useState(true);
     const [speechSummary, setSpeechSummaryState] = useState(null);
@@ -39,9 +40,9 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
     const mediaRecorderRef = useRef(null);
     const chunksRef = useRef([]);
     const timerRef = useRef(null);
-    const finalTranscriptRef = useRef('');
+    const finalTranscriptRef = useRef("");
     const pcmBufferRef = useRef([]);
-    const transcriptRef = useRef('');
+    const transcriptRef = useRef("");
     const speechSummaryRef = useRef(null);
     const stopPromiseResolveRef = useRef(null);
     const stopPromiseTimerRef = useRef(null);
@@ -82,7 +83,7 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
         try {
             ws.close();
         } catch (error) {
-            console.warn('Failed to close STT websocket cleanly', error);
+            console.warn("Failed to close STT websocket cleanly", error);
         } finally {
             if (wsRef.current === ws) {
                 wsRef.current = null;
@@ -105,12 +106,12 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
         (value) => {
             updateTranscript(value);
         },
-        [updateTranscript]
+        [updateTranscript],
     );
 
     const startRecording = useCallback(async () => {
         if (!navigator.mediaDevices?.getUserMedia) {
-            onError?.('Trình duyệt của bạn không hỗ trợ ghi âm.');
+            onError?.("Trình duyệt của bạn không hỗ trợ ghi âm.");
             return;
         }
 
@@ -120,17 +121,17 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
             });
             streamRef.current = stream;
             chunksRef.current = [];
-            finalTranscriptRef.current = '';
+            finalTranscriptRef.current = "";
             pcmBufferRef.current = [];
             pendingWsCloseRef.current = false;
             updateSpeechSummary(null);
-            updateTranscript('');
+            updateTranscript("");
             resolvePendingStop(null);
 
             const mimeType = getSupportedMimeType();
             const mediaRecorder = new MediaRecorder(
                 stream,
-                mimeType ? { mimeType } : {}
+                mimeType ? { mimeType } : {},
             );
             mediaRecorder.ondataavailable = (e) => {
                 if (e.data.size > 0) chunksRef.current.push(e.data);
@@ -140,12 +141,17 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
 
             const token = await ensureValidAccessToken();
             if (!token) {
-                throw new Error('Missing access token');
+                throw new Error("Missing access token");
             }
-            const httpBase =
-                import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-            const baseUrl = httpBase.replace('/api', '');
-            const wsUrl = `${baseUrl.replace(/^http/, 'ws')}/ws/speaking/stt?token=${token}`;
+            /* DEVIATION FROM v1, deliberate and worth porting back: v1 built this URL by
+               hand — `${httpBase.replace('/api','').replace(/^http/,'ws')}/ws/speaking/stt`
+               — which breaks BOTH ways. With the documented `VITE_API_URL=/api` the base
+               becomes empty and `new WebSocket('/ws/speaking/stt?token=…')` throws
+               `SyntaxError: The URL ... is not valid`, because a relative path is not a
+               URL. With an absolute base it produces `ws://` on an https page, which the
+               browser blocks as mixed content. `resolveWsUrl` derives the scheme and host
+               from `window.location` for the relative case, so neither happens. */
+            const wsUrl = resolveWsUrl(`/ws/speaking/stt?token=${encodeURIComponent(token)}`);
             const ws = new WebSocket(wsUrl);
             wsRef.current = ws;
 
@@ -154,34 +160,34 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
 
                 try {
                     const data = JSON.parse(event.data);
-                    if (import.meta.env.DEV && data.type === 'ready') {
-                        console.log('[STT] ready');
+                    if (import.meta.env.DEV && data.type === "ready") {
+                        console.log("[STT] ready");
                     }
-                    if (data.type === 'transcript') {
+                    if (data.type === "transcript") {
                         if (data.final) {
-                            finalTranscriptRef.current += data.text + ' ';
+                            finalTranscriptRef.current += data.text + " ";
                             updateTranscript(finalTranscriptRef.current);
                         } else {
                             updateTranscript(
-                                finalTranscriptRef.current + data.text
+                                finalTranscriptRef.current + data.text,
                             );
                         }
-                    } else if (data.type === 'speech_summary') {
+                    } else if (data.type === "speech_summary") {
                         updateSpeechSummary(data);
                         resolvePendingStop(data);
-                    } else if (data.type === 'error') {
-                        console.error('STT error:', data.message);
+                    } else if (data.type === "error") {
+                        console.error("STT error:", data.message);
                         onWarning?.(`Loi nhan dien giong noi: ${data.message}`);
                         resolvePendingStop(null);
                     }
                 } catch (e) {
-                    console.error('Failed to parse STT WS message', e);
+                    console.error("Failed to parse STT WS message", e);
                 }
             };
 
             ws.onerror = () => {
                 if (ws !== wsRef.current) return;
-                onWarning?.('Loi ket noi nhan dien giong noi.');
+                onWarning?.("Loi ket noi nhan dien giong noi.");
                 resolvePendingStop(null);
             };
 
@@ -191,8 +197,8 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
                         ws.close();
                     } catch (error) {
                         console.warn(
-                            'Failed to close stale STT websocket',
-                            error
+                            "Failed to close stale STT websocket",
+                            error,
                         );
                     } finally {
                         if (wsRef.current === ws) {
@@ -222,7 +228,7 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
                     registerProcessor('pcm-capture-processor', PcmCaptureProcessor);
                 `;
                 const blobUrl = URL.createObjectURL(
-                    new Blob([workletCode], { type: 'application/javascript' })
+                    new Blob([workletCode], { type: "application/javascript" }),
                 );
 
                 try {
@@ -233,7 +239,7 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
 
                 const workletNode = new AudioWorkletNode(
                     audioContext,
-                    'pcm-capture-processor'
+                    "pcm-capture-processor",
                 );
                 processorRef.current = workletNode;
                 let firstChunkLogged = false;
@@ -244,7 +250,7 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
                     const incoming = new Float32Array(e.data);
                     if (!firstChunkLogged && import.meta.env.DEV) {
                         firstChunkLogged = true;
-                        console.log('[STT] first PCM chunk captured', {
+                        console.log("[STT] first PCM chunk captured", {
                             samples: incoming.length,
                         });
                     }
@@ -252,7 +258,7 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
 
                     if (pcmBufferRef.current.length >= WS_CHUNK_SAMPLES) {
                         const chunk = new Float32Array(
-                            pcmBufferRef.current.splice(0, WS_CHUNK_SAMPLES)
+                            pcmBufferRef.current.splice(0, WS_CHUNK_SAMPLES),
                         );
                         wsRef.current.send(float32ToInt16(chunk));
                     }
@@ -275,20 +281,20 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
             timerRef.current = setInterval(() => setTimer((t) => t + 1), 1000);
             setRecording(true);
         } catch (err) {
-            console.error('Recording error:', err);
+            console.error("Recording error:", err);
             if (
-                err.name === 'NotAllowedError' ||
-                err.name === 'PermissionDeniedError'
+                err.name === "NotAllowedError" ||
+                err.name === "PermissionDeniedError"
             ) {
-                onError?.('Chưa cấp quyền truy cập microphone.');
-            } else if (err.name === 'NotFoundError') {
+                onError?.("Chưa cấp quyền truy cập microphone.");
+            } else if (err.name === "NotFoundError") {
                 onError?.(
-                    'Không tìm thấy microphone. Vui lòng kết nối microphone và thử lại.'
+                    "Không tìm thấy microphone. Vui lòng kết nối microphone và thử lại.",
                 );
             } else {
                 onError?.(
-                    'Không thể truy cập microphone: ' +
-                        (err.message || err.name)
+                    "Không thể truy cập microphone: " +
+                        (err.message || err.name),
                 );
             }
         }
@@ -312,7 +318,7 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
 
         if (
             mediaRecorderRef.current &&
-            mediaRecorderRef.current.state !== 'inactive'
+            mediaRecorderRef.current.state !== "inactive"
         ) {
             mediaRecorderRef.current.stop();
         }
@@ -356,11 +362,11 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
 
             if (wsRef.current?.readyState === WebSocket.OPEN) {
                 try {
-                    wsRef.current.send(JSON.stringify({ type: 'finish' }));
+                    wsRef.current.send(JSON.stringify({ type: "finish" }));
                 } catch (error) {
                     console.warn(
-                        'Failed to send finish event to STT socket',
-                        error
+                        "Failed to send finish event to STT socket",
+                        error,
                     );
                     closeWs();
                     resolvePendingStop(speechSummaryRef.current || null);
@@ -383,7 +389,7 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
                 }, timeoutMs);
             });
         },
-        [closeWs, resolvePendingStop, teardownCapture]
+        [closeWs, resolvePendingStop, teardownCapture],
     );
 
     const cancelRecording = useCallback(() => {
@@ -391,8 +397,8 @@ export function useWsSpeechRecording({ onError, onWarning } = {}) {
         closeWs();
         resolvePendingStop(null);
         chunksRef.current = [];
-        finalTranscriptRef.current = '';
-        updateTranscript('');
+        finalTranscriptRef.current = "";
+        updateTranscript("");
         setTimer(0);
         updateSpeechSummary(null);
     }, [

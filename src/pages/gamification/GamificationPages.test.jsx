@@ -335,17 +335,29 @@ describe('RewardsPage — milestones, missions and the inventory', () => {
         claimMilestone.mockResolvedValue(envelope({ code: 'XP_REWARD_1000', grantedItems: [] }));
     });
 
-    it('calls xp-milestones, reward-missions AND inventory, not only the XP history', async () => {
+    it('calls xp-milestones, reward-missions and XP history on mount, and inventory only on its tab', async () => {
+        /* THE TAB IS A REQUEST BOUNDARY, not just a visual one. The inventory used to be fetched by
+           the screen on mount, as the seventh of nine stacked blocks, so every visit paid for it —
+           even though the mockup puts it behind a tab. It is now fetched by its own tab component,
+           which is why it is NOT called until the tab is opened. */
         getAllMilestones.mockResolvedValue(envelope([MILESTONE]));
         getMissions.mockResolvedValue(envelope([BLOCK_MISSION]));
         getInventory.mockResolvedValue(inventoryPage([INVENTORY_ITEM]));
+        const user = userEvent.setup();
+        /* Call counts are snapshotted rather than reset: this file's `beforeEach` sets return
+           values without clearing counts, so `not.toHaveBeenCalled()` would read the tests that ran
+           before it. */
+        const inventoryCallsBefore = getInventory.mock.calls.length;
         renderWith(<RewardsPage />);
 
         await screen.findByText('Bronze Avatar Frame');
         expect(getAllMilestones).toHaveBeenCalled();
         expect(getMissions).toHaveBeenCalled();
-        expect(getInventory).toHaveBeenCalled();
         expect(getXpHistory).toHaveBeenCalled();
+        expect(getInventory.mock.calls.length).toBe(inventoryCallsBefore);
+
+        await user.click(screen.getByRole('tab', { name: 'Vật phẩm' }));
+        await waitFor(() => expect(getInventory.mock.calls.length).toBeGreaterThan(inventoryCallsBefore));
     });
 
     it('shows a locked milestone with its real reward and required XP, and NO claim button', async () => {
@@ -397,20 +409,29 @@ describe('RewardsPage — milestones, missions and the inventory', () => {
 
     it('lists the inventory with a translated type, never a raw enum', async () => {
         getInventory.mockResolvedValue(inventoryPage([INVENTORY_ITEM]));
+        const user = userEvent.setup();
         renderWith(<RewardsPage />);
 
+        await user.click(screen.getByRole('tab', { name: 'Vật phẩm' }));
+
         expect(await screen.findByText('50K Reward Card')).toBeInTheDocument();
-        expect(screen.getByText('Thẻ thưởng')).toBeInTheDocument();
+        /* `getAllByText`: the type name also appears as one of the filter pills, which is the point
+           — one word for the category, in the filter and on the item. */
+        expect(screen.getAllByText(/Thẻ thưởng/).length).toBeGreaterThan(1);
         expect(screen.queryByText('REWARD_CARD')).not.toBeInTheDocument();
     });
 
-    it('use the EmptyState for an empty inventory instead of inventing items', async () => {
+    it('uses the inventory empty state for an empty inventory instead of inventing items', async () => {
         getInventory.mockResolvedValue(EMPTY);
         getMissions.mockResolvedValue(envelope([BLOCK_MISSION]));
+        const user = userEvent.setup();
         renderWith(<RewardsPage />);
 
-        expect(await screen.findByText('Chưa có phần thưởng nào')).toBeInTheDocument();
-        expect(screen.getByText(/Hoàn thành một phiên học/)).toBeInTheDocument();
+        await user.click(screen.getByRole('tab', { name: 'Vật phẩm' }));
+
+        /* The DEDICATED key, not the generic "no rewards yet": an empty filter and an account with
+           nothing are different answers, and the locale carries both. */
+        expect(await screen.findByText('Chưa có vật phẩm trong bộ lọc này.')).toBeInTheDocument();
     });
 });
 

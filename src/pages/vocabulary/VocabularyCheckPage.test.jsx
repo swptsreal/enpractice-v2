@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
@@ -16,6 +16,18 @@ import { MemoryRouter } from 'react-router-dom';
 const start = vi.fn();
 let explainState = { requestsById: {}, costEntry: null, isConnected: true };
 let creditState = { availableBalance: 10 };
+/**
+ * The page reads the session for ONE decision: the anchor strip (brand + "Đăng nhập") belongs to
+ * the guest surface and must not render inside the shell, where the header is the shell's and the
+ * button would offer a sign-in to someone already signed in. Both branches are covered below.
+ */
+let authState = { isAuthenticated: false, loading: false };
+
+vi.mock('../../contexts/AuthContext', async () => {
+    const { createContext } = await import('react');
+    const Stub = createContext(null);
+    return { default: Stub, useAuth: () => authState };
+});
 
 vi.mock('../../contexts/VocabularyExplainContextCore', async () => {
     const { createContext } = await import('react');
@@ -48,6 +60,12 @@ const { default: VocabularyCheckPage } = await import('./VocabularyCheckPage');
 
 beforeAll(async () => {
     await i18nReady;
+});
+
+/* The session is per-test state here (one test signs the learner in on purpose), so it is reset
+   rather than left to whatever ran before it. */
+beforeEach(() => {
+    authState = { isAuthenticated: false, loading: false };
 });
 
 function renderPage() {
@@ -226,5 +244,25 @@ describe('VocabularyCheckPage — anchored, but still not the app shell', () => 
 
         expect(container.querySelector('nav[aria-label]')).toBeNull();
         expect(container.querySelector('aside')).toBeNull();
+    });
+
+    /**
+     * The other half of the split, and the reported defect: a signed-in learner saw the visitor's
+     * strip — including a "Đăng nhập" button — inside whatever chrome `VocabularyCheckLayout`
+     * chose, so the page read as guest mode. The strip must disappear once the shell provides the
+     * header, and the caveat sentence with it (it says this screen has no shell, which would then
+     * be false on screen).
+     */
+    it('drops the guest strip and the caveat once a learner is signed in', () => {
+        explainState = { requestsById: {}, isConnected: true, costEntry: null };
+        creditState = { availableBalance: 10 };
+        authState = { isAuthenticated: true, loading: false };
+
+        const { container } = renderPage();
+
+        expect(screen.queryByRole('link', { name: /Đăng nhập/i })).not.toBeInTheDocument();
+        expect(container.textContent).not.toMatch(/Học thử không cần tài khoản/);
+        /* The screen itself is unchanged: the input is still there. */
+        expect(screen.getByText(/Từ cần tra/)).toBeInTheDocument();
     });
 });

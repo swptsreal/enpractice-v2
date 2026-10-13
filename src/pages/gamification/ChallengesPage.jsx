@@ -53,11 +53,12 @@ export default function ChallengesPage() {
                             ? t('challenges.weekOf', { from: formatDate(weekStart) ?? '—', to: formatDate(weekEnd) ?? '—' })
                             : t('challenges.thisWeek')}
                     </span>
-                    <h1 className="t-h2 mt-1">
+                    {/* `h2`: the shell header already renders this route's title as the page's `h1`. */}
+                    <h2 className="t-h2 mt-1">
                         {challenges.length > 0
                             ? t('challenges.progressHeadline', { done: completedCount, total: challenges.length })
                             : t('challenges.title')}
-                    </h1>
+                    </h2>
                     {totalXpAvailable > 0 ? (
                         <p className="t-body soft mt-1">{t('challenges.xpAvailable', { count: totalXpAvailable })}</p>
                     ) : null}

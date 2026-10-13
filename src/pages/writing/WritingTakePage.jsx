@@ -118,8 +118,12 @@ export default function WritingTakePage() {
     const CRITERIA = ['taskResponse', 'coherence', 'lexicalResource', 'grammar'];
 
     return (
-        <div className="flex min-h-dvh flex-col bg-[var(--canvas)]">
-            <header className="sticky top-0 z-30 flex items-center gap-3 border-b-2 border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5">
+        /* Same bounded-viewport shape as the IELTS take screen, for the same reason: a
+           document-scrolling split screen makes the grid row as tall as its tallest pane, so the
+           `overflow-y-auto` panes never scroll and the editor's own footer is pushed below the
+           fold. `h-dvh` + `grid-rows-[minmax(0,1fr)]` gives each pane a bound to scroll inside. */
+        <div className="flex h-dvh flex-col overflow-hidden bg-[var(--canvas)]">
+            <header className="z-30 flex shrink-0 items-center gap-3 border-b-2 border-[var(--border)] bg-[var(--surface)] px-3.5 py-2.5">
                 <Button
                     variant="ghost"
                     size="sm"
@@ -162,9 +166,15 @@ export default function WritingTakePage() {
                     </ButtonLink>
                 }
             >
-                <div className="grid min-h-0 flex-1 lg:grid-cols-[380px_minmax(0,1fr)]">
+                {/* TWO DIFFERENT CONTRACTS, ONE CONTAINER, because the two breakpoints really do
+                    stack differently. Below lg BOTH panes are visible (prompt on top, editor below),
+                    so there is no single row to bound: the area itself scrolls and the submit bar
+                    sticks to the bottom of it, which is what the mockup draws. At lg the panes sit
+                    side by side and each gets its own bounded 1fr row instead, so the prompt scrolls
+                    independently of the editor and the editor's footer can never be pushed out. */}
+                <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[380px_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden">
                     {/* --- prompt pane --------------------------------------- */}
-                    <aside className="overflow-y-auto border-b-2 border-[var(--border)] bg-[var(--surface)] p-4 lg:border-r-2 lg:border-b-0 lg:p-5">
+                    <aside className="min-h-0 border-b-2 border-[var(--border)] bg-[var(--surface)] p-4 lg:overflow-y-auto lg:border-r-2 lg:border-b-0 lg:p-5">
                         <div className="flex flex-wrap items-center gap-2">
                             <Chip tone="neutral">{t(`writing.type.${task?.taskType}`)}</Chip>
                             {task?.timeLimitMinutes ? (
@@ -222,11 +232,14 @@ export default function WritingTakePage() {
                     </aside>
 
                     {/* --- editor pane --------------------------------------- */}
-                    <section className="flex flex-col p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] lg:p-5">
+                    {/* `lg:overflow-y-auto` is a safety valve, not the normal path: if the textarea's
+                        minimum height plus the footer cannot fit a short desktop pane, the pane
+                        scrolls rather than clipping the submit button out of reach. */}
+                    <section className="flex min-h-0 flex-col p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] lg:overflow-y-auto lg:p-5">
                         <label className="flex min-h-0 flex-1 flex-col gap-1.5">
                             <span className="t-label">{t('writing.editorLabel')}</span>
                             <textarea
-                                className="min-h-[46vh] flex-1 resize-y rounded-[var(--r-card)] border-2 border-[var(--border-strong)] bg-[var(--surface)] p-4 leading-relaxed"
+                                className="min-h-[46vh] flex-1 resize-y rounded-[var(--r-card)] border-2 border-[var(--border-strong)] bg-[var(--surface)] p-4 leading-relaxed lg:min-h-[10rem]"
                                 value={essay}
                                 onChange={(e) => setEssay(e.target.value)}
                                 placeholder={t('writing.editorPlaceholder')}
@@ -259,7 +272,10 @@ export default function WritingTakePage() {
                             </p>
                         ) : null}
 
-                        <div className="mt-4 flex flex-wrap items-center gap-3 border-t-2 border-[var(--border)] pt-4">
+                        {/* Sticky below lg only: while the whole area scrolls, the submit bar must
+                            stay reachable (the mockup's rule); at lg the pane is bounded and the bar
+                            is simply last, so sticky would only add a background it does not need. */}
+                        <div className="sticky bottom-0 mt-4 flex flex-wrap items-center gap-3 border-t-2 border-[var(--border)] bg-[var(--canvas)] pt-4 lg:static lg:bg-transparent">
                             <Button
                                 variant="primary"
                                 size="lg"

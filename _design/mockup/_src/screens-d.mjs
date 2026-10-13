@@ -1,5 +1,5 @@
 /* Screens 16–36 — IELTS, Progress, Account. */
-import { shell, icon, stat, bar, emptyState, skeletonCard } from '../assets/shell.js';
+import { shell, icon, stat, bar, emptyState, skeletonCard, accountHeader, lexiFab, lexiPanel } from '../assets/shell.js';
 import { lexi } from '../assets/lexi.js';
 
 /* The rail is identical on every app screen, so it lives here once. */
@@ -10,7 +10,7 @@ const rail = (active) => `
     <nav class="shell__nav" aria-label="Điều hướng chính">
         <div class="nav">
             <a class="nav__item" href="04-home.html" ${active === 'home' ? 'aria-current="page"' : ''}>${icon('home', 20)}<span>Trang chủ</span></a>
-            <a class="nav__item" href="07-vocabulary-check.html" ${active === 'learn' ? 'aria-current="page"' : ''}>${icon('book', 20)}<span>Học</span></a>
+            <a class="nav__item" href="08-vocabulary-list.html" ${active === 'learn' ? 'aria-current="page"' : ''}>${icon('book', 20)}<span>Từ vựng</span></a>
             <a class="nav__item" href="16-ielts-list.html" ${active === 'practice' ? 'aria-current="page"' : ''}>${icon('target', 20)}<span>Luyện tập</span></a>
             <a class="nav__item" href="29-weekly-report.html" ${active === 'progress' ? 'aria-current="page"' : ''}>${icon('chart', 20)}<span>Tiến độ</span></a>
             <a class="nav__item" href="33-profile.html" ${active === 'account' ? 'aria-current="page"' : ''}>${icon('user', 20)}<span>Cá nhân</span></a>
@@ -26,6 +26,8 @@ const rail = (active) => `
         <div class="nav">
             <a class="nav__item" href="06-path.html">${icon('target', 18)}<span>Lộ trình</span></a>
             <a class="nav__item" href="12-dictionary.html">${icon('book', 18)}<span>Sổ tay</span></a>
+                <a class="nav__item" href="07-vocabulary-check.html">${icon('search', 18)}<span>Tra từ &amp; hỏi AI</span></a>
+                <a class="nav__item" href="15-review.html">${icon('clock', 18)}<span>Ôn tập từ vựng</span></a>
             <a class="nav__item" href="36-ai-chat.html">${icon('sparkle', 18)}<span>AI Coach</span></a>
             <a class="nav__item" href="28-leaderboard.html">${icon('trophy', 18)}<span>Xếp hạng</span></a>
             <a class="nav__item" href="31-rewards.html">${icon('gift', 18)}<span>Phần thưởng</span></a>
@@ -43,13 +45,15 @@ const rail = (active) => `
 const tabbar = (active) => `
 <nav class="tabbar only-mobile" aria-label="Điều hướng chính">
     <a class="tabbar__item" href="04-home.html" ${active === 'home' ? 'aria-current="page"' : ''}>${icon('home', 22)}<span>Trang chủ</span></a>
-    <a class="tabbar__item" href="07-vocabulary-check.html" ${active === 'learn' ? 'aria-current="page"' : ''}>${icon('book', 22)}<span>Học</span></a>
+    <a class="tabbar__item" href="08-vocabulary-list.html" ${active === 'learn' ? 'aria-current="page"' : ''}>${icon('book', 22)}<span>Từ vựng</span></a>
     <a class="tabbar__item" href="16-ielts-list.html" ${active === 'practice' ? 'aria-current="page"' : ''}>${icon('target', 22)}<span>Luyện tập</span></a>
     <a class="tabbar__item" href="29-weekly-report.html" ${active === 'progress' ? 'aria-current="page"' : ''}>${icon('chart', 22)}<span>Tiến độ</span></a>
     <a class="tabbar__item" href="33-profile.html" ${active === 'account' ? 'aria-current="page"' : ''}>${icon('user', 22)}<span>Cá nhân</span></a>
 </nav>`;
 
-const wrap = (active, body) => `<div class="shell">${rail(active)}<div class="shell__main">${body}${tabbar(active)}</div></div>`;
+/* The rail is identical on every app screen, so it lives here once. `lexiOpen` exists for the one
+   frame that reviews the helper's PANEL rather than the helper. */
+const wrap = (active, body, { lexiOpen = false } = {}) => `<div class="shell">${rail(active)}<div class="shell__main">${body}${tabbar(active)}</div>${lexiFab({ open: lexiOpen })}</div>`;
 
 export const screens = {
 
@@ -60,6 +64,7 @@ export const screens = {
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Kho đề IELTS</h1>
     <p class="t-micro muted">Listening &amp; Reading · cập nhật hằng tuần</p></div>
     <a class="btn btn--ghost btn--sm" href="20-ielts-history.html">${icon('clock', 16)} Lịch sử</a>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--wide" id="main">
     <div class="pills" style="margin-bottom:16px" role="tablist" aria-label="Kỹ năng">
@@ -100,6 +105,7 @@ export const screens = {
     <a class="btn btn--ghost btn--icon btn--sm" href="16-ielts-list.html" aria-label="Quay lại">${icon('arrowLeft', 18)}</a>
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Cambridge 19 — Test 1</h1>
     <p class="t-micro muted">Listening + Reading · 80 phút</p></div>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--focus" id="main">
     <section class="card card--hero pad-x">
@@ -269,6 +275,7 @@ export const screens = {
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Kết quả · Cambridge 19 Test 1</h1>
     <p class="t-micro muted">Nộp lúc 15:04 · 76 phút</p></div>
     <button class="btn btn--ghost btn--sm" type="button">${icon('chart', 16)} Chia sẻ</button>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--wide" id="main">
     <section class="card card--hero pad-x result-hero">
@@ -359,6 +366,7 @@ export const screens = {
     <a class="btn btn--ghost btn--icon btn--sm" href="16-ielts-list.html" aria-label="Quay lại">${icon('arrowLeft', 18)}</a>
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Lịch sử thi</h1>
     <p class="t-micro muted">8 bài · band trung bình 5.9</p></div>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--wide" id="main">
     <section class="card card--edge pad-x">
@@ -417,6 +425,7 @@ export const screens = {
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Luyện Writing</h1>
     <p class="t-micro muted">AI chấm theo 4 tiêu chí IELTS · tốn 1 credit mỗi bài</p></div>
     <a class="btn btn--ghost btn--sm" href="23-writing-result.html">${icon('clock', 16)} Bài đã chấm</a>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--wide" id="main">
     <div class="segmented" role="group" aria-label="Loại task" style="margin-bottom:16px">
@@ -526,6 +535,7 @@ On the one hand, supporters of road building point out that…</textarea>
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Writing Task 2 — Public transport</h1>
     <p class="t-micro muted">Nộp 13/10/2026 · 268 từ</p></div>
     <button class="btn btn--ghost btn--sm" type="button">${icon('pen', 16)} Viết lại</button>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--wide" id="main">
     <section class="card card--hero pad-x result-hero">
@@ -608,6 +618,7 @@ On the one hand, supporters of road building point out that…</textarea>
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Luyện Speaking</h1>
     <p class="t-micro muted">Ghi âm và phân tích phát âm, độ trôi chảy</p></div>
     <a class="btn btn--ghost btn--sm" href="26-speaking-result.html">${icon('clock', 16)} Bài đã làm</a>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--wide" id="main">
     <div class="card card--flat pad row g12" style="margin-bottom:16px">
@@ -722,6 +733,7 @@ On the one hand, supporters of road building point out that…</textarea>
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Speaking — Describe a place</h1>
     <p class="t-micro muted">1 phút 58 giây · 214 từ</p></div>
     <button class="btn btn--ghost btn--sm" type="button">${icon('headphones', 16)} Nghe lại</button>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--wide" id="main">
     <section class="card card--hero pad-x result-hero">
@@ -860,6 +872,7 @@ On the one hand, supporters of road building point out that…</textarea>
     <div class="segmented" role="group" aria-label="Khoảng thời gian">
         <button aria-pressed="true">Tuần</button><button aria-pressed="false">Tháng</button>
     </div>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--focus" id="main">
     <!-- Your own standing first: the only comparison that motivates -->
@@ -937,6 +950,7 @@ On the one hand, supporters of road building point out that…</textarea>
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Báo cáo tuần</h1>
     <p class="t-micro muted">Tuần 13–19/10/2026</p></div>
     <button class="btn btn--ghost btn--sm" type="button">${icon('clock', 16)} Các tuần trước</button>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--wide" id="main">
     <section class="card card--hero pad-x report-head">
@@ -1018,6 +1032,7 @@ On the one hand, supporters of road building point out that…</textarea>
 <header class="shell__header">
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Thử thách tuần</h1>
     <p class="t-micro muted">Kết thúc Chủ nhật 19/10 · không bắt buộc</p></div>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--focus" id="main">
     <section class="card card--hero pad-x">
@@ -1062,77 +1077,107 @@ On the one hand, supporters of road building point out that…</textarea>
 },
 
 /* ==================================================================== 31 */
-'31-rewards': { file: '31-rewards.html', title: 'Phần thưởng & nhiệm vụ', subtitle: 'Mission · inventory · shop', group: 'Tiến độ',
-  note: 'v1 là 1 file 1.604 dòng · v2 tách thành tab rõ ràng', body: wrap('progress', `
+'31-rewards': { file: '31-rewards.html', title: 'Phần thưởng & nhiệm vụ', subtitle: 'Hai tab · nhiệm vụ và vật phẩm đã mở', group: 'Tiến độ',
+  note: 'Hai tab: Nhiệm vụ · Vật phẩm. Tab Đổi thưởng CẦN backend mua/đổi (chưa có endpoint nào) — xem SCREENS-V2 §31.', body: wrap('progress', `
 <header class="shell__header">
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Phần thưởng</h1>
     <p class="t-micro muted">Nhiệm vụ và vật phẩm bạn đã mở</p></div>
     <div class="row g8"><span class="chip chip--amber">${icon('coin', 14)} 240</span>
         <span class="chip chip--teal">${icon('star', 14)} 2,480 XP</span></div>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--wide" id="main" data-tabs="rw">
     <div class="segmented" role="tablist" aria-label="Mục" style="margin-bottom:16px">
         <button role="tab" id="rw-mission-tab" aria-controls="rw-mission" aria-selected="true" data-tab="rw-mission">Nhiệm vụ</button>
         <button role="tab" id="rw-inv-tab" aria-controls="rw-inv" aria-selected="false" data-tab="rw-inv">Vật phẩm</button>
-        <button role="tab" id="rw-shop-tab" aria-controls="rw-shop" aria-selected="false" data-tab="rw-shop">Đổi thưởng</button>
     </div>
 
+    <!--
+        WHAT THIS TAB MAY AND MAY NOT SHOW — measured against the backend, not assumed.
+
+        UserRewardMissionResponse.rewardDefinitions is a SEALED interface: its only members are
+        CREDIT {amount, expiryDays} and INVENTORY_ITEM {itemCode, quantity}. There is no XP reward,
+        so xpValueOf in useGamification always returns null and the "+50 XP" chip this mockup used to
+        draw had NO SOURCE. Only CREDIT entries can be summed, and a mission with no credit reward
+        gets NO chip rather than a "0 credit" chip.
+
+        RewardMissionStatus is LOCKED or CLAIMED and there is no claim route: the backend grants the
+        reward when the trigger fires (claimedAt is set by the server). So the "Đã nhận" button that
+        used to sit on a finished mission was a control that could only do nothing.
+
+        NOTE FOR WHOEVER EDITS THIS FILE: this comment lives INSIDE a template literal, so a
+        backtick anywhere in the prose ends the string. Use plain quotes.
+    -->
     <div data-panel="rw-mission" role="tabpanel" aria-labelledby="rw-mission-tab">
         <h2 class="t-h2" style="margin-bottom:12px">Nhiệm vụ đang mở</h2>
         <div class="grid g-3">
             ${[
-                ['Học 3 ngày liên tiếp', '3 / 3', 100, 'done', '+50 XP'],
-                ['Hoàn thành 5 bài Reading', '3 / 5', 60, '', '+120 XP'],
-                ['Đạt 80% bài test từ vựng', '0 / 1', 0, '', '+80 XP'],
-                ['Nói 10 phút trong tuần', '6 / 10', 60, '', '+100 XP'],
-                ['Ôn hết từ đến hạn', '12 / 34', 35, '', '+60 XP'],
-                ['Viết 1 bài Task 2', '1 / 1', 100, 'done', '+150 XP'],
-            ].map(([t, p, pct, state, xp]) => `
+                ['Học 3 ngày liên tiếp', '3 / 3', 100, 'done', '+2 credit'],
+                ['Hoàn thành 5 bài Reading', '3 / 5', 60, '', '+5 credit'],
+                ['Đạt 80% bài test từ vựng', '0 / 1', 0, '', ''],
+                ['Nói 10 phút trong tuần', '6 / 10', 60, '', '+3 credit'],
+                ['Ôn hết từ đến hạn', '12 / 34', 35, '', ''],
+                ['Viết 1 bài Task 2', '1 / 1', 100, 'done', '+10 credit'],
+            ].map(([t, p, pct, state, credit]) => `
                 <article class="card card--edge pad-x">
-                    <div class="between"><span class="chip chip--amber">${xp}</span>
+                    <div class="between">${credit ? `<span class="chip chip--amber">${icon('coin', 14)} ${credit}</span>` : '<span></span>'}
                         ${state === 'done' ? `<span class="chip chip--correct">${icon('check', 14)} Xong</span>` : ''}</div>
                     <h3 class="t-h3" style="margin-top:12px">${t}</h3>
                     <p class="t-micro muted">${p}</p>
                     <div style="margin-top:10px">${bar(pct, state === 'done' ? '' : 'amber')}</div>
-                    ${state === 'done' ? `<button class="btn btn--ghost btn--sm btn--block" style="margin-top:12px" type="button">Đã nhận</button>`
+                    ${state === 'done'
+                        ? `<p class="t-micro muted" style="margin-top:12px">Phần thưởng được cộng tự động</p>`
                         : `<a class="btn btn--primary btn--sm btn--block" style="margin-top:12px" href="04-home.html">Làm ngay</a>`}
                 </article>`).join('')}
         </div>
     </div>
 
+    <!--
+        INVENTORY. The fields below are the ones UserInventoryItemResponse actually returns:
+        item.type, item.usageType, item.name, item.description, item.assetUrl, item.rarity,
+        grantSource, grantedAt, equipped, used.
+
+        The filter row is buildable rather than decorative, because inventoryItemType, used and name
+        are real query parameters — and it is needed: the list is paginated, and the screen used to
+        show the first 8 rows with no way to reach the rest.
+
+        A LOCKED CARD IS GONE. The item catalogue is admin-only (/api/admin/inventory/items), so a
+        user's inventory contains only what they own and there is no data behind "Chưa mở".
+    -->
     <div data-panel="rw-inv" hidden role="tabpanel" aria-labelledby="rw-inv-tab">
-        <h2 class="t-h2" style="margin-bottom:12px">Vật phẩm của bạn</h2>
+        <div class="between wrap g12" style="margin-bottom:12px">
+            <h2 class="t-h2">Vật phẩm của bạn · 12</h2>
+            <div class="pills" role="group" aria-label="Lọc vật phẩm">
+                <button class="pill" type="button" aria-pressed="true">Tất cả</button>
+                <button class="pill" type="button" aria-pressed="false">Huy hiệu</button>
+                <button class="pill" type="button" aria-pressed="false">Khung avatar</button>
+                <button class="pill" type="button" aria-pressed="false">Thẻ thưởng</button>
+            </div>
+        </div>
         <div class="grid g-4">
             ${[
-                ['Khung avatar: Lá', 'Đã trang bị', 'shield'],
-                ['Hiệu ứng tên: Sóng', 'Đã mở', 'sparkle'],
-                ['Lexi: Khăn quàng', 'Đã mở', 'star'],
-                ['Chủ đề tối: Rừng', 'Chưa mở', 'lock'],
-            ].map(([t, s, ic]) => `
+                ['Khung avatar: Lá', 'Khung avatar · Đã trang bị', 'shield', true],
+                ['Hiệu ứng tên: Sóng', 'Hiệu ứng · Đã mở', 'sparkle', false],
+                ['Lexi: Khăn quàng', 'Trang trí · Đã dùng', 'star', false],
+                ['Thẻ cộng 5 credit', 'Thẻ thưởng · Đã dùng', 'coin', false],
+            ].map(([t, s, ic, equipped]) => `
                 <article class="card card--edge pad-x" style="text-align:center">
                     <span style="display:inline-grid;place-items:center;width:64px;height:64px;border-radius:var(--r-card);background:var(--surface-alt);color:var(--teal)">${icon(ic, 28)}</span>
                     <h3 class="t-h3" style="margin-top:12px">${t}</h3>
                     <p class="t-micro muted">${s}</p>
+                    ${equipped
+                        ? `<button class="btn btn--ghost btn--sm btn--block" style="margin-top:12px" type="button">Bỏ trang bị</button>`
+                        : `<button class="btn btn--primary btn--sm btn--block" style="margin-top:12px" type="button">Trang bị</button>`}
                 </article>`).join('')}
         </div>
-    </div>
-
-    <div data-panel="rw-shop" hidden role="tabpanel" aria-labelledby="rw-shop-tab">
-        <h2 class="t-h2" style="margin-bottom:12px">Đổi thưởng</h2>
-        <div class="grid g-3">
-            ${[
-                ['Khung avatar: Biển', 120], ['Hiệu ứng tên: Lửa', 150], ['Lexi: Kính học giả', 300],
-                ['Chủ đề tối: Đại dương', 200], ['Streak freeze', 100], ['Huy hiệu đặc biệt', 500],
-            ].map(([t, cost], i) => `
-                <article class="card card--edge pad-x">
-                    <h3 class="t-h3">${t}</h3>
-                    ${i === 4 ? `<p class="t-micro" style="color:var(--attention);margin-top:6px">${icon('shield', 14)} v2 không bán streak freeze. Ngày nghỉ được tặng tự động.</p>`
-                              : `<p class="t-micro muted" style="margin-top:6px">Vật phẩm trang trí, không ảnh hưởng việc học</p>`}
-                    <button class="btn ${i === 4 ? 'btn--ghost' : 'btn--primary'} btn--sm btn--block" style="margin-top:12px" type="button" ${i === 4 ? 'disabled' : ''}>
-                        ${i === 4 ? 'Không bán' : `${icon('coin', 14)} ${cost}`}
-                    </button>
-                </article>`).join('')}
+        <div class="row" style="justify-content:center;margin-top:16px">
+            <button class="btn btn--ghost" type="button">Tải thêm</button>
         </div>
+        <!-- The one product statement the removed shop tab carried, kept because it is a commitment
+             rather than a feature: a purchasable streak repair turns encouragement into debt. -->
+        <p class="t-micro muted" style="text-align:center;margin-top:12px">
+            v2 không bán streak freeze. Ngày nghỉ được tặng tự động, không mua được.
+        </p>
     </div>
 </main>`),
 },
@@ -1143,6 +1188,7 @@ On the one hand, supporters of road building point out that…</textarea>
 <header class="shell__header">
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Ví credit</h1>
     <p class="t-micro muted">Credit dùng cho các hành động AI tốn chi phí thật</p></div>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--wide" id="main">
     <section class="card card--hero pad-x">
@@ -1209,6 +1255,51 @@ On the one hand, supporters of road building point out that…</textarea>
 </main>`),
   style: `.cr-cols { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; margin-top: 16px; } @media (max-width: 1023px) { .cr-cols { grid-template-columns: 1fr; } }` },
 
+/* =============================================================== 33b · menu */
+/**
+ * The account block, OPEN.
+ *
+ * A specimen frame rather than a variant of one screen, because this panel is shell furniture: it
+ * is reachable from every screen in the product, from the same 44px avatar button, so reviewing it
+ * once beside the account screens is reviewing it everywhere. It exists because the top-right of
+ * the header had NEVER been drawn — `headerRight` was a `shell()` parameter no screen passed — and
+ * the app filled the gap with a letter and a link, with no real avatar, no account menu and no
+ * membership, even though `/auth/me` already returns all three.
+ *
+ * WHAT THE ROWS ARE AND WHERE THEY GO is the content, because the point of the frame is to fix the
+ * anatomy: identity (who), membership (what plan, until when), the three account destinations, then
+ * sign-out on its own.
+ */
+'33b-account-menu': { file: '33b-account-menu.html', title: 'Menu tài khoản (đang mở)', subtitle: 'Avatar · hạng · điều hướng tài khoản', group: 'Tài khoản',
+  note: 'Disclosure, không phải role=menu: panel chỉ có link nên không hứa điều hướng bằng phím mũi tên', body: wrap('account', `
+<header class="shell__header">
+    <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Menu tài khoản</h1>
+    <p class="t-micro muted">Mở từ avatar ở góc phải, giống nhau trên mọi màn</p></div>
+    ${accountHeader({ open: true, unread: 3, initial: 'M', tier: 'Premium' })}
+</header>
+<main class="shell__content shell__content--focus" id="main">
+    <section class="card card--edge pad-x">
+        <h2 class="t-h3">Trong panel có gì</h2>
+        <ul class="stack g12" style="margin-top:12px">
+            <li><strong class="t-label">Danh tính</strong><p class="t-body muted">Avatar thật (hoặc chữ cái đầu khi tài khoản chưa có ảnh), tên hiển thị, email.</p></li>
+            <li><strong class="t-label">Hạng thành viên</strong><p class="t-body muted">Tier và ngày hết hạn. Hạng là thông tin, KHÔNG khoá tính năng nào — cùng nguyên tắc với level.</p></li>
+            <li><strong class="t-label">Ba điểm đến</strong><p class="t-body muted">Hồ sơ · Cài đặt · Thông báo, mỗi dòng cao 44px.</p></li>
+            <li><strong class="t-label">Đăng xuất</strong><p class="t-body muted">Tách riêng, màu <span class="mono">--wrong</span>, và luôn là hành động cuối cùng.</p></li>
+        </ul>
+    </section>
+
+    <section class="card card--flat pad-x" style="margin-top:16px">
+        <h2 class="t-h3">Vì sao là disclosure, không phải menu</h2>
+        <p class="t-body muted" style="margin-top:6px">
+            Chuẩn <span class="mono">role="menu"</span> đòi điều hướng bằng phím mũi tên và roving
+            focus. Panel này chỉ có link, nên dùng disclosure (<span class="mono">aria-expanded</span>
+            + <span class="mono">aria-controls</span> + danh sách link) mới đúng: hứa một hành vi
+            bàn phím mà không làm là cùng loại nói dối với việc in một band chưa đo.
+        </p>
+    </section>
+</main>`),
+},
+
 /* ==================================================================== 33 */
 '33-profile': { file: '33-profile.html', title: 'Trang cá nhân', subtitle: 'Mục tiêu band · trang trí · Lexi', group: 'Tài khoản',
   note: 'Lexi tiến hoá theo level, chỉ hiển thị ở đây và lúc mở khoá', body: wrap('account', `
@@ -1216,6 +1307,7 @@ On the one hand, supporters of road building point out that…</textarea>
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Trang cá nhân</h1>
     <p class="t-micro muted">Thành viên từ 02/2026</p></div>
     <a class="btn btn--ghost btn--sm" href="35-settings.html">${icon('settings', 16)} Cài đặt</a>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--wide" id="main">
     <section class="card card--hero pad-x prof-head">
@@ -1319,6 +1411,7 @@ On the one hand, supporters of road building point out that…</textarea>
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Thông báo</h1>
     <p class="t-micro muted">3 chưa đọc</p></div>
     <button class="btn btn--ghost btn--sm" type="button">${icon('check', 16)} Đánh dấu đã đọc</button>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--focus" id="main">
     <div class="pills" style="margin-bottom:16px" role="tablist" aria-label="Lọc thông báo">
@@ -1377,6 +1470,7 @@ On the one hand, supporters of road building point out that…</textarea>
 <header class="shell__header">
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Cài đặt</h1>
     <p class="t-micro muted">Mọi thay đổi được lưu tự động</p></div>
+    ${accountHeader()}
 </header>
 <main class="shell__content shell__content--wide" id="main">
     <div class="set-cols">
@@ -1481,6 +1575,52 @@ On the one hand, supporters of road building point out that…</textarea>
 .switch[aria-checked='true'] { background: var(--teal); border-color: var(--teal); }
 .switch[aria-checked='true'] span { transform: translateX(22px); border-color: var(--teal); }
 ` },
+
+/* ========================================================= 36b · panel ==== */
+/**
+ * The floating helper, OPEN — and the fix for a contradiction in this package.
+ *
+ * `DESIGN-V2.md` §7.3 has always said the 56px helper "Opens the Lexi panel", but the mockup drew
+ * `<a href="36-ai-chat.html">`, and the app followed the mockup: pressing "Hỏi Lexi" navigated away
+ * from the screen the question was about. That is the one thing a floating helper must not do.
+ *
+ * The panel is a NON-MODAL dialog on purpose: the page behind it stays readable and scrollable, so
+ * a learner can look at the passage or the question they are asking about. `aria-modal="true"`
+ * would claim the opposite. It is anchored bottom-right at >=1024px and becomes a sheet above the
+ * tab bar on phones, because a 380px popover next to a 56px button does not fit a 390px screen.
+ *
+ * It is a SPECIMEN frame, not a variant of one route: the helper is shell furniture present on
+ * every shell screen except the timed ones (see the Sparingly Rule), so reviewing it once reviews
+ * it everywhere. `/ai-chat` (screen 36) remains the full-page version with history and context.
+ */
+'36b-lexi-panel': { file: '36b-lexi-panel.html', title: 'Lexi — panel nổi', subtitle: 'Mở từ nút 56px · không rời màn đang xem', group: 'Tài khoản',
+  note: 'Dialog KHÔNG modal: trang phía sau vẫn đọc được · cùng nội dung với AI Coach', body: wrap('account', `
+<header class="shell__header">
+    <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Panel của Lexi</h1>
+    <p class="t-micro muted">Hỏi ngay tại chỗ, không mất màn đang làm</p></div>
+    ${accountHeader()}
+</header>
+<main class="shell__content shell__content--focus" id="main">
+    <section class="card card--edge pad-x">
+        <h2 class="t-h3">Nút nổi mở gì</h2>
+        <ul class="stack g12" style="margin-top:12px">
+            <li><strong class="t-label">Một panel, không phải một trang</strong><p class="t-body muted">Bấm nút là panel hiện ngay tại chỗ; nội dung đang đọc vẫn nằm sau lưng nó.</p></li>
+            <li><strong class="t-label">Lexi nói rõ cô ấy thấy gì</strong><p class="t-body muted">Dòng ngữ cảnh ("Đang xem: Trang chủ") để người học không phải đoán.</p></li>
+            <li><strong class="t-label">Ba gợi ý, không phải mười</strong><p class="t-body muted">Vừa đủ để bắt đầu khi ô nhập còn trống — lúc dễ bỏ cuộc nhất.</p></li>
+            <li><strong class="t-label">Chi phí nằm ở ô gửi</strong><p class="t-body muted">Trước khi bấm, như mọi chỗ khác trong sản phẩm.</p></li>
+        </ul>
+    </section>
+
+    <section class="card card--flat pad-x" style="margin-top:16px">
+        <h2 class="t-h3">Không xuất hiện ở đâu</h2>
+        <p class="t-body muted" style="margin-top:6px">
+            Trong phòng thi, phòng viết và phòng nói (Sparingly Rule): một chú cún nói chuyện giữa
+            bài đọc 60 phút là mối nguy, không phải người bạn đồng hành. Vì các màn đó nằm ngoài
+            shell, chúng không có nút này.
+        </p>
+    </section>
+</main>`, { lexiOpen: true }),
+},
 
 /* ==================================================================== 36 */
 '36-ai-chat': { file: '36-ai-chat.html', title: 'AI Coach', subtitle: 'Chat streaming · credit badge', group: 'Tài khoản',

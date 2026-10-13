@@ -8,15 +8,9 @@
 <link rel="stylesheet" href="assets/shell.css" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" />
 <style>
-.take { min-height: 100vh; display: flex; flex-direction: column; background: var(--canvas); }
-.take__bar { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 2px solid var(--border); background: var(--surface); }
-.take__main { flex: 1; width: 100%; max-width: 680px; margin-inline: auto; padding: 28px 16px 120px; text-align: center; }
 .take__answers { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; text-align: left; }
 .take__answers .answer[aria-pressed='true'] { border-color: var(--teal); background: var(--teal-soft); box-shadow: 0 4px 0 0 var(--teal-strong); }
 .take__answers .answer[aria-pressed='true'] .answer__key { border-color: var(--teal); color: var(--teal); }
-.take__foot { position: sticky; bottom: 0; background: var(--surface); border-top: 2px solid var(--border); padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); }
-.take__foot-inner { max-width: 680px; margin-inline: auto; display: flex; align-items: center; gap: 12px; }
-@media (max-width: 479px) { .take__foot-inner .btn--ghost { display: none; } .take__foot-inner .btn--primary { width: 100%; } }
 </style>
 </head>
 <body>

@@ -214,61 +214,75 @@ export default function NotificationCenterPage() {
                                         </span>
                                     ) : null}
                                 </span>
+                            </RowBox>
+                        );
 
-                                <span className="flex shrink-0 items-center gap-1">
-                                    {action ? (
-                                        <span aria-hidden="true" className="text-[var(--ink-muted)]">
-                                            <ExternalLink size={15} />
-                                        </span>
-                                    ) : null}
-                                    {!item.isRead ? (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            iconOnly
-                                            aria-label={`${t('notifications.markRead')}: ${item.title}`}
-                                            disabled={busyId === item.id}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                markRead(item.id);
-                                            }}
-                                        >
-                                            <Check size={16} aria-hidden="true" />
-                                        </Button>
-                                    ) : null}
+                        /**
+                         * THE PER-ROW ACTIONS ARE SIBLINGS OF THE ROW CONTROL, NEVER INSIDE IT.
+                         *
+                         * They used to sit inside `body`, and `body` is wrapped in a `<button>` when
+                         * the notification carries an `actionUrl` — so the DOM was a button inside a
+                         * button. That is invalid HTML, React logs "cannot be a descendant of" and
+                         * "cannot contain a nested", and the smoke guard fails the screen: one
+                         * notification with a link turned `/notifications` red on both viewports.
+                         *
+                         * It stayed hidden because the warning only fires for a notification that
+                         * HAS an action, which the dev account did not always have. The nesting is
+                         * now structurally impossible: the clickable row and the two icon controls
+                         * are siblings in a flex line.
+                         */
+                        const rowActions = (
+                            <span className="flex shrink-0 items-center gap-1">
+                                {action ? (
+                                    <span aria-hidden="true" className="text-[var(--ink-muted)]">
+                                        <ExternalLink size={15} />
+                                    </span>
+                                ) : null}
+                                {!item.isRead ? (
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         iconOnly
-                                        aria-label={`${t('notifications.deleteOne')}: ${item.title}`}
+                                        aria-label={`${t('notifications.markRead')}: ${item.title}`}
                                         disabled={busyId === item.id}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            remove(item.id);
-                                        }}
+                                        onClick={() => markRead(item.id)}
                                     >
-                                        <Trash2 size={16} aria-hidden="true" />
+                                        <Check size={16} aria-hidden="true" />
                                     </Button>
-                                </span>
-                            </RowBox>
+                                ) : null}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    iconOnly
+                                    aria-label={`${t('notifications.deleteOne')}: ${item.title}`}
+                                    disabled={busyId === item.id}
+                                    onClick={() => remove(item.id)}
+                                >
+                                    <Trash2 size={16} aria-hidden="true" />
+                                </Button>
+                            </span>
                         );
 
                         return (
                             <li key={item.id}>
-                                {action ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => open(item)}
-                                        className="block w-full text-left"
-                                        aria-label={`${item.title}${item.isRead ? '' : ` — ${t('notifications.unread')}`}`}
-                                    >
-                                        {body}
-                                    </button>
-                                ) : (
-                                    body
-                                )}
+                                <div className="flex items-center gap-1">
+                                    {action ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => open(item)}
+                                            className="min-w-0 flex-1 text-left"
+                                            aria-label={`${item.title}${item.isRead ? '' : ` — ${t('notifications.unread')}`}`}
+                                        >
+                                            {body}
+                                        </button>
+                                    ) : (
+                                        <div className="min-w-0 flex-1">{body}</div>
+                                    )}
+                                    {rowActions}
+                                </div>
                             </li>
                         );
+
                     })}
                 </ul>
             </AsyncBoundary>
