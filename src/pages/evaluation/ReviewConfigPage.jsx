@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, CalendarDays, Clock, Layers, Target } from 'lucide-react';
+import { ArrowRight, CalendarDays, Layers, Target } from 'lucide-react';
 import { Lexi } from '../../components/mascot/Lexi';
-import { Card, RowBox } from '../../components/ui/Card';
+import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { SkeletonCard } from '../../components/ui/Primitives';
 import { AsyncBoundary } from '../../components/ui/AsyncBoundary';
@@ -130,9 +130,13 @@ export default function ReviewConfigPage() {
                                 ? t('review.readyHeadline', { count: available, minutes })
                                 : t('review.emptyTitle')}
                         </h2>
-                        <p className="t-body soft mt-1">
-                            {available > 0 ? t('review.readyBody') : t('review.emptyBody')}
-                        </p>
+                        {/* No body line while words ARE due: the frame's summary card is the headline
+                            alone, and a second sentence restating the controls below it was text the
+                            design never drew. The empty state keeps its line — a blank screen
+                            explains nothing. */}
+                        {available > 0 ? null : (
+                            <p className="t-body soft mt-1">{t('review.emptyBody')}</p>
+                        )}
                     </div>
                 </Card>
 
@@ -160,9 +164,12 @@ export default function ReviewConfigPage() {
                         ))}
                     </div>
 
+                    {/* The week and month inputs keep their name for screen readers ONLY: the frame
+                        draws neither control, so a visible label here would be text the design never
+                        wrote — but an unnamed input is not an option either. */}
                     {window.kind === 'week' ? (
                         <label className="mt-3 block">
-                            <span className="t-label">{t('review.weekLabel')}</span>
+                            <span className="sr-only">{t('review.weekLabel')}</span>
                             <input
                                 type="week"
                                 value={params.week}
@@ -174,7 +181,7 @@ export default function ReviewConfigPage() {
 
                     {window.kind === 'month' ? (
                         <label className="mt-3 block">
-                            <span className="t-label">{t('review.monthLabel')}</span>
+                            <span className="sr-only">{t('review.monthLabel')}</span>
                             <input
                                 type="month"
                                 value={params.month}
@@ -311,15 +318,6 @@ export default function ReviewConfigPage() {
                     <p className="t-micro muted mt-1">
                         {t('review.countMax', { count: available })}
                     </p>
-
-                    <RowBox center className="mt-3">
-                        <Clock size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
-                        <span className="t-body">
-                            {t('review.wordCount', { count: limit })} ·{' '}
-                            {t('review.aboutMinutes', { count: minutes })}
-                        </span>
-                    </RowBox>
-
                 </Card>
 
                 {/* The mockup's two-button row: start, or leave. "Để sau" is not a second way to

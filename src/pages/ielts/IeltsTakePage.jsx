@@ -281,7 +281,7 @@ export default function IeltsTakePage() {
                                 lines would break sentences mid-phrase. */}
                             <Markdown
                                 className="prose-reading mt-4"
-                                content={question?.passageContent ?? t('ielts.noPassage')}
+                                content={question?.passageContent ?? ''}
                                 components={EXAM_CONTENT_COMPONENTS}
                             />
                         </article>

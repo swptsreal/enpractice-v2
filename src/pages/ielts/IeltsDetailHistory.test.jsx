@@ -182,7 +182,7 @@ describe('IeltsTestDetailPage', () => {
         getTestById.mockResolvedValue(envelope(LISTENING_TEST));
         renderDetail();
 
-        expect(await screen.findByText(/Transcript bài Listening chỉ hiện sau khi bạn nộp bài/)).toBeInTheDocument();
+        expect(await screen.findByText(/^Transcript Listening chỉ hiện sau khi nộp bài, để giữ trải nghiệm giống thi thật\.$/)).toBeInTheDocument();
     });
 
     it('does NOT show the transcript notice for a test with no audio', async () => {
@@ -212,10 +212,17 @@ describe('IeltsTestDetailPage', () => {
         expect(screen.getByText('2 câu')).toBeInTheDocument();
     });
 
-    it('tests the exam condition, so nobody is surprised by the missing chrome', async () => {
+    it('does NOT invent an exam-condition note the mockup never drew', async () => {
+        /* This screen used to carry a fourth piece of prose — "Bài thi chạy ngoài giao diện chính:
+           không có thanh điều hướng và không có Lexi, để bạn không bị phân tán giữa bài." — which no
+           mockup frame and no v1 string ever had. Frame 17 draws the notice line and the CTA and
+           stops; the assertion is inverted so the paragraph cannot come back unnoticed. */
         getTestById.mockResolvedValue(envelope(LISTENING_TEST));
         renderDetail();
-        expect(await screen.findByText(/không có thanh điều hướng và không có Lexi/)).toBeInTheDocument();
+
+        expect(await screen.findByText('Cấu trúc đề')).toBeInTheDocument();
+        expect(screen.queryByText(/không có thanh điều hướng/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/có đồng hồ đếm/)).not.toBeInTheDocument();
     });
 
     it('labels the difficulty through a static LOOKUP, never as the raw key', async () => {
@@ -291,10 +298,15 @@ describe('IeltsHistoryPage', () => {
         expect(hidden.length).toBeGreaterThan(0);
     });
 
-    it('states that a week with no attempt is absent, not zero', async () => {
+    it('does NOT caption the chart with prose the mockup never drew', async () => {
+        /* A two-sentence figcaption used to sit under the chart, explaining that an idle week gets
+           no zero column. Frame 20 draws the bars, the legend and the list — no caption — and no v1
+           string says it either, so the paragraph was invented here. Inverted so it stays gone. */
         getAttempts.mockResolvedValue(page(ATTEMPTS));
         renderHistory();
-        expect(await screen.findByText(/không vẽ cột 0 cho tuần bạn không học/)).toBeInTheDocument();
+        await screen.findByText('Lượt làm bài');
+
+        expect(screen.queryByText(/không vẽ cột 0 cho tuần bạn không học/)).not.toBeInTheDocument();
     });
 
     it('summarises attempts, average and best', async () => {
@@ -316,10 +328,15 @@ describe('IeltsHistoryPage', () => {
         expect(link).toHaveAttribute('href', '/ielts/result?attemptId=a1');
     });
 
-    it('labels the band as an estimate, not an official result', async () => {
+    it('does NOT restate the estimate disclaimer under the list', async () => {
+        /* The claim is real — the band IS an estimate — but it belongs where the band is READ, not
+           on the history list, and frame 20 has no such footer. That sentence lives on frame 19's
+           note and on the result screen (ielts.estimatedBand), which still carries it. */
         getAttempts.mockResolvedValue(page(ATTEMPTS));
         renderHistory();
-        expect(await screen.findByText(/không phải kết quả thi chính thức/)).toBeInTheDocument();
+        await screen.findByText('Lượt làm bài');
+
+        expect(screen.queryByText(/không phải kết quả thi chính thức/)).not.toBeInTheDocument();
     });
 
     it('shows an empty state rather than an error before the first attempt', async () => {

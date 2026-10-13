@@ -4,8 +4,12 @@ import { MemoryRouter } from 'react-router-dom';
 
 /** The api module is mocked so the states can be asserted deterministically. */
 const getTests = vi.fn();
+const getHighestScores = vi.fn();
 vi.mock('../../api', () => ({
-    ieltsApi: { getTests: (...a) => getTests(...a) },
+    ieltsApi: {
+        getTests: (...a) => getTests(...a),
+        getHighestScores: (...a) => getHighestScores(...a),
+    },
     ApiError: class ApiError extends Error {
         constructor(message, status) {
             super(message);
@@ -20,7 +24,12 @@ const { default: IeltsListPage } = await import('./IeltsListPage');
 beforeAll(async () => {
     await i18nReady;
 });
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+    vi.clearAllMocks();
+    /* Nobody has sat anything unless a test says so — which is also what the real endpoint answers
+       with an empty list. */
+    getHighestScores.mockResolvedValue({ data: { success: true, message: 'OK', data: [] } });
+});
 
 function renderList(path = '/ielts') {
     return render(
@@ -69,13 +78,13 @@ describe('IeltsListPage', () => {
 
         /* The visible label is only "Bat dau", so the test title is folded into
            the accessible name — otherwise a grid gives a screen reader that many
-           identical targets. */
+           identical targets. The target is the DETAIL screen: frame 16 sends every
+           card to `17-ielts-detail.html`, because that is where the attempt mode,
+           the scope and the credit cost are chosen. */
         const link = screen.getByRole('link', {
             name: /^Bắt đầu: IELTS Academic 19 Reading Test 3$/,
         });
-        expect(link.getAttribute('href')).toBe(
-            '/ielts/take?testId=3b093e0d-2bd1-401a-9ad6-5c354c4ca06a'
-        );
+        expect(link.getAttribute('href')).toBe('/ielts/test/3b093e0d-2bd1-401a-9ad6-5c354c4ca06a');
     });
 
     it('shows the skill, question count and time limit from the real fields', async () => {
@@ -279,5 +288,115 @@ describe('IeltsListPage — the card', () => {
         const action = screen.getByRole('link', { name: /^Bắt đầu: Reading Test$/ });
         expect(action.parentElement.className).toContain('mt-auto');
         expect(action.parentElement.className).toContain('pt-5');
+    });
+});
+
+/* ==================================================================== the attempted card ==== */
+
+describe('IeltsListPage — a test that has already been sat', () => {
+    const SAT = {
+        id: 'sat',
+        title: 'Cambridge 19 — Test 2',
+        skill: 'LISTENING',
+        difficulty: 'MEDIUM',
+        totalQuestions: 40,
+        timeLimitMinutes: 80,
+    };
+    const FRESH = {
+        id: 'fresh',
+        title: 'Cambridge 19 — Test 1',
+        skill: 'READING',
+        difficulty: 'MEDIUM',
+        totalQuestions: 40,
+        timeLimitMinutes: 80,
+    };
+
+    /** The real shape of `POST /ielts/tests/highest-scores`, captured from the DTO. */
+    const scores = (rows) => ({ data: { success: true, message: 'OK', data: rows } });
+
+    it('asks for the scores of exactly the tests on screen, and never for none', async () => {
+        /* `testIds` is `@NotEmpty` on the request DTO, so asking with an empty array is a 400 —
+           the list must not issue that request at all. */
+        getTests.mockResolvedValue(page([]));
+        renderList();
+        await waitFor(() => expect(getTests).toHaveBeenCalled());
+
+        expect(getHighestScores).not.toHaveBeenCalled();
+    });
+
+    it('shows the band, the bar and "Cao nhất", and offers a retake instead of a start', async () => {
+        getTests.mockResolvedValue(page([SAT]));
+        /* 35 of 40 is 87.5%, which rounds to the 88% the design frames draw. */
+        getHighestScores.mockResolvedValue(
+            scores([
+                { testId: 'sat', attempted: true, attemptId: 'a1', highestBandScore: 6.5, correctCount: 35, totalQuestions: 40 },
+            ])
+        );
+
+        renderList();
+        await screen.findByText('Cambridge 19 — Test 2');
+
+        expect(getHighestScores).toHaveBeenCalledWith(['sat']);
+        expect(screen.getByText('6.5')).toBeInTheDocument();
+        expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '88');
+
+        /* "Cao nhất", NOT "Lần trước": the endpoint returns the BEST attempt per test, so the
+           band badge, the bar and this caption all describe the same sitting. */
+        expect(screen.getByText('Cao nhất 88%')).toBeInTheDocument();
+        expect(screen.queryByText(/Lần trước/)).toBeNull();
+
+        const action = screen.getByRole('link', { name: /^Làm lại: Cambridge 19 — Test 2$/ });
+        expect(action).toHaveAttribute('href', '/ielts/test/sat');
+        /* QUIET, not filled. `ghost` is `bg-transparent` with no edge shadow, while `primary` casts
+           one — the design reserves the filled button for a test not yet sat, so a grid of retakes
+           does not read as a wall of 3D slabs. */
+        expect(action.className).toContain('bg-transparent');
+        expect(action.className).not.toContain('var(--edge)');
+    });
+
+    it('leaves an untouched card alone: no band, no bar, a primary "Bắt đầu"', async () => {
+        getTests.mockResolvedValue(page([FRESH]));
+        getHighestScores.mockResolvedValue(scores([{ testId: 'fresh', attempted: false }]));
+
+        renderList();
+        await screen.findByText('Cambridge 19 — Test 1');
+
+        expect(screen.queryByRole('progressbar')).toBeNull();
+        expect(screen.queryByText(/Cao nhất/)).toBeNull();
+
+        const action = screen.getByRole('link', { name: /^Bắt đầu: Cambridge 19 — Test 1$/ });
+        expect(action).toHaveAttribute('href', '/ielts/test/fresh');
+        expect(action.className).not.toContain('bg-transparent');
+        expect(action.className).toContain('var(--edge)');
+    });
+
+    it('renders no bar for a band with no denominator instead of a false 0%', async () => {
+        /* `0%` and "we cannot measure this" are different statements, and a bar is a claim. */
+        getTests.mockResolvedValue(page([SAT]));
+        getHighestScores.mockResolvedValue(
+            scores([{ testId: 'sat', attempted: true, highestBandScore: 6.5, correctCount: null, totalQuestions: 0 }])
+        );
+
+        renderList();
+        await screen.findByText('Cambridge 19 — Test 2');
+
+        expect(screen.getByText('6.5')).toBeInTheDocument();
+        expect(screen.queryByRole('progressbar')).toBeNull();
+        expect(screen.getByRole('link', { name: /^Làm lại: Cambridge 19 — Test 2$/ })).toBeInTheDocument();
+    });
+
+    it('still lists the tests when the scores request fails', async () => {
+        /* The library is what the learner came for. Failing the whole screen because a BADGE failed
+           would trade a list they can use for a list they cannot; the cost is that every card falls
+           back to "Bắt đầu", and both buttons lead to the same detail screen. */
+        getTests.mockResolvedValue(page([SAT, FRESH]));
+        getHighestScores.mockRejectedValue(new Error('boom'));
+
+        renderList();
+        await screen.findByText('Cambridge 19 — Test 2');
+
+        expect(screen.getByText('Cambridge 19 — Test 1')).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: /^Bắt đầu: Cambridge 19 — Test 2$/ })).toBeInTheDocument();
+        expect(screen.queryByText(/Không tải được/)).toBeNull();
     });
 });

@@ -124,7 +124,6 @@ export default function IeltsResultPage() {
                                     total: result?.totalQuestions ?? 0,
                                 })}
                             </p>
-                            <p className="t-micro muted mt-2">{t('ielts.estimatedNote')}</p>
                         </div>
                     </Card>
 
@@ -145,12 +144,7 @@ export default function IeltsResultPage() {
                             {wrong.length ? <Chip tone="wrong">{t('ielts.wrongCount', { count: wrong.length })}</Chip> : null}
                         </div>
 
-                        {wrong.length === 0 ? (
-                            <div className="mt-4 flex gap-3">
-                                <Lexi mood="celebrate" size="sm" />
-                                <p className="t-body soft">{t('ielts.allCorrect')}</p>
-                            </div>
-                        ) : (
+                        {wrong.length === 0 ? null : (
                             <ul className="mt-3.5 flex flex-col gap-3">
                                 {wrong.map((item, i) => (
                                     <li key={item.questionId ?? i}>

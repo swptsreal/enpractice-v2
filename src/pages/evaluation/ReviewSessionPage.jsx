@@ -369,7 +369,7 @@ export default function ReviewSessionPage() {
                     <span className="grow" />
                     {verdict ? (
                         <Button variant="primary" size="lg" onClick={next}>
-                            {isLast ? t('review.practice.finish') : t('review.practice.next')}
+                            {t('review.practice.next')}
                             <ArrowRight size={18} aria-hidden="true" />
                         </Button>
                     ) : (

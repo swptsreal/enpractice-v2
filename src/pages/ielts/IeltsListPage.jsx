@@ -1,16 +1,16 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Headphones, BookOpen, PenLine, Mic, Clock } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { ButtonLink } from '../../components/ui/Button';
-import { Chip, SkeletonCard } from '../../components/ui/Primitives';
+import { Band, Chip, ProgressBar, SkeletonCard } from '../../components/ui/Primitives';
 import { AsyncBoundary } from '../../components/ui/AsyncBoundary';
 import { useAsyncResource } from '../../hooks/useAsyncResource';
-import { readPage } from '../../api/envelope';
+import { readPage, unwrapData } from '../../api/envelope';
 import { ieltsApi } from '../../api';
 import { SKILL_LABEL_KEYS, DIFFICULTY_LABEL_KEYS, SKILL_TONE, DIFFICULTY_TONE } from '../../features/ielts/useIeltsDetail';
-import { normalizeSkillFilter } from '../../utils/ielts';
+import { getIeltsAccuracy, normalizeSkillFilter } from '../../utils/ielts';
 
 /**
  * Test library.
@@ -88,11 +88,49 @@ export default function IeltsListPage() {
     const activeSkill = normalizeSkillFilter(params.get('skill'));
 
     const tests = useAsyncResource(
-        () => ieltsApi.getTests({ page: 0, size: 24, ...(activeSkill ? { skill: activeSkill } : {}) }),
-        { initialData: [], deps: [activeSkill] }
+        async () => {
+            const raw = await ieltsApi.getTests({
+                page: 0,
+                size: 24,
+                ...(activeSkill ? { skill: activeSkill } : {}),
+            });
+            const items = readPage(raw).items;
+
+            /* THE BEST RESULT OF EACH TEST, in a second request that cannot start earlier: the
+               endpoint takes the ids, so the ids have to exist first.
+
+               Both requests live in ONE resource on purpose. As two resources the cards would paint
+               from the list response while the scores were still in flight, so a learner who had
+               already sat Cambridge 19 would watch its button read "Bắt đầu" and then become
+               "Làm lại" — a label that changes under the thumb that is about to press it. One
+               resource means the cards are never rendered in a state that has to be corrected. */
+            const scores = {};
+            if (items.length) {
+                try {
+                    for (const row of unwrapData(await ieltsApi.getHighestScores(items.map((test) => test.id)))) {
+                        scores[row.testId] = row;
+                    }
+                } catch {
+                    /* SWALLOWED, deliberately. `GET /ielts/tests` already answered, so the library
+                       itself is fine; failing the whole screen because a BADGE failed would trade a
+                       list the learner can use for a list they cannot. The cost is real and is
+                       stated rather than hidden: every card falls back to "Bắt đầu", so a returning
+                       learner is offered a start instead of a retake. Both buttons lead to the same
+                       detail screen, which is where the true state is stated, so the damage is a
+                       label — and the mockup's own card is optional decoration over that link. */
+                }
+            }
+
+            return { items, scores };
+        },
+        { initialData: { items: [], scores: {} }, deps: [activeSkill] }
     );
-    const page = useMemo(() => readPage(tests.data), [tests.data]);
-    const list = page.items;
+    /* `?.` on both, and it is not defensive noise: `useAsyncResource` sets `data: null` when the
+       request FAILS, so an unguarded `tests.data.items` throws while rendering the error state —
+       which replaces "Không kết nối được tới máy chủ" with a blank screen, the exact failure the
+       error panel exists to prevent. */
+    const list = tests.data?.items ?? [];
+    const scores = tests.data?.scores ?? {};
     const reload = useCallback(() => tests.reload(), [tests]);
 
     return (
@@ -173,7 +211,29 @@ export default function IeltsListPage() {
                         const minutes = test?.timeLimitMinutes ?? null;
                         const questionCount = test?.totalQuestions ?? null;
                         const difficulty = String(test?.difficulty ?? '').toUpperCase();
-                        const action = t('ielts.startTest');
+
+                        /* ONE fact from the scores response drives FOUR things on the card — the band
+                           badge, the bar, the percentage line and the button's label and weight. They
+                           appear together or not at all, because a card that showed a band but said
+                           "Bắt đầu" would be describing two different learners.
+
+                           What the endpoint returns is the BEST attempt, not the latest one:
+                           `IeltsTestServiceImpl` groups by test and keeps the higher band (a tie goes
+                           to the more recent one). So the badge and the bar describe the same attempt
+                           and the percentage is labelled "Cao nhất" — printing "Lần trước" over a
+                           highest-of-all-time number would be a claim the data cannot support. */
+                        const score = scores[id];
+                        const attempted = score?.attempted === true;
+                        const band = attempted && typeof score.highestBandScore === 'number' ? score.highestBandScore : null;
+                        /* A 0% bar is a real result (0 of 40) and still needs a denominator before it
+                           can be read as one; `getIeltsAccuracy` already guards the division. */
+                        const measured =
+                            attempted &&
+                            typeof score.correctCount === 'number' &&
+                            typeof score.totalQuestions === 'number' &&
+                            score.totalQuestions > 0;
+                        const accuracy = measured ? Math.round(getIeltsAccuracy(score)) : null;
+                        const action = t(attempted ? 'ielts.retake' : 'ielts.startTest');
 
                         /* The count and the limit are two facts, so they are joined
                            once here rather than by two conditionals inside the JSX. */
@@ -198,22 +258,46 @@ export default function IeltsListPage() {
                                                 {t(DIFFICULTY_LABEL_KEYS[difficulty])}
                                             </Chip>
                                         ) : null}
+                                        {band !== null ? <Band value={band} className="ml-auto" /> : null}
                                     </div>
                                     <h3 className="t-h3 mt-3">{title}</h3>
                                     {meta ? <p className="t-micro muted mt-2">{meta}</p> : null}
+
+                                    {/* The bar and its caption are ONE block: the number alone under a
+                                        bar would leave the reader to work out what is being measured. */}
+                                    {accuracy !== null ? (
+                                        <div className="mt-2.5">
+                                            <ProgressBar
+                                                value={accuracy}
+                                                label={t('ielts.bestAccuracy', { value: accuracy })}
+                                            />
+                                            <span className="t-micro muted mt-1 block">
+                                                {t('ielts.bestAccuracy', { value: accuracy })}
+                                            </span>
+                                        </div>
+                                    ) : null}
+
                                     {/* `mt-auto` pins the action to the bottom of every card in
                                         the row; the padding keeps a real gap under the meta line
                                         on the cards that have no slack to absorb. */}
                                     <div className="mt-auto pt-5">
                                         <ButtonLink
-                                            to={`/ielts/take?testId=${encodeURIComponent(id)}`}
-                                            variant="primary"
+                                            /* THE DETAIL SCREEN, not the exam. Frame 16 sends every
+                                               card to `17-ielts-detail.html`, and that is where real
+                                               work happens: the attempt mode (full test vs one
+                                               section), the scope, the credit cost and the exam
+                                               condition are all decided there. Jumping straight into
+                                               a timed take from a browse surface skips the decision
+                                               and spends a credit before the learner has seen what
+                                               they are buying. */
+                                            to={`/ielts/test/${encodeURIComponent(id)}`}
+                                            variant={attempted ? 'ghost' : 'primary'}
                                             size="sm"
                                             block
-                                            /* The visible label is only "Bắt đầu", so a
-                                               grid of cards gives a screen reader that
-                                               many identical targets. The test title is
-                                               folded into the accessible name. */
+                                            /* The visible label is only "Bắt đầu" / "Làm lại", so a
+                                               grid of cards gives a screen reader that many identical
+                                               targets. The test title is folded into the accessible
+                                               name. */
                                             aria-label={`${action}: ${title}`}
                                         >
                                             {action}

@@ -130,6 +130,26 @@
     </div>
 
     <h2 class="t-h2" style="margin-bottom:12px">Đề có sẵn</h2>
+    <!-- TWO CARD STATES, and each is all-or-nothing.
+
+         NOT ATTEMPTED: the type chip, the title, the skills + time, and a PRIMARY "Bắt đầu".
+         ATTEMPTED: the same, plus the band badge at the right of the chip row, an accuracy bar,
+         the caption under it, and a GHOST "Làm lại". They arrive together because ONE response
+         field produces all four — a card showing a band while saying "Bắt đầu" would be describing
+         two different learners.
+
+         THE CAPTION SAYS "Cao nhất", NOT "Lần trước", and that is not a wording preference.
+         POST /ielts/tests/highest-scores returns the BEST attempt per test, not the latest:
+         IeltsTestServiceImpl groups by test and keeps the higher band, with a tie going to the
+         more recent attempt. Every number on this card comes from that one attempt, so the badge,
+         the bar and the caption describe the same sitting. "Lần trước" over a highest-of-all-time
+         figure is a claim the API cannot support, and a frame may not promise a value nobody can
+         fetch.
+
+         ONE CEILING, stated here because the card cannot state it: the endpoint counts COMPLETED
+         FULL-mode attempts only, so a learner who practised a single reading passage still sees
+         this card as untouched. That is the correct reading — a band from one passage would be
+         meaningless — but it is a limit of the card, not what the word "attempted" means. -->
     <div class="grid g-3">
         
             <article class="card card--edge pad-x">
@@ -152,7 +172,7 @@
                 <p class="t-micro muted">Listening + Reading · 80 phút</p>
                 <div style="margin-top:10px"><div class="bar" role="progressbar" aria-valuenow="88" aria-valuemin="0" aria-valuemax="100">
         <div class="bar__fill " style="width:88%"></div>
-    </div></div><span class="t-micro muted">Lần trước 88%</span>
+    </div></div><span class="t-micro muted">Cao nhất 88%</span>
                 <a class="btn btn--ghost btn--sm btn--block" style="margin-top:14px"
                    href="17-ielts-detail.html">Làm lại</a>
             </article>
@@ -165,7 +185,7 @@
                 <p class="t-micro muted">Reading · 20 phút</p>
                 <div style="margin-top:10px"><div class="bar" role="progressbar" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100">
         <div class="bar__fill " style="width:92%"></div>
-    </div></div><span class="t-micro muted">Lần trước 92%</span>
+    </div></div><span class="t-micro muted">Cao nhất 92%</span>
                 <a class="btn btn--ghost btn--sm btn--block" style="margin-top:14px"
                    href="17-ielts-detail.html">Làm lại</a>
             </article>
@@ -189,7 +209,7 @@
                 <p class="t-micro muted">Listening + Reading · 80 phút</p>
                 <div style="margin-top:10px"><div class="bar" role="progressbar" aria-valuenow="74" aria-valuemin="0" aria-valuemax="100">
         <div class="bar__fill " style="width:74%"></div>
-    </div></div><span class="t-micro muted">Lần trước 74%</span>
+    </div></div><span class="t-micro muted">Cao nhất 74%</span>
                 <a class="btn btn--ghost btn--sm btn--block" style="margin-top:14px"
                    href="17-ielts-detail.html">Làm lại</a>
             </article>

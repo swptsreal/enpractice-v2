@@ -270,12 +270,46 @@ way back into the app. The fix is the split above.
 
 ### 16 · Test library — `/ielts` `[code-verified]`
 - **Layout:** List. Skill pills across the top (Tất cả / Listening / Reading / Writing / Speaking) route to the right module rather than filtering in place, because the four modules have genuinely different entry screens.
-- Each card shows type (Full / Section), the skills it covers, total time, and the previous score with a progress bar if attempted.
+- Each card shows type (Full / Section), the skills it covers and total time. **A second, all-or-nothing state appears once the test has been sat:** the band badge at the right of the chip row, an accuracy bar, the caption under it, and a GHOST "Làm lại" — while an untouched card keeps the PRIMARY "Bắt đầu". One response field produces all four, because a card showing a band while saying "Bắt đầu" would describe two different learners.
+- **The caption reads "Cao nhất N%", not "Lần trước N%".** `POST /ielts/tests/highest-scores` returns the **best** attempt per test, not the latest — `IeltsTestServiceImpl` groups by test and keeps the higher band, a tie going to the more recent attempt. The badge, the bar and the caption all come from that one attempt, so they describe the same sitting; "lần trước" over a highest-of-all-time figure is a claim the API cannot support. The i18n key is `ielts.bestAccuracy` for the same reason, and `ielts.lastScore` was renamed rather than reworded.
+- **"Bắt đầu" opens the DETAIL screen, not the exam.** Every card links to `17`, where the attempt mode (full test vs one section), the scope, the credit cost and the exam condition are decided. Starting a timed paper from a browse surface would skip that decision and spend a credit before the learner has seen what they are buying.
+- **One ceiling, deliberate:** the endpoint counts `COMPLETED` + `ATTEMPT_MODE.FULL` attempts only, so a learner who practised a single reading passage still sees an untouched card. A band derived from one passage would be meaningless, so this is correct — but it is a limit of the card, not of the word "attempted".
+- The library sends **two** requests, and they live in ONE resource so the cards are never painted in a state that has to be corrected: as two resources the list would render while the scores were in flight, and a returning learner would watch "Bắt đầu" turn into "Làm lại" under the thumb about to press it. A failed scores request is swallowed — the library is already loaded and must not disappear because a badge failed — at the cost of every card falling back to "Bắt đầu"; both buttons lead to the same detail screen, which states the true state.
+
+> **GAP — mockup has this, the code does not (recorded 2026-10, screen 16).** The frame's chip row
+> opens with the **type** ("Full" / "Section") and the card's meta line is the **skills it covers**
+> plus the total time ("Listening + Reading · 80 phút"), which is exactly what the bullets above
+> describe. The code renders a **skill** chip and a **difficulty** chip instead, and its meta is
+> "N câu · M phút". `GET /ielts/tests` returns one `skill` and no `type`, no `skills` array and no
+> per-section durations, so the frame's line cannot be produced from that response as it stands —
+> this is a backend gap before it is a front-end one, and the fix needs the list DTO to carry the
+> attempt type, not a reworded card. `ielts.fullTest` and `ielts.section` already exist and have no
+> call site. The pills also differ: the frame marks "Tất cả" as `aria-current="page"` and wraps the
+> group in `role="tablist"`, while the code marks only the two filtering pills current.
 
 ### 17 · Test detail — `/ielts/test/:testId` `[code-verified]`
 - **Layout:** Focus.
 - **Anatomy:** hero with title and cost → per-section breakdown with item counts and durations → transcript-policy notice → primary CTA.
 - **Two trust details are preserved from v1's behaviour:** the credit cost with the user's balance is visible before starting, and the Listening transcript policy is stated up front ("chỉ hiện sau khi nộp bài, để giữ trải nghiệm giống thi thật") — in v1 that rule exists in the code but is not surfaced until after submission.
+
+> **GAP — mockup has this, the code does not (recorded 2026-10, screen 17).**
+> - **The cost lives in the hero** as a labelled block — `t-micro` "Chi phí", a coin chip reading
+>   "1 credit", and "Bạn còn 240 credit" under it. The code moves the cost into a separate card
+>   *below* the transcript notice, labels it "Bắt đầu làm bài · -1 credit" (a negative number and a
+>   repeated CTA verb), and prints the balance as "Còn 240 credit". `creditPolicy.js` formats the
+>   amount with a leading `-`, so the minus reaches the screen.
+> - **The hero body line** is the structural summary "4 phần Listening · 3 passage Reading · 40 + 40
+>   câu". The code has no hero body (the invented prose that used to sit there was removed).
+> - **Each section row ends with its duration** in mono ("10 phút") and its meta carries the task
+>   format ("10 câu · hội thoại đời thường", "13 câu · Matching Headings"). The code renders the
+>   count only; the paper response does not carry a per-section duration, so this needs the detail
+>   DTO before it needs markup.
+> - **A "Để sau" ghost button beside the CTA** (frame 17's CTA row is `grow` primary + ghost large).
+>   The code renders the primary alone. `common.later` = "Để sau" exists and is unused here.
+> - **Extra UI the frame does not have:** a Lexi `explain` in the hero, the three-tile `Stat` grid,
+>   a numbered square badge at the head of each section row (the frame uses a skill icon), a "Ví
+>   credit" ghost link, and a footer row of "Lịch sử" / "Thử lại". Recorded rather than removed
+>   because removal is a layout change and needs its own decision.
 
 ### 18 · Test taking — `/ielts/take/:attemptId` `[code-verified]`
 - **Layout:** Split — and this is the screen where v2 changes the most.
@@ -285,6 +319,24 @@ way back into the app. The fix is the split above.
 - **Timer turns `--wrong` under five minutes** and is `aria-live="off"` — a timer that announces every second is hostile to a screen-reader user.
 - The passage highlight (`<mark>`) uses the amber token at 46% so highlighted text keeps its own contrast.
 
+> **GAP — mockup has this, the code does not (recorded 2026-10, screen 18).**
+> - **The passage header meta** — a `t-micro muted` line "Reading Passage 1 · khoảng 900 từ" under the
+>   passage `h2`. The code renders the title only.
+> - **The question-range header** — a `t-label` "Questions 1–5" plus a `t-micro muted` task hint
+>   ("Chọn tiêu đề đúng cho mỗi đoạn"). The code renders no range label and no task hint; its header
+>   subtitle is `ielts.questionProgress` → "Đã trả lời N / M", which no frame draws.
+> - **The legend label is the paragraph, not the question number** — frame renders `[1] Đoạn A`. The
+>   code renders `[1] Câu 1 / 13`, so the paragraph label has no counterpart.
+> - **One comment contradicts its own code.** `IeltsTakePage.jsx` says the timer "counts UP from the
+>   session start" and "must not invent a countdown the server does not enforce", but the expression
+>   beneath it is `limit > 0 ? Math.max(0, limit - elapsed) : elapsed` — a countdown whenever
+>   `estimatedMinutes` is set, which is what the frame draws. The behaviour is right and the comment
+>   is wrong; the comment is the thing to fix.
+> - **Extra UI the frame does not have:** a typed-answer `<input>` for questions with no options, a
+>   "Câu trước / Câu sau" button bar, a `<audio controls>` element in the passage pane, and the
+>   `AsyncBoundary` empty state for a paper with no questions. The audio element is load-bearing
+>   (Listening needs it), so it is a frame gap rather than a code defect.
+
 ### 19 · Test result — `/ielts/result/:attemptId` `[code-verified]`
 - **Layout:** Focus with a two-column review body.
 - **Hero:** overall band in `mono`, delta chip, per-skill bands, time spent, XP, Lexi `celebrate`.
@@ -293,9 +345,52 @@ way back into the app. The fix is the split above.
 - **Transcript is locked until submission** and this screen is where it unlocks, matching the policy stated on the detail screen.
 - The band is labelled as an estimate here too.
 
+> **GAP — mockup has this, the code does not (recorded 2026-10, screen 19).** Frame 19 is the
+> richest frame in the set and the code renders a working but thinner screen. Nothing here is a
+> mockup defect; it is unimplemented work, listed so a later pass does not have to re-derive it.
+> Each line names the frame element and what the code has instead.
+>
+> - **Two-column review body** (`result-cols2`, `1.2fr .8fr` at ≥1024px). Code renders one
+>   full-width column for every section, so the transcript card sits at the bottom instead of beside
+>   the review.
+> - **Per-skill band cards** — skill label, band value, `/ 9.0`, a proportion bar, and "Đúng 33/40
+>   câu". Code has none; `SCREENS-V2.md`'s own "per-skill bands" bullet is unmet.
+> - **Delta chip in the hero** — "+0.5 so với lần trước". Code renders an accuracy chip
+>   ("Đúng 82%") in that slot, which measures a different thing (today's paper) from the frame's
+>   (progress since the last attempt).
+> - **`XP nhận được` stat.** Code renders four tiles: correct, wrong, minutes, and the raw `skill`
+>   enum — the last of which is a backend value printed where a designed tile belongs. The key
+>   `ielts.xpEarned` exists and has no call site.
+> - **The segmented filter "Sai (7)" / "Tất cả (40)"** above the review list. Code renders a
+>   non-interactive `7 câu sai` chip and can only ever show wrong answers.
+> - **Two per-question actions, "Đọc lại đoạn B" and "Hỏi Lexi"** (a written requirement of this
+>   section, not a nice-to-have). Code renders neither.
+> - **The "Lexi nhận xét" card** with a specific diagnosis and the "Luyện dạng này" action. Code
+>   labels the mascot (`ielts.lexiResult`) but renders no diagnosis card.
+> - **The transcript card unlocks here** — frame 19 reads "Đã mở khoá vì bạn đã nộp bài" and lists
+>   timestamped lines with "Xem toàn bộ transcript". Code renders `ielts.transcriptLocked`, which
+>   says the transcript *appears only after you submit* — on the screen reached *by* submitting.
+>   This one is not merely missing: it is a false statement on screen, and it should be fixed before
+>   the rest of this list.
+> - **Header meta** — `h1` "Kết quả · Cambridge 19 Test 1" and "Nộp lúc 15:04 · 76 phút". The code
+>   renders no page title and no submission time.
+> - **"Chia sẻ"** ghost button. Absent.
+
 ### 20 · IELTS history — `/ielts/history` `[code-verified]`
 - **Layout:** List. A CSS bar chart of band-by-week above the list, with a text `aria-label` describing the series (a chart with no accessible name is not usable).
 - Bars use teal for Listening and amber for Reading with a legend, and the axis labels are week numbers — no fabricated dates. Empty weeks are simply absent rather than faked.
+
+> **GAP — mockup has this, the code does not (recorded 2026-10, screen 20).** Frame 20's note reads
+> "Chart + danh sách, không dùng bảng cuộn ngang" — no horizontally scrolling table. The code's
+> chart wrapper is `overflow-x-auto`, so past ~8 weeks it scrolls: the one thing the note rules out.
+> Also unimplemented: the header `h1` "Lịch sử thi" with its "8 bài · band trung bình 5.9" meta, the
+> chart card's "8 tuần gần nhất" caption, the `h2` "Các bài đã làm" heading, the `band` badge token
+> per row (code prints plain mono text), and a per-bar `title` attribute.
+> - **Extra UI the frame does not have**, recorded rather than removed because removing it is a
+>   layout change and needs its own decision: a three-tile `Stat` row above the chart, the two
+>   legend chips on the chart header (frame puts the legend below the bars as dots), the `Clock`
+>   icon inside each row's meta, and each row's `skill · correct/total` fragments (frame's row meta
+>   is `date · +XP`).
 
 ### 21 · Writing list — `/writing` `[code-verified]`
 - **Layout:** List with a Task 1 / Task 2 segmented filter.

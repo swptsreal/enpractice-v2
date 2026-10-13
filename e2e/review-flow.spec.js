@@ -308,7 +308,9 @@ test.describe('the review flow', () => {
         /* `deplete` has NO alternatives, so the chips block is absent rather than empty — the other
            half of "shown when there are any". */
         await expect(page.getByText('Các nghĩa khác có thể chấp nhận')).toHaveCount(0);
-        await page.getByRole('button', { name: 'Hoàn thành' }).click();
+        /* The LAST word's footer button says "Tiếp theo" like every other one: frame 15b draws no
+           "Hoàn thành" label, and the result screen's own exits are what end the flow. */
+        await page.getByRole('button', { name: 'Tiếp theo' }).click();
 
         /* --- step 3: the result --------------------------------------------- */
         expect(new URL(page.url()).pathname).toBe('/review/result');

@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Clock, Headphones, BookOpen } from 'lucide-react';
-import { Lexi } from '../../components/mascot/Lexi';
 import { Card, RowBox } from '../../components/ui/Card';
 import { ButtonLink } from '../../components/ui/Button';
 import { Chip, Stat, SkeletonCard } from '../../components/ui/Primitives';
@@ -133,9 +132,6 @@ export default function IeltsHistoryPage() {
                                         </div>
                                     ))}
                                 </div>
-                                <figcaption className="t-micro muted mt-2">
-                                    {t('ielts.chartCaption')}
-                                </figcaption>
                             </figure>
                         )}
                     </Card>
@@ -181,11 +177,6 @@ export default function IeltsHistoryPage() {
                     </ul>
                 </div>
             </AsyncBoundary>
-
-            <div className="flex items-center justify-center gap-3">
-                <Lexi mood="approve" size="xs" />
-                <span className="t-micro muted">{t('ielts.historyNote')}</span>
-            </div>
         </div>
     );
 }

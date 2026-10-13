@@ -76,6 +76,26 @@ export const screens = {
     </div>
 
     <h2 class="t-h2" style="margin-bottom:12px">Đề có sẵn</h2>
+    <!-- TWO CARD STATES, and each is all-or-nothing.
+
+         NOT ATTEMPTED: the type chip, the title, the skills + time, and a PRIMARY "Bắt đầu".
+         ATTEMPTED: the same, plus the band badge at the right of the chip row, an accuracy bar,
+         the caption under it, and a GHOST "Làm lại". They arrive together because ONE response
+         field produces all four — a card showing a band while saying "Bắt đầu" would be describing
+         two different learners.
+
+         THE CAPTION SAYS "Cao nhất", NOT "Lần trước", and that is not a wording preference.
+         POST /ielts/tests/highest-scores returns the BEST attempt per test, not the latest:
+         IeltsTestServiceImpl groups by test and keeps the higher band, with a tie going to the
+         more recent attempt. Every number on this card comes from that one attempt, so the badge,
+         the bar and the caption describe the same sitting. "Lần trước" over a highest-of-all-time
+         figure is a claim the API cannot support, and a frame may not promise a value nobody can
+         fetch.
+
+         ONE CEILING, stated here because the card cannot state it: the endpoint counts COMPLETED
+         FULL-mode attempts only, so a learner who practised a single reading passage still sees
+         this card as untouched. That is the correct reading — a band from one passage would be
+         meaningless — but it is a limit of the card, not what the word "attempted" means. -->
     <div class="grid g-3">
         ${[
             ['Cambridge 19 — Test 1', 'Listening + Reading', 'Full', 0, 0, '80 phút'],            ['Cambridge 19 — Test 2', 'Listening + Reading', 'Full', 6.5, 88, '80 phút'],
@@ -91,7 +111,7 @@ export const screens = {
                 </div>
                 <h3 class="t-h3" style="margin-top:12px">${t}</h3>
                 <p class="t-micro muted">${skills} · ${time}</p>
-                ${score ? `<div style="margin-top:10px">${bar(score)}</div><span class="t-micro muted">Lần trước ${score}%</span>` : ''}
+                ${score ? `<div style="margin-top:10px">${bar(score)}</div><span class="t-micro muted">Cao nhất ${score}%</span>` : ''}
                 <a class="btn btn--${band ? 'ghost' : 'primary'} btn--sm btn--block" style="margin-top:14px"
                    href="17-ielts-detail.html">${band ? 'Làm lại' : 'Bắt đầu'}</a>
             </article>`).join('')}

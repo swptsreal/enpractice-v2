@@ -218,6 +218,38 @@ describe('ReviewConfigPage — the window, the group, the count', () => {
         expect(screen.getByRole('button', { name: /Bắt đầu ôn \(20 từ · 5 phút\)/ })).toBeInTheDocument();
     });
 
+    it('does NOT restate its own controls under the headline, or predict the length twice', async () => {
+        /* Frame 15's summary card is the headline ALONE, and the session length lives in the start
+           button. This screen had grown a second sentence explaining its own controls and a
+           `20 từ · ~5 phút` row under the slider — text the design never drew, and the tilde form
+           appeared nowhere in it. Both are gone; the button still carries both numbers. */
+        getReviewCounts.mockResolvedValue(envelope(COUNTS));
+        renderWith(<ReviewConfigPage />);
+
+        await screen.findByRole('heading', { level: 2, name: /Bạn có 26 từ/ });
+        expect(screen.queryByText(/phiên ôn chỉ gồm đúng những từ đó/)).toBeNull();
+        expect(screen.queryByText(/~\s?\d+ phút/)).toBeNull();
+        expect(screen.getByRole('button', { name: /Bắt đầu ôn \(20 từ · 5 phút\)/ })).toBeInTheDocument();
+    });
+
+    it('names the week and month inputs for screen readers, not with on-screen labels', async () => {
+        /* The frame draws neither control, so a visible label here would be text the design never
+           wrote — and an input with no accessible name is not an option either. `sr-only` is the one
+           state that satisfies both, so this pins it: reachable by name, absent from the visible
+           text. Asserting the class rather than `queryByText`, because an `sr-only` node is still a
+           text node in the DOM. */
+        getReviewCounts.mockResolvedValue(envelope(COUNTS));
+        const user = userEvent.setup();
+        renderWith(<ReviewConfigPage />);
+
+        await screen.findByRole('heading', { level: 2, name: /Bạn có 26 từ/ });
+        await user.click(screen.getByRole('button', { name: /^Tuần này$/ }));
+
+        expect(screen.getByLabelText('Chọn tuần')).toBeInTheDocument();
+        expect(screen.getByText('Chọn tuần')).toHaveClass('sr-only');
+        expect(screen.queryByText('Chọn tháng')).toBeNull();
+    });
+
     it('offers the three groups the endpoint can answer, each with its own count', async () => {
         getReviewCounts.mockResolvedValue(envelope(COUNTS));
         renderWith(<ReviewConfigPage />);

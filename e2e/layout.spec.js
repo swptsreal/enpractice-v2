@@ -105,14 +105,23 @@ test.describe('take screens — the pane scrolls, the controls stay put', () => 
 
         await gotoWithRetry(page, '/ielts');
 
-        /* The list card's own primary action goes straight to `/ielts/take?testId=…`; the detail
-           screen is not on the card, so this is the shortest real path to a live paper.
-           Wait for the LINK, not for a fixed delay: the list is a network round trip, and a timer
-           made this test skip intermittently on the desktop project. */
-        const startLink = page.locator('a[href*="/ielts/take?testId="]').first();
+        /* The path to a live paper is TWO clicks, because frame 16 sends every list card to the
+           DETAIL screen and the detail screen is where the attempt is actually started — that is the
+           surface that chooses the mode and the scope and states the credit cost. Wait for the LINK,
+           not for a fixed delay: the list is a network round trip, and a timer made this test skip
+           intermittently on the desktop project. */
+        const startLink = page.locator('a[href*="/ielts/test/"]').first();
         await startLink.waitFor({ state: 'visible', timeout: 20_000 }).catch(() => {});
         if ((await startLink.count()) === 0) return skip('no IELTS test on the list for this account');
         await startLink.click();
+
+        /* The detail screen's own start button. It is DISABLED when the wallet cannot cover the test,
+           which is a product state rather than a layout failure, so a disabled button is a skip. */
+        const beginButton = page.getByRole('button', { name: 'Bắt đầu làm bài' });
+        await beginButton.waitFor({ state: 'visible', timeout: 20_000 }).catch(() => {});
+        if ((await beginButton.count()) === 0) return skip(`no start button on the detail screen; on ${page.url()}`);
+        if (!(await beginButton.isEnabled())) return skip('wallet cannot cover this IELTS test');
+        await beginButton.click();
 
         /* The wallet may refuse (402) — a product state, not a layout failure. */
         await page.waitForTimeout(3000);

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Clock, FileText, Headphones, BookOpen, Info, Coins, Lock } from 'lucide-react';
+import { ArrowLeft, FileText, Headphones, BookOpen, Coins, Lock } from 'lucide-react';
 import { Lexi } from '../../components/mascot/Lexi';
 import { Card, RowBox } from '../../components/ui/Card';
 import { Button, ButtonLink } from '../../components/ui/Button';
@@ -95,7 +95,6 @@ export default function IeltsTestDetailPage() {
                                 ) : null}
                             </div>
                             <h1 className="t-h2 mt-2">{test?.title}</h1>
-                            <p className="t-body soft mt-1">{t('ielts.detailIntro')}</p>
                         </div>
                     </Card>
 
@@ -134,12 +133,6 @@ export default function IeltsTestDetailPage() {
                                                 </strong>
                                                 <span className="t-micro muted flex flex-wrap items-center gap-2">
                                                     <span>{t('vocabTest.questionCount', { count: counts })}</span>
-                                                    {section.audioUrl ? (
-                                                        <span className="inline-flex items-center gap-1">
-                                                            <Headphones size={12} aria-hidden="true" />
-                                                            {t('ielts.hasAudio')}
-                                                        </span>
-                                                    ) : null}
                                                 </span>
                                             </span>
                                         </RowBox>
@@ -200,17 +193,7 @@ export default function IeltsTestDetailPage() {
                                 <FileText size={18} aria-hidden="true" />
                                 {t('ielts.startFullTest')}
                             </Button>
-                            <span className="t-micro muted inline-flex items-center gap-1.5">
-                                <Clock size={13} aria-hidden="true" />
-                                {t('ielts.startHint', { count: test?.timeLimitMinutes ?? 0 })}
-                            </span>
                         </div>
-
-                        {/* The exam condition, restated where the decision is made. */}
-                        <p className="t-micro muted flex items-start gap-2 border-t-2 border-[var(--border)] pt-3">
-                            <Info size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
-                            {t('ielts.examConditionNote')}
-                        </p>
                     </Card>
 
                     <div className="flex flex-wrap gap-2">
