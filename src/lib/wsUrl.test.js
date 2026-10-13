@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { resolveWsUrl } from './wsUrl';
 
 /**
@@ -18,6 +18,8 @@ describe('resolveWsUrl', () => {
     const httpsLocal = { protocol: 'https:', host: 'localhost:5173' };
     const httpLocal = { protocol: 'http:', host: 'localhost:5273' };
 
+    afterEach(() => vi.unstubAllEnvs());
+
     it('derives an absolute wss URL from an empty base on an https page', () => {
         /* EMPTY and `/api` are the same case — both mean "same origin, the dev server
            proxies". `/api` is kept because it is what the value used to be. */
@@ -35,10 +37,17 @@ describe('resolveWsUrl', () => {
         );
     });
 
-    it('treats a missing base as same-origin, so an empty .env cannot leak an absolute socket', () => {
-        expect(resolveWsUrl('/ws/realtime-chat', { apiBaseUrl: undefined, location: httpsLocal })).toBe(
-            'wss://localhost:5173/ws/realtime-chat'
-        );
+    it('treats a missing base as same-origin, so a build box with no .env still gets a socket', async () => {
+        /* `apiBaseUrl: undefined` does NOT mean "no base" — the parameter falls back to
+           `import.meta.env.VITE_API_URL`, so asserting on `undefined` reads the DEVELOPER'S
+           `.env` and silently changes meaning when that file changes. This case must control
+           the env itself, which is also the situation it describes: a build with no `.env`. */
+        vi.resetModules();
+        vi.stubEnv('VITE_API_URL', undefined);
+
+        const { resolveWsUrl: fresh } = await import('./wsUrl.js');
+
+        expect(fresh('/ws/realtime-chat', { location: httpsLocal })).toBe('wss://localhost:5173/ws/realtime-chat');
     });
 
     it('maps a BASE url to ws/wss without needing a /api suffix', () => {
