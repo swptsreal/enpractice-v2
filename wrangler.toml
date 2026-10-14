@@ -1,3 +1,11 @@
-name = "en-practice-v2"
+name = "enpractice-v2"
 pages_build_output_dir = "./dist"
 compatibility_date = "2026-10-13"
+
+[vars]
+VITE_API_URL = "https://enpractice-api.swpts.site"
+VITE_SITE_URL = "https://enpractice.site"
+
+[env.preview.vars]
+VITE_API_URL = "https://enpractice-api.swpts.site"
+VITE_SITE_URL = "https://enpractice.site"
