@@ -113,12 +113,11 @@ describe('AiChatPage — Lexi opens with real data, or admits she has none', () 
 });
 
 describe('AiChatPage — the cost is on the send button', () => {
-    it('shows the cost and the balance before anything is typed', async () => {
+    it('shows the cost on the send button before anything is typed', async () => {
         getProfile.mockResolvedValue(profileWith(['Fluency']));
         renderPage();
 
         expect(await screen.findByRole('button', { name: /Gửi · -1 credit/ })).toBeInTheDocument();
-        expect(screen.getByText('Còn 20 credit')).toBeInTheDocument();
     });
 
     it('keeps send disabled until there is text', async () => {
@@ -161,12 +160,10 @@ describe('AiChatPage — sending', () => {
 
     it('caps the draft at 1000 characters, so the server backstop is never hit', async () => {
         getProfile.mockResolvedValue(profileWith(['Fluency']));
-        const user = userEvent.setup();
         renderPage();
 
         const box = await screen.findByPlaceholderText(/Hỏi Lexi/);
         expect(box).toHaveAttribute('maxlength', '1000');
-        expect(screen.getByText('0/1000')).toBeInTheDocument();
     });
 
     it('keeps the text and reports a failure when the socket refuses the publish', async () => {
@@ -195,5 +192,37 @@ describe('AiChatPage — suggestions', () => {
         await user.click(chip);
 
         expect(screen.getByPlaceholderText(/Hỏi Lexi/)).toHaveValue('Làm sao để cải thiện Matching Headings?');
+    });
+});
+
+describe('AiChatPage — history from API', () => {
+    it('renders chat message history fetched from the API', async () => {
+        getProfile.mockResolvedValue(profileWith([]));
+        getMessages.mockResolvedValueOnce(
+            envelope({
+                messages: [
+                    {
+                        id: 'msg-1',
+                        sequence: 1,
+                        role: 'USER',
+                        status: 'COMPLETE',
+                        content: 'Xin chào Lexi',
+                    },
+                    {
+                        id: 'msg-2',
+                        sequence: 2,
+                        role: 'ASSISTANT',
+                        status: 'COMPLETE',
+                        content: 'Chào bạn! Mình có thể giúp gì cho bạn hôm nay?',
+                    },
+                ],
+                nextBeforeSequence: null,
+                hasMore: false,
+            })
+        );
+        renderPage();
+
+        expect(await screen.findByText('Xin chào Lexi')).toBeInTheDocument();
+        expect(await screen.findByText(/Chào bạn! Mình có thể giúp gì/)).toBeInTheDocument();
     });
 });

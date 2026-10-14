@@ -278,6 +278,21 @@ describe('WritingTakePage', () => {
         });
         expect(await screen.findByText('result route')).toBeInTheDocument();
     });
+
+    it('provides a 2-tab switch between prompt and editor', async () => {
+        getTaskById.mockResolvedValue(envelope(TASK));
+        const user = userEvent.setup();
+        renderTake();
+
+        const promptTab = await screen.findByRole('tab', { name: /^Đề bài$/ });
+        const editorTab = screen.getByRole('tab', { name: /^Làm bài/ });
+        expect(promptTab).toHaveAttribute('aria-selected', 'true');
+        expect(editorTab).toHaveAttribute('aria-selected', 'false');
+
+        await user.click(editorTab);
+        expect(promptTab).toHaveAttribute('aria-selected', 'false');
+        expect(editorTab).toHaveAttribute('aria-selected', 'true');
+    });
 });
 
 describe('WritingResultPage — the asynchronous grading state', () => {

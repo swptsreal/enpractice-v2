@@ -1,14 +1,14 @@
-import { useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import { Clock, Loader2, TrendingUp, AlertTriangle } from 'lucide-react';
-import { Lexi } from '../../components/mascot/Lexi';
-import { Card } from '../../components/ui/Card';
-import { ButtonLink } from '../../components/ui/Button';
-import { Chip, SkeletonCard } from '../../components/ui/Primitives';
-import { AsyncBoundary } from '../../components/ui/AsyncBoundary';
-import { MicrophoneNotice } from '../../components/speaking/RecordingControl';
-import { cn } from '../../lib/cn';
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+import { Clock, Loader2, TrendingUp, AlertTriangle } from "lucide-react";
+import { Lexi } from "../../components/mascot/Lexi";
+import { Card } from "../../components/ui/Card";
+import { ButtonLink } from "../../components/ui/Button";
+import { Chip, SkeletonCard } from "../../components/ui/Primitives";
+import { AsyncBoundary } from "../../components/ui/AsyncBoundary";
+import { MicrophoneNotice } from "../../components/speaking/RecordingControl";
+import { cn } from "../../lib/cn";
 import {
     PARTS,
     isGrading,
@@ -16,7 +16,7 @@ import {
     useSpeakingTopics,
     useSpeakingHighestScores,
     useMicrophoneStatus,
-} from '../../features/speaking/useSpeaking';
+} from "../../features/speaking/useSpeaking";
 
 /**
  * Speaking topics — `/speaking` (screen 24).
@@ -43,15 +43,15 @@ import {
  * in review, not as `ielts.difficulty.EASY` in front of a learner.
  */
 const PART_LABEL_KEYS = {
-    PART_1: 'speaking.part.PART_1',
-    PART_2: 'speaking.part.PART_2',
-    PART_3: 'speaking.part.PART_3',
+    PART_1: "speaking.part.PART_1",
+    PART_2: "speaking.part.PART_2",
+    PART_3: "speaking.part.PART_3",
 };
 
 const DIFFICULTY_LABEL_KEYS = {
-    EASY: 'ielts.difficulty.easy',
-    MEDIUM: 'ielts.difficulty.medium',
-    HARD: 'ielts.difficulty.hard',
+    EASY: "ielts.difficulty.easy",
+    MEDIUM: "ielts.difficulty.medium",
+    HARD: "ielts.difficulty.hard",
 };
 
 export default function SpeakingListPage() {
@@ -66,25 +66,31 @@ export default function SpeakingListPage() {
 
     return (
         <div className="flex flex-col gap-4">
-            <p className="t-micro muted">{t('speaking.subtitle')}</p>
+            <p className="t-micro muted">{t("speaking.subtitle")}</p>
 
             <MicrophoneNotice status={micStatus} />
 
-            <div role="group" aria-label={t('speaking.filterLabel')} className="flex flex-wrap gap-1.5">
+            <div
+                role="group"
+                aria-label={t("speaking.filterLabel")}
+                className="flex flex-wrap gap-1.5"
+            >
                 {[null, ...PARTS].map((value) => (
                     <button
-                        key={value ?? 'ALL'}
+                        key={value ?? "ALL"}
                         type="button"
                         aria-pressed={part === value}
                         onClick={() => setPart(value)}
                         className={cn(
-                            'min-h-11 rounded-[var(--r-control)] px-3.5 text-sm font-bold',
+                            "min-h-11 rounded-[var(--r-control)] px-3.5 text-sm font-bold",
                             part === value
-                                ? 'bg-[var(--teal)] text-[var(--on-teal)]'
-                                : 'bg-[var(--surface-alt)] text-[var(--ink-muted)]'
+                                ? "bg-[var(--teal)] text-[var(--on-teal)]"
+                                : "bg-[var(--surface-alt)] text-[var(--ink-muted)]",
                         )}
                     >
-                        {value ? t(PART_LABEL_KEYS[value] ?? 'speaking.filterAll') : t('speaking.filterAll')}
+                        {value
+                            ? t(PART_LABEL_KEYS[value] ?? "speaking.filterAll")
+                            : t("speaking.filterAll")}
                     </button>
                 ))}
             </div>
@@ -101,32 +107,53 @@ export default function SpeakingListPage() {
                         ))}
                     </div>
                 }
-                emptyTitle={t('speaking.emptyTitle')}
-                emptyBody={t('speaking.emptyBody')}
+                emptyTitle={t("speaking.emptyTitle")}
+                emptyBody={t("speaking.emptyBody")}
                 emptyMood="explain"
             >
                 <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((topic) => {
                         const score = scores[topic.id];
-                        const grading = score?.attempted && isGrading(score.status);
-                        const failed = score?.attempted && isGradingFailed(score.status);
+                        const grading =
+                            score?.attempted && isGrading(score.status);
+                        const failed =
+                            score?.attempted && isGradingFailed(score.status);
                         const band = score?.highestBandScore;
 
                         return (
                             <li key={topic.id}>
-                                <Card level="edge" padding="xl" className="flex h-full flex-col">
+                                <Card
+                                    level="edge"
+                                    padding="xl"
+                                    className="flex h-full flex-col"
+                                >
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <Chip tone="neutral">{t(PART_LABEL_KEYS[topic.part] ?? 'speaking.filterAll')}</Chip>
+                                        <Chip tone="neutral">
+                                            {t(
+                                                PART_LABEL_KEYS[topic.part] ??
+                                                    "speaking.filterAll",
+                                            )}
+                                        </Chip>
                                         {topic.difficulty ? (
-                                            <Chip tone="amber">{t(DIFFICULTY_LABEL_KEYS[topic.difficulty] ?? 'ielts.difficulty.easy')}</Chip>
+                                            <Chip tone="amber">
+                                                {t(
+                                                    DIFFICULTY_LABEL_KEYS[
+                                                        topic.difficulty
+                                                    ] ??
+                                                        "ielts.difficulty.easy",
+                                                )}
+                                            </Chip>
                                         ) : null}
                                         {grading ? (
                                             <Chip tone="amber" icon={Loader2}>
-                                                {t('speaking.statusGrading')}
+                                                {t("speaking.statusGrading")}
                                             </Chip>
                                         ) : failed ? (
-                                            <Chip tone="wrong" icon={AlertTriangle}>
-                                                {t('speaking.statusFailed')}
+                                            <Chip
+                                                tone="wrong"
+                                                icon={AlertTriangle}
+                                            >
+                                                {t("speaking.statusFailed")}
                                             </Chip>
                                         ) : band != null ? (
                                             <Chip tone="teal" icon={TrendingUp}>
@@ -135,29 +162,37 @@ export default function SpeakingListPage() {
                                         ) : null}
                                     </div>
 
-                                    <h3 className="t-h3 mt-3 line-clamp-4">{topic.question}</h3>
+                                    <h3 className="t-h3 mt-3 line-clamp-4">
+                                        {topic.question}
+                                    </h3>
 
                                     <div className="mt-auto flex flex-col gap-2 pt-4">
                                         <ButtonLink
                                             to={`/speaking/practice/${topic.id}`}
-                                            variant={grading || failed ? 'ghost' : 'primary'}
+                                            variant={
+                                                grading || failed
+                                                    ? "ghost"
+                                                    : "primary"
+                                            }
                                             size="sm"
                                             block
                                         >
                                             {grading
-                                                ? t('speaking.viewStatus')
+                                                ? t("speaking.viewStatus")
                                                 : failed
-                                                  ? t('speaking.tryAgain')
+                                                  ? t("speaking.tryAgain")
                                                   : band != null
-                                                    ? t('speaking.practiceAgain')
-                                                    : t('speaking.start')}
+                                                    ? t(
+                                                          "speaking.practiceAgain",
+                                                      )
+                                                    : t("speaking.start")}
                                         </ButtonLink>
                                         {band != null && score?.attemptId ? (
                                             <Link
                                                 to={`/speaking/result/${score.attemptId}`}
                                                 className="t-micro text-center text-[var(--teal)]"
                                             >
-                                                {t('speaking.viewResult')}
+                                                {t("speaking.viewResult")}
                                             </Link>
                                         ) : null}
                                     </div>
@@ -170,12 +205,15 @@ export default function SpeakingListPage() {
 
             <div className="flex flex-wrap items-center justify-center gap-4">
                 <Lexi mood="happy" size="xs" />
-                <Link to="/speaking/attempts" className="t-label text-[var(--teal)]">
-                    {t('speaking.historyLink')}
+                <Link
+                    to="/speaking/attempts"
+                    className="t-label text-[var(--teal)]"
+                >
+                    {t("speaking.historyLink")}
                 </Link>
                 <span className="t-micro muted inline-flex items-center gap-1.5">
                     <Clock size={13} aria-hidden="true" />
-                    {t('speaking.typicalLength')}
+                    {t("speaking.typicalLength")}
                 </span>
             </div>
         </div>

@@ -1,12 +1,13 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate, Link } from 'react-router-dom';
-import { Plus, RefreshCw, Clock, BookMarked, Loader2, AlertTriangle } from 'lucide-react';
-import { Lexi } from '../../components/mascot/Lexi';
-import { Card } from '../../components/ui/Card';
-import { Button, ButtonLink } from '../../components/ui/Button';
-import { Chip, SkeletonCard } from '../../components/ui/Primitives';
-import { AsyncBoundary } from '../../components/ui/AsyncBoundary';
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate, Link } from "react-router-dom";
+import { Plus, RefreshCw, Clock, BookMarked, Loader2, AlertTriangle } from "lucide-react";
+import { Lexi } from "../../components/mascot/Lexi";
+import { Card } from "../../components/ui/Card";
+import { Button, ButtonLink } from "../../components/ui/Button";
+import { Chip, SkeletonCard } from "../../components/ui/Primitives";
+import { AsyncBoundary } from "../../components/ui/AsyncBoundary";
+import { isCreatedWithinLastDay } from "../../utils/date";
 import {
     useVocabularyTestList,
     useGenerateVocabularyTest,
@@ -15,7 +16,7 @@ import {
     isNotEnoughDataError,
     VOCABULARY_SOURCES,
     SOURCE_LABEL_KEYS,
-} from '../../features/vocabulary/useVocabularyTest';
+} from "../../features/vocabulary/useVocabularyTest";
 
 /**
  * Vocabulary test list.
@@ -48,14 +49,10 @@ export default function VocabularyListPage() {
         setGenerateError(null);
         setPending(true);
         try {
-            const created = await generate({ questionCount, sources: [] });
-            /* Start polling straight away so the new card's GENERATING state
-               becomes READY without the user reloading. */
+            await generate({ questionCount, sources: [] });
+            /* Start polling straight away so the new card appears in the list
+               and updates its state automatically without navigating away. */
             list.pollNow();
-            if (created?.testId) {
-                // the detail page is where the paper actually appears
-                navigate(`/vocabulary/test?testId=${encodeURIComponent(created.testId)}`);
-            }
         } catch (err) {
             setGenerateError(err);
         } finally {
@@ -68,15 +65,15 @@ export default function VocabularyListPage() {
     return (
         <div className="flex flex-col gap-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="t-micro muted">{t('vocabTest.subtitle')}</p>
+                <p className="t-micro muted">{t("vocabTest.subtitle")}</p>
                 <div className="flex gap-2">
                     <ButtonLink to="/dictionary" size="sm" variant="ghost">
                         <BookMarked size={16} aria-hidden="true" />
-                        {t('vocabTest.openDictionary')}
+                        {t("vocabTest.openDictionary")}
                     </ButtonLink>
                     <Button size="sm" variant="ghost" onClick={list.reload}>
                         <RefreshCw size={15} aria-hidden="true" />
-                        {t('common.retry')}
+                        {t("common.retry")}
                     </Button>
                 </div>
             </div>
@@ -86,13 +83,17 @@ export default function VocabularyListPage() {
                 <div className="flex flex-col gap-4 md:flex-row md:items-center">
                     <Lexi mood="happy" size="md" />
                     <div className="min-w-0 flex-1">
-                        <h2 className="t-h3">{t('vocabTest.generateTitle')}</h2>
-                        <p className="t-body muted mt-1">{t('vocabTest.generateBody')}</p>
+                        <h2 className="t-h3">{t("vocabTest.generateTitle")}</h2>
+                        <p className="t-body muted mt-1">
+                            {t("vocabTest.generateBody")}
+                        </p>
                         <p className="t-micro muted mt-1">
-                            {t('vocabTest.sourcesNote', {
-                                sources: VOCABULARY_SOURCES.filter((s) => s !== 'ALL')
+                            {t("vocabTest.sourcesNote", {
+                                sources: VOCABULARY_SOURCES.filter(
+                                    (s) => s !== "ALL",
+                                )
                                     .map((s) => t(SOURCE_LABEL_KEYS[s]))
-                                    .join(', '),
+                                    .join(", "),
                             })}
                         </p>
                     </div>
@@ -101,12 +102,12 @@ export default function VocabularyListPage() {
                             <Button
                                 key={n}
                                 size="sm"
-                                variant={n === 10 ? 'primary' : 'secondary'}
+                                variant={n === 10 ? "primary" : "secondary"}
                                 disabled={generating || pending}
                                 onClick={() => onGenerate(n)}
                             >
                                 <Plus size={15} aria-hidden="true" />
-                                {t('vocabTest.generateCount', { count: n })}
+                                {t("vocabTest.generateCount", { count: n })}
                             </Button>
                         ))}
                     </div>
@@ -114,26 +115,45 @@ export default function VocabularyListPage() {
 
                 {generating || pending ? (
                     <p className="t-micro muted mt-3 flex items-center gap-2">
-                        <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-                        {t('vocabTest.generatingNow')}
+                        <Loader2
+                            size={14}
+                            className="animate-spin"
+                            aria-hidden="true"
+                        />
+                        {t("vocabTest.generatingNow")}
                     </p>
                 ) : null}
 
                 {generateError ? (
-                    <div role="alert" className="mt-3 flex gap-3 rounded-[var(--r-card)] border-2 border-[var(--border-strong)] p-3.5">
-                        <span aria-hidden="true" className="text-[var(--wrong)]">
+                    <div
+                        role="alert"
+                        className="mt-3 flex gap-3 rounded-[var(--r-card)] border-2 border-[var(--border-strong)] p-3.5"
+                    >
+                        <span
+                            aria-hidden="true"
+                            className="text-[var(--wrong)]"
+                        >
                             <AlertTriangle size={20} />
                         </span>
                         <div className="min-w-0 flex-1">
                             <strong className="t-label block">
-                                {notEnoughData ? t('vocabTest.notEnoughDataTitle') : t('common.error.generic')}
+                                {notEnoughData
+                                    ? t("vocabTest.notEnoughDataTitle")
+                                    : t("common.error.generic")}
                             </strong>
                             <p className="t-micro muted mt-1">
-                                {notEnoughData ? t('vocabTest.notEnoughDataBody') : t('vocabTest.generateFailedBody')}
+                                {notEnoughData
+                                    ? t("vocabTest.notEnoughDataBody")
+                                    : t("vocabTest.generateFailedBody")}
                             </p>
                             {notEnoughData ? (
-                                <ButtonLink to="/dictionary" size="sm" variant="primary" className="mt-2">
-                                    {t('vocabTest.openDictionary')}
+                                <ButtonLink
+                                    to="/dictionary"
+                                    size="sm"
+                                    variant="primary"
+                                    className="mt-2"
+                                >
+                                    {t("vocabTest.openDictionary")}
                                 </ButtonLink>
                             ) : null}
                         </div>
@@ -145,7 +165,9 @@ export default function VocabularyListPage() {
             <AsyncBoundary
                 loading={list.loading}
                 error={list.error}
-                isEmpty={!list.loading && !list.error && list.items.length === 0}
+                isEmpty={
+                    !list.loading && !list.error && list.items.length === 0
+                }
                 onRetry={list.reload}
                 skeleton={
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -154,11 +176,16 @@ export default function VocabularyListPage() {
                         ))}
                     </div>
                 }
-                emptyTitle={t('vocabTest.emptyTitle')}
-                emptyBody={t('vocabTest.emptyBody')}
+                emptyTitle={t("vocabTest.emptyTitle")}
+                emptyBody={t("vocabTest.emptyBody")}
                 emptyAction={
-                    <Button size="sm" variant="primary" onClick={() => onGenerate(10)} disabled={generating}>
-                        {t('vocabTest.generateCount', { count: 10 })}
+                    <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => onGenerate(10)}
+                        disabled={generating}
+                    >
+                        {t("vocabTest.generateCount", { count: 10 })}
                     </Button>
                 }
             >
@@ -166,59 +193,104 @@ export default function VocabularyListPage() {
                     {list.items.map((test) => {
                         const generatingThis = isGenerating(test.status);
                         const failedThis = isFailed(test.status);
+                        const isCompleted =
+                            test.latestAttemptStatus === "COMPLETED" ||
+                            (test.attemptCount > 0 &&
+                                test.latestAccuracyPercent != null);
+                        const isNew =
+                            !isCompleted &&
+                            isCreatedWithinLastDay(test.createdAt);
                         return (
                             <li key={test.testId}>
-                                <Card level="edge" padding="xl" className="flex h-full flex-col">
+                                <Card
+                                    level="edge"
+                                    padding="xl"
+                                    className="flex h-full flex-col"
+                                >
                                     <div className="flex items-center justify-between gap-2">
-                                        {generatingThis ? (
-                                            <Chip tone="amber" icon={Loader2}>
-                                                {t('vocabTest.statusGenerating')}
-                                            </Chip>
-                                        ) : failedThis ? (
-                                            <Chip tone="wrong" icon={AlertTriangle}>
-                                                {t('vocabTest.statusFailed')}
-                                            </Chip>
-                                        ) : (
-                                            <Chip tone="teal">{t('vocabTest.statusReady')}</Chip>
-                                        )}
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            {generatingThis ? (
+                                                <Chip
+                                                    tone="amber"
+                                                    icon={Loader2}
+                                                >
+                                                    {t(
+                                                        "vocabTest.statusGenerating",
+                                                    )}
+                                                </Chip>
+                                            ) : failedThis ? (
+                                                <Chip
+                                                    tone="wrong"
+                                                    icon={AlertTriangle}
+                                                >
+                                                    {t(
+                                                        "vocabTest.statusFailed",
+                                                    )}
+                                                </Chip>
+                                            ) : (
+                                                <Chip tone="teal">
+                                                    {t("vocabTest.statusReady")}
+                                                </Chip>
+                                            )}
+                                            {isNew ? (
+                                                <Chip tone="amber">
+                                                    {t("vocabTest.tagNew")}
+                                                </Chip>
+                                            ) : null}
+                                        </div>
                                         {test.latestAccuracyPercent != null ? (
                                             <span className="t-mono text-[var(--teal)]">
-                                                {Math.round(test.latestAccuracyPercent)}%
+                                                {Math.round(
+                                                    test.latestAccuracyPercent,
+                                                )}
+                                                %
                                             </span>
                                         ) : null}
                                     </div>
 
-                                    <h3 className="t-h3 mt-3">{test.title ?? t('vocabTest.untitled')}</h3>
+                                    <h3 className="t-h3 mt-3">
+                                        {test.title ?? t("vocabTest.untitled")}
+                                    </h3>
                                     <p className="t-micro muted">
                                         {test.questionCount
-                                            ? t('vocabTest.questionCount', { count: test.questionCount })
-                                            : ''}
+                                            ? t("vocabTest.questionCount", {
+                                                  count: test.questionCount,
+                                              })
+                                            : ""}
                                         {test.estimatedMinutes
-                                            ? ` · ${t('home.minutes', { count: test.estimatedMinutes })}`
-                                            : ''}
+                                            ? ` · ${t("home.minutes", { count: test.estimatedMinutes })}`
+                                            : ""}
                                     </p>
                                     {test.attemptCount > 0 ? (
                                         <p className="t-micro muted mt-1">
-                                            {t('vocabTest.attemptCount', { count: test.attemptCount })}
+                                            {t("vocabTest.attemptCount", {
+                                                count: test.attemptCount,
+                                            })}
                                         </p>
                                     ) : null}
 
                                     <Button
-                                        variant={generatingThis || failedThis ? 'ghost' : 'primary'}
+                                        variant={
+                                            generatingThis || failedThis
+                                                ? "ghost"
+                                                : "primary"
+                                        }
                                         size="sm"
                                         block
                                         className="mt-auto"
                                         disabled={generatingThis}
-                                        aria-label={`${t('vocabTest.start')}: ${test.title ?? t('vocabTest.untitled')}`}
+                                        aria-label={`${t("vocabTest.start")}: ${test.title ?? t("vocabTest.untitled")}`}
                                         onClick={() =>
-                                            navigate(`/vocabulary/test?testId=${encodeURIComponent(test.testId)}`)
+                                            navigate(
+                                                `/vocabulary/test?testId=${encodeURIComponent(test.testId)}`,
+                                            )
                                         }
                                     >
                                         {generatingThis
-                                            ? t('vocabTest.waitForReady')
+                                            ? t("vocabTest.waitForReady")
                                             : failedThis
-                                              ? t('vocabTest.viewFailed')
-                                              : t('vocabTest.start')}
+                                              ? t("vocabTest.viewFailed")
+                                              : t("vocabTest.start")}
                                     </Button>
                                 </Card>
                             </li>
@@ -228,10 +300,13 @@ export default function VocabularyListPage() {
             </AsyncBoundary>
 
             <div className="flex justify-center">
-                <Link to="/vocabulary/history" className="t-label text-[var(--teal)]">
+                <Link
+                    to="/vocabulary/history"
+                    className="t-label text-[var(--teal)]"
+                >
                     <span className="inline-flex items-center gap-2">
                         <Clock size={16} aria-hidden="true" />
-                        {t('vocabTest.historyLink')}
+                        {t("vocabTest.historyLink")}
                     </span>
                 </Link>
             </div>

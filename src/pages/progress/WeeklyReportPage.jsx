@@ -1,15 +1,24 @@
-import { useCallback, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
-import { CalendarRange, TrendingUp, TrendingDown, Minus, BookOpen, Mic, PenLine, BookMarked } from 'lucide-react';
-import { Lexi } from '../../components/mascot/Lexi';
-import { Card, RowBox } from '../../components/ui/Card';
-import { ButtonLink } from '../../components/ui/Button';
-import { Chip, Stat, SkeletonCard } from '../../components/ui/Primitives';
-import { AsyncBoundary } from '../../components/ui/AsyncBoundary';
-import { useAsyncData } from '../../hooks/useAsyncData';
-import { weeklyReportApi } from '../../api';
-import { unwrapData } from '../../api/envelope';
-import { formatDate } from '../../lib/datetime';
+import { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import {
+    CalendarRange,
+    TrendingUp,
+    TrendingDown,
+    Minus,
+    BookOpen,
+    Mic,
+    PenLine,
+    BookMarked,
+} from "lucide-react";
+import { Lexi } from "../../components/mascot/Lexi";
+import { Card, RowBox } from "../../components/ui/Card";
+import { ButtonLink } from "../../components/ui/Button";
+import { Chip, Stat, SkeletonCard } from "../../components/ui/Primitives";
+import { AsyncBoundary } from "../../components/ui/AsyncBoundary";
+import { useAsyncData } from "../../hooks/useAsyncData";
+import { weeklyReportApi } from "../../api";
+import { unwrapData } from "../../api/envelope";
+import { formatDate } from "../../lib/datetime";
 
 /**
  * Progress — `/weekly-report`.
@@ -35,7 +44,7 @@ import { formatDate } from '../../lib/datetime';
  * a state per day (ACTIVE / REST / NONE), so a quiet day is visible as a quiet day
  * rather than as a gap in the data.
  */
-const DAY_STATES = ['ACTIVE', 'PARTIAL', 'REST', 'NONE'];
+const DAY_STATES = ["ACTIVE", "PARTIAL", "REST", "NONE"];
 
 /**
  * Enum -> STATIC i18n key, for the same reason as the credits action table:
@@ -47,34 +56,54 @@ const DAY_STATES = ['ACTIVE', 'PARTIAL', 'REST', 'NONE'];
  * rendered as the raw code rather than vanishing.
  */
 const DAY_STATE_KEYS = {
-    ACTIVE: 'weekly.day_ACTIVE',
-    PARTIAL: 'weekly.day_PARTIAL',
-    REST: 'weekly.day_REST',
-    NONE: 'weekly.day_NONE',
+    ACTIVE: "weekly.day_ACTIVE",
+    PARTIAL: "weekly.day_PARTIAL",
+    REST: "weekly.day_REST",
+    NONE: "weekly.day_NONE",
 };
 
 const MODULE_STATUS_KEYS = {
-    ACTIVE: 'weekly.moduleStatus.ACTIVE',
-    NO_DATA: 'weekly.moduleStatus.NO_DATA',
-    INACTIVE: 'weekly.moduleStatus.INACTIVE',
+    ACTIVE: "weekly.moduleStatus.ACTIVE",
+    NO_DATA: "weekly.moduleStatus.NO_DATA",
+    INACTIVE: "weekly.moduleStatus.INACTIVE",
 };
 
 const HIGHLIGHT_KEYS = {
-    TOTAL_STUDY: 'weekly.highlight.TOTAL_STUDY',
-    ACTIVE_DAYS: 'weekly.highlight.ACTIVE_DAYS',
-    XP_EARNED: 'weekly.highlight.XP_EARNED',
-    IELTS_ACCURACY: 'weekly.highlight.IELTS_ACCURACY',
-    VOCAB_REVIEW_ACCURACY: 'weekly.highlight.VOCAB_REVIEW_ACCURACY',
-    WORDS_LEARNED: 'weekly.highlight.WORDS_LEARNED',
-    WRITING_BAND: 'weekly.highlight.WRITING_BAND',
-    SPEAKING_BAND: 'weekly.highlight.SPEAKING_BAND',
+    TOTAL_STUDY: "weekly.highlight.TOTAL_STUDY",
+    ACTIVE_DAYS: "weekly.highlight.ACTIVE_DAYS",
+    XP_EARNED: "weekly.highlight.XP_EARNED",
+    IELTS_ACCURACY: "weekly.highlight.IELTS_ACCURACY",
+    VOCAB_REVIEW_ACCURACY: "weekly.highlight.VOCAB_REVIEW_ACCURACY",
+    WORDS_LEARNED: "weekly.highlight.WORDS_LEARNED",
+    WRITING_BAND: "weekly.highlight.WRITING_BAND",
+    SPEAKING_BAND: "weekly.highlight.SPEAKING_BAND",
 };
 
 const MODULES = [
-    { key: 'ielts', labelKey: 'weekly.moduleIelts', icon: BookOpen, path: '/ielts' },
-    { key: 'speaking', labelKey: 'weekly.moduleSpeaking', icon: Mic, path: '/speaking' },
-    { key: 'writing', labelKey: 'weekly.moduleWriting', icon: PenLine, path: '/writing' },
-    { key: 'vocabulary', labelKey: 'weekly.moduleVocabulary', icon: BookMarked, path: '/vocabulary' },
+    {
+        key: "ielts",
+        labelKey: "weekly.moduleIelts",
+        icon: BookOpen,
+        path: "/ielts",
+    },
+    {
+        key: "speaking",
+        labelKey: "weekly.moduleSpeaking",
+        icon: Mic,
+        path: "/speaking",
+    },
+    {
+        key: "writing",
+        labelKey: "weekly.moduleWriting",
+        icon: PenLine,
+        path: "/writing",
+    },
+    {
+        key: "vocabulary",
+        labelKey: "weekly.moduleVocabulary",
+        icon: BookMarked,
+        path: "/vocabulary",
+    },
 ];
 
 /** `ReportDraft`/`period` names the start date differently per endpoint; accept both. */
@@ -98,23 +127,32 @@ function readReport(response) {
  */
 export function isReportNotReady(error) {
     const status = error?.status ?? error?.response?.status;
-    const message = String(error?.message ?? error?.response?.data?.message ?? '');
+    const message = String(
+        error?.message ?? error?.response?.data?.message ?? "",
+    );
     return status === 404 || /weekly report is not ready/i.test(message);
 }
 
 function TrendChip({ comparison }) {
     const { t } = useTranslation();
-    if (!comparison || comparison.delta === null || comparison.delta === undefined) return null;
+    if (
+        !comparison ||
+        comparison.delta === null ||
+        comparison.delta === undefined
+    )
+        return null;
 
     const delta = Number(comparison.delta);
     const flat = Math.abs(delta) < 0.005;
     const up = delta > 0;
     const Icon = flat ? Minus : up ? TrendingUp : TrendingDown;
-    const tone = flat ? 'neutral' : up ? 'correct' : 'amber';
+    const tone = flat ? "neutral" : up ? "correct" : "amber";
 
     return (
         <Chip tone={tone} icon={Icon}>
-            {t('weekly.delta', { value: `${up && !flat ? '+' : ''}${delta.toFixed(1)}` })}
+            {t("weekly.delta", {
+                value: `${up && !flat ? "+" : ""}${delta.toFixed(1)}`,
+            })}
         </Chip>
     );
 }
@@ -122,8 +160,14 @@ function TrendChip({ comparison }) {
 export default function WeeklyReportPage() {
     const { t } = useTranslation();
 
-    const loader = useCallback(() => weeklyReportApi.getCurrent().then(readReport), []);
-    const { data, loading, error, reload } = useAsyncData(loader, 'weekly-report-current');
+    const loader = useCallback(
+        () => weeklyReportApi.getCurrent().then(readReport),
+        [],
+    );
+    const { data, loading, error, reload } = useAsyncData(
+        loader,
+        "weekly-report-current",
+    );
 
     const overview = data?.overview;
     const highlights = data?.highlights ?? [];
@@ -136,23 +180,27 @@ export default function WeeklyReportPage() {
      * is absent, so any `useMemo` depending on it recomputes every time. That is the
      * shape of bug where a dependency looks stable but is not.
      */
-    const daily = useMemo(() => data?.dailyActivity ?? [], [data?.dailyActivity]);
+    const daily = useMemo(
+        () => data?.dailyActivity ?? [],
+        [data?.dailyActivity],
+    );
 
     const studyMinutes = useMemo(
-        () => (overview?.totalStudySeconds ? Math.round(overview.totalStudySeconds / 60) : 0),
-        [overview]
+        () =>
+            overview?.totalStudySeconds
+                ? Math.round(overview.totalStudySeconds / 60)
+                : 0,
+        [overview],
     );
     const maxDaySeconds = useMemo(
         () => Math.max(1, ...daily.map((d) => d.studySeconds ?? 0)),
-        [daily]
+        [daily],
     );
 
     const notReady = isReportNotReady(error);
 
     return (
         <div className="mx-auto flex w-full max-w-[900px] flex-col gap-4">
-            <p className="t-micro muted">{t('weekly.subtitle')}</p>
-
             <AsyncBoundary
                 loading={loading}
                 error={notReady ? null : error}
@@ -164,78 +212,151 @@ export default function WeeklyReportPage() {
                         <SkeletonCard lines={4} />
                     </div>
                 }
-                emptyTitle={t('weekly.notReadyTitle')}
-                emptyBody={t('weekly.notReadyBody')}
+                emptyTitle={t("weekly.notReadyTitle")}
+                emptyBody={t("weekly.notReadyBody")}
                 emptyAction={
                     <ButtonLink to="/home" variant="primary" size="sm">
-                        {t('nav.home')}
+                        {t("nav.home")}
                     </ButtonLink>
                 }
             >
                 {/* A 500 that means "not ready" gets the same treatment as an empty
                     report, because that is what it is. */}
                 {notReady ? (
-                    <Card level="flat" padding="xl" className="flex items-center gap-4">
+                    <Card
+                        level="flat"
+                        padding="xl"
+                        className="flex items-center gap-4"
+                    >
                         <Lexi mood="sleepy" size="md" />
                         <div>
-                            <h2 className="t-h3">{t('weekly.notReadyTitle')}</h2>
-                            <p className="t-body soft mt-1">{t('weekly.notReadyBody')}</p>
+                            <h2 className="t-h3">
+                                {t("weekly.notReadyTitle")}
+                            </h2>
+                            <p className="t-body soft mt-1">
+                                {t("weekly.notReadyBody")}
+                            </p>
                         </div>
                     </Card>
                 ) : (
                     <div className="flex flex-col gap-4">
-                        <Card level="hero" padding="xl" className="flex flex-col gap-4 md:flex-row md:items-center">
+                        <Card
+                            level="hero"
+                            padding="xl"
+                            className="flex flex-col gap-4 md:flex-row md:items-center"
+                        >
                             <Lexi mood="approve" size="lg" />
                             <div className="min-w-0 flex-1">
                                 <span className="t-micro muted flex items-center gap-1.5">
-                                    <CalendarRange size={13} aria-hidden="true" />
+                                    <CalendarRange
+                                        size={13}
+                                        aria-hidden="true"
+                                    />
                                     {data?.weekStartAt && data?.weekEndAt
-                                        ? t('weekly.period', {
-                                              from: formatDate(data.weekStartAt) ?? '—',
-                                              to: formatDate(data.weekEndAt) ?? '—',
+                                        ? t("weekly.period", {
+                                              from:
+                                                  formatDate(
+                                                      data.weekStartAt,
+                                                  ) ?? "—",
+                                              to:
+                                                  formatDate(data.weekEndAt) ??
+                                                  "—",
                                           })
-                                        : t('weekly.thisWeek')}
+                                        : t("weekly.thisWeek")}
                                 </span>
-                                <h2 className="t-h2 mt-1">{t('weekly.headline', { count: studyMinutes })}</h2>
-                                <p className="t-body soft mt-1">{t('weekly.measuredNote')}</p>
+                                <h2 className="t-h2 mt-1">
+                                    {t("weekly.headline", {
+                                        count: studyMinutes,
+                                    })}
+                                </h2>
+                                <p className="t-body soft mt-1">
+                                    {t("weekly.measuredNote")}
+                                </p>
                             </div>
-                            {data?.status ? <Chip tone="teal">{data.status}</Chip> : null}
+                            {data?.status ? (
+                                <Chip tone="teal">{data.status}</Chip>
+                            ) : null}
                         </Card>
 
                         {/* --- overview numbers --------------------------------- */}
                         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                            <Stat value={studyMinutes} label={t('weekly.studyMinutes')} tone="teal" />
-                            <Stat value={overview?.activeDays ?? 0} label={t('weekly.activeDays')} />
-                            <Stat value={overview?.meaningfulSessions ?? 0} label={t('weekly.sessions')} />
-                            <Stat value={overview?.xpEarned ?? 0} label={t('weekly.xp')} tone="amber" />
+                            <Stat
+                                value={studyMinutes}
+                                label={t("weekly.studyMinutes")}
+                                tone="teal"
+                            />
+                            <Stat
+                                value={overview?.activeDays ?? 0}
+                                label={t("weekly.activeDays")}
+                            />
+                            <Stat
+                                value={overview?.meaningfulSessions ?? 0}
+                                label={t("weekly.sessions")}
+                            />
+                            <Stat
+                                value={overview?.xpEarned ?? 0}
+                                label={t("weekly.xp")}
+                                tone="amber"
+                            />
                         </div>
 
                         {/* --- daily strip -------------------------------------- */}
                         {daily.length > 0 ? (
                             <Card level="edge" padding="xl">
-                                <h2 className="t-h3">{t('weekly.dailyTitle')}</h2>
-                                <p className="t-micro muted mt-1">{t('weekly.dailyNote')}</p>
+                                <h2 className="t-h3">
+                                    {t("weekly.dailyTitle")}
+                                </h2>
+                                <p className="t-micro muted mt-1">
+                                    {t("weekly.dailyNote")}
+                                </p>
                                 <ul className="mt-3.5 flex items-end gap-1.5">
                                     {daily.map((day) => {
                                         /* Height encodes study time; the state is ALSO
                                            stated in the accessible name, so the bar is
                                            not a colour-only signal. */
-                                        const pct = Math.round(((day.studySeconds ?? 0) / maxDaySeconds) * 100);
-                                        const state = DAY_STATES.includes(day.state) ? day.state : 'NONE';
+                                        const pct = Math.round(
+                                            ((day.studySeconds ?? 0) /
+                                                maxDaySeconds) *
+                                                100,
+                                        );
+                                        const state = DAY_STATES.includes(
+                                            day.state,
+                                        )
+                                            ? day.state
+                                            : "NONE";
                                         return (
-                                            <li key={day.date} className="flex min-w-0 flex-1 flex-col items-center gap-1">
+                                            <li
+                                                key={day.date}
+                                                className="flex min-w-0 flex-1 flex-col items-center gap-1"
+                                            >
                                                 <span
                                                     role="img"
-                                                    aria-label={t(DAY_STATE_KEYS[state], { date: formatDate(day.date) ?? day.date, count: Math.round((day.studySeconds ?? 0) / 60) })}
+                                                    aria-label={t(
+                                                        DAY_STATE_KEYS[state],
+                                                        {
+                                                            date:
+                                                                formatDate(
+                                                                    day.date,
+                                                                ) ?? day.date,
+                                                            count: Math.round(
+                                                                (day.studySeconds ??
+                                                                    0) / 60,
+                                                            ),
+                                                        },
+                                                    )}
                                                     className="flex h-24 w-full items-end rounded-[var(--r-sm)] bg-[var(--surface-alt)]"
                                                 >
                                                     <span
                                                         className="w-full rounded-[var(--r-sm)] bg-[var(--teal)]"
-                                                        style={{ height: `${Math.max(pct, day.studySeconds > 0 ? 6 : 0)}%` }}
+                                                        style={{
+                                                            height: `${Math.max(pct, day.studySeconds > 0 ? 6 : 0)}%`,
+                                                        }}
                                                     />
                                                 </span>
                                                 <span className="t-micro muted">
-                                                    {formatDate(day.date)?.slice(0, 5) ?? ''}
+                                                    {formatDate(
+                                                        day.date,
+                                                    )?.slice(0, 5) ?? ""}
                                                 </span>
                                             </li>
                                         );
@@ -247,20 +368,39 @@ export default function WeeklyReportPage() {
                         {/* --- highlights --------------------------------------- */}
                         {highlights.length > 0 ? (
                             <Card level="edge" padding="xl">
-                                <h2 className="t-h3">{t('weekly.highlightsTitle')}</h2>
+                                <h2 className="t-h3">
+                                    {t("weekly.highlightsTitle")}
+                                </h2>
                                 <ul className="mt-3 flex flex-col gap-2">
                                     {highlights.map((h) => (
                                         <li key={h.code}>
                                             <RowBox center>
                                                 <span className="min-w-0 flex-1">
                                                     <strong className="t-label block text-[var(--ink)]">
-                                                        {HIGHLIGHT_KEYS[h.code] ? t(HIGHLIGHT_KEYS[h.code], { count: h.value }) : h.code}
+                                                        {HIGHLIGHT_KEYS[h.code]
+                                                            ? t(
+                                                                  HIGHLIGHT_KEYS[
+                                                                      h.code
+                                                                  ],
+                                                                  {
+                                                                      count: h.value,
+                                                                  },
+                                                              )
+                                                            : h.code}
                                                     </strong>
                                                     <span className="t-micro muted">
-                                                        {t('weekly.thisWeekValue', { value: h.value, unit: h.unit })}
+                                                        {t(
+                                                            "weekly.thisWeekValue",
+                                                            {
+                                                                value: h.value,
+                                                                unit: h.unit,
+                                                            },
+                                                        )}
                                                     </span>
                                                 </span>
-                                                <TrendChip comparison={h.comparison} />
+                                                <TrendChip
+                                                    comparison={h.comparison}
+                                                />
                                             </RowBox>
                                         </li>
                                     ))}
@@ -270,39 +410,73 @@ export default function WeeklyReportPage() {
 
                         {/* --- per module --------------------------------------- */}
                         <Card level="edge" padding="xl">
-                            <h2 className="t-h3">{t('weekly.modulesTitle')}</h2>
+                            <h2 className="t-h3">{t("weekly.modulesTitle")}</h2>
                             <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-                                {MODULES.map(({ key, labelKey, icon: Icon, path }) => {
-                                    const mod = modules?.[key];
-                                    const status = mod?.status ?? 'NO_DATA';
-                                    return (
-                                        <li key={key}>
-                                            <RowBox center>
-                                                <span aria-hidden="true" className="text-[var(--teal)]">
-                                                    <Icon size={18} />
-                                                </span>
-                                                <span className="min-w-0 flex-1">
-                                                    <strong className="t-label block text-[var(--ink)]">{t(labelKey)}</strong>
-                                                    <span className="t-micro muted">
-                                                        {mod?.studySeconds
-                                                            ? t('weekly.moduleMinutes', {
-                                                                  count: Math.round(mod.studySeconds / 60),
-                                                              })
-                                                            : t('weekly.moduleNoActivity')}
+                                {MODULES.map(
+                                    ({ key, labelKey, icon: Icon, path }) => {
+                                        const mod = modules?.[key];
+                                        const status = mod?.status ?? "NO_DATA";
+                                        return (
+                                            <li key={key}>
+                                                <RowBox center>
+                                                    <span
+                                                        aria-hidden="true"
+                                                        className="text-[var(--teal)]"
+                                                    >
+                                                        <Icon size={18} />
                                                     </span>
-                                                </span>
-                                                <span className="flex shrink-0 items-center gap-2">
-                                                    <Chip tone={status === 'ACTIVE' ? 'teal' : 'neutral'}>
-                                                        {MODULE_STATUS_KEYS[status] ? t(MODULE_STATUS_KEYS[status]) : status}
-                                                    </Chip>
-                                                    <ButtonLink to={path} size="sm" variant="ghost">
-                                                        {t('weekly.open')}
-                                                    </ButtonLink>
-                                                </span>
-                                            </RowBox>
-                                        </li>
-                                    );
-                                })}
+                                                    <span className="min-w-0 flex-1">
+                                                        <strong className="t-label block text-[var(--ink)]">
+                                                            {t(labelKey)}
+                                                        </strong>
+                                                        <span className="t-micro muted">
+                                                            {mod?.studySeconds
+                                                                ? t(
+                                                                      "weekly.moduleMinutes",
+                                                                      {
+                                                                          count: Math.round(
+                                                                              mod.studySeconds /
+                                                                                  60,
+                                                                          ),
+                                                                      },
+                                                                  )
+                                                                : t(
+                                                                      "weekly.moduleNoActivity",
+                                                                  )}
+                                                        </span>
+                                                    </span>
+                                                    <span className="flex shrink-0 items-center gap-2">
+                                                        <Chip
+                                                            tone={
+                                                                status ===
+                                                                "ACTIVE"
+                                                                    ? "teal"
+                                                                    : "neutral"
+                                                            }
+                                                        >
+                                                            {MODULE_STATUS_KEYS[
+                                                                status
+                                                            ]
+                                                                ? t(
+                                                                      MODULE_STATUS_KEYS[
+                                                                          status
+                                                                      ],
+                                                                  )
+                                                                : status}
+                                                        </Chip>
+                                                        <ButtonLink
+                                                            to={path}
+                                                            size="sm"
+                                                            variant="ghost"
+                                                        >
+                                                            {t("weekly.open")}
+                                                        </ButtonLink>
+                                                    </span>
+                                                </RowBox>
+                                            </li>
+                                        );
+                                    },
+                                )}
                             </ul>
                         </Card>
                     </div>

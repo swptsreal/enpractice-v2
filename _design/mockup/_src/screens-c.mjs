@@ -19,7 +19,7 @@ export const screens = {
         <nav class="shell__nav" aria-label="Điều hướng chính">
             <div class="nav">
                 <a class="nav__item" href="04-home.html">${icon('home', 20)}<span>Trang chủ</span></a>
-                <a class="nav__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 20)}<span>Từ vựng</span></a>
+                <a class="nav__item" href="36-ai-chat.html">${icon('sparkle', 20)}<span>AI Coach</span></a>
                 <a class="nav__item" href="16-ielts-list.html">${icon('target', 20)}<span>Luyện tập</span></a>
                 <a class="nav__item" href="29-weekly-report.html">${icon('chart', 20)}<span>Tiến độ</span></a>
                 <a class="nav__item" href="33-profile.html">${icon('user', 20)}<span>Cá nhân</span></a>
@@ -28,12 +28,7 @@ export const screens = {
             <div class="nav">
                 <a class="nav__item" href="07-vocabulary-check.html" aria-current="page">${icon('search', 18)}<span>Tra từ &amp; hỏi AI</span></a>
                 <a class="nav__item" href="12-dictionary.html">${icon('book', 18)}<span>Sổ tay từ vựng</span></a>
-                <!-- "Test từ vựng" (08) is NOT repeated in this group: it is the section's LANDING,
-                     and the primary tab already goes there. Listing both put two rail entries on one
-                     screen, highlighted at the same time.
-
-                     The group is "Khác", like every other frame's — the SECTION name now lives on the
-                     primary tab ("Từ vựng"), so a group heading repeating it named nothing new. -->
+                <a class="nav__item" href="08-vocabulary-list.html">${icon('book', 18)}<span>Từ vựng</span></a>
                 <a class="nav__item" href="13-dictionary-review.html">${icon('sparkle', 18)}<span>Ôn flashcard</span></a>
                 <a class="nav__item" href="14-evaluation.html">${icon('chart', 18)}<span>Đánh giá năng lực</span></a>
                 <a class="nav__item" href="15-review.html">${icon('clock', 18)}<span>Ôn tập từ vựng</span></a>
@@ -136,10 +131,10 @@ export const screens = {
 
         <nav class="tabbar only-mobile" aria-label="Điều hướng chính">
             <a class="tabbar__item" href="04-home.html">${icon('home', 22)}<span>Trang chủ</span></a>
-            <a class="tabbar__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 22)}<span>Từ vựng</span></a>
+            <a class="tabbar__item" href="36-ai-chat.html">${icon('sparkle', 22)}<span>AI Coach</span></a>
             <a class="tabbar__item" href="16-ielts-list.html">${icon('target', 22)}<span>Luyện tập</span></a>
             <a class="tabbar__item" href="29-weekly-report.html">${icon('chart', 22)}<span>Tiến độ</span></a>
-            <a class="tabbar__item" href="33-profile.html">${icon('user', 22)}<span>Cá nhân</span></a>
+            <a class="tabbar__item" href="33b-account-menu.html">${icon('menu', 22)}<span>Thêm</span></a>
         </nav>
     </div>
     ${lexiFab()}
@@ -258,7 +253,7 @@ export const screens = {
         <nav class="shell__nav" aria-label="Điều hướng chính">
             <div class="nav">
                 <a class="nav__item" href="04-home.html">${icon('home', 20)}<span>Trang chủ</span></a>
-                <a class="nav__item" href="08-vocabulary-list.html">${icon('book', 20)}<span>Từ vựng</span></a>
+                <a class="nav__item" href="36-ai-chat.html">${icon('sparkle', 20)}<span>AI Coach</span></a>
                 <a class="nav__item" href="16-ielts-list.html">${icon('target', 20)}<span>Luyện tập</span></a>
                 <a class="nav__item" href="29-weekly-report.html">${icon('chart', 20)}<span>Tiến độ</span></a>
                 <a class="nav__item" href="33-profile.html">${icon('user', 20)}<span>Cá nhân</span></a>
@@ -295,16 +290,19 @@ export const screens = {
                 <h2 class="t-h2" style="margin-bottom:12px">Bài test có sẵn</h2>
                 <div class="grid g-auto">
                     ${[
-                        ['Education', '20 từ · 10 phút', 'AI tạo', 0],
-                        ['Environment', '25 từ · 12 phút', 'AI tạo', 0],
-                        ['Technology', '20 từ · 10 phút', 'Của tôi', 72],
-                        ['Health', '18 từ · 9 phút', 'Của tôi', 85],
-                        ['Urbanisation', '22 từ · 11 phút', 'AI tạo', 0],
-                        ['Culture', '20 từ · 10 phút', 'Của tôi', 60],
-                    ].map(([topic, meta, src, score]) => `
+                        ['Education', '20 từ · 10 phút', 'AI tạo', 0, true],
+                        ['Environment', '25 từ · 12 phút', 'AI tạo', 0, false],
+                        ['Technology', '20 từ · 10 phút', 'Của tôi', 72, false],
+                        ['Health', '18 từ · 9 phút', 'Của tôi', 85, false],
+                        ['Urbanisation', '22 từ · 11 phút', 'AI tạo', 0, false],
+                        ['Culture', '20 từ · 10 phút', 'Của tôi', 60, false],
+                    ].map(([topic, meta, src, score, isNew]) => `
                         <article class="card card--edge pad-x">
                             <div class="between">
-                                <span class="chip ${src === 'AI tạo' ? 'chip--teal' : ''}">${src}</span>
+                                <div class="row g8">
+                                    <span class="chip ${src === 'AI tạo' ? 'chip--teal' : ''}">${src}</span>
+                                    ${isNew ? '<span class="chip chip--amber">New</span>' : ''}
+                                </div>
                                 ${score ? `<span class="band">${score}%</span>` : ''}
                             </div>
                             <h3 class="t-h3" style="margin-top:12px">${topic}</h3>
@@ -331,10 +329,10 @@ export const screens = {
 
         <nav class="tabbar only-mobile" aria-label="Điều hướng chính">
             <a class="tabbar__item" href="04-home.html">${icon('home', 22)}<span>Trang chủ</span></a>
-            <a class="tabbar__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 22)}<span>Từ vựng</span></a>
+            <a class="tabbar__item" href="36-ai-chat.html">${icon('sparkle', 22)}<span>AI Coach</span></a>
             <a class="tabbar__item" href="16-ielts-list.html">${icon('target', 22)}<span>Luyện tập</span></a>
             <a class="tabbar__item" href="29-weekly-report.html">${icon('chart', 22)}<span>Tiến độ</span></a>
-            <a class="tabbar__item" href="33-profile.html">${icon('user', 22)}<span>Cá nhân</span></a>
+            <a class="tabbar__item" href="33b-account-menu.html">${icon('menu', 22)}<span>Thêm</span></a>
         </nav>
     </div>
     ${lexiFab()}
@@ -415,7 +413,7 @@ export const screens = {
         <nav class="shell__nav" aria-label="Điều hướng chính">
             <div class="nav">
                 <a class="nav__item" href="04-home.html">${icon('home', 20)}<span>Trang chủ</span></a>
-                <a class="nav__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 20)}<span>Từ vựng</span></a>
+                <a class="nav__item" href="36-ai-chat.html">${icon('sparkle', 20)}<span>AI Coach</span></a>
                 <a class="nav__item" href="16-ielts-list.html">${icon('target', 20)}<span>Luyện tập</span></a>
                 <a class="nav__item" href="29-weekly-report.html">${icon('chart', 20)}<span>Tiến độ</span></a>
                 <a class="nav__item" href="33-profile.html">${icon('user', 20)}<span>Cá nhân</span></a>
@@ -496,10 +494,10 @@ export const screens = {
 
         <nav class="tabbar only-mobile" aria-label="Điều hướng chính">
             <a class="tabbar__item" href="04-home.html">${icon('home', 22)}<span>Trang chủ</span></a>
-            <a class="tabbar__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 22)}<span>Từ vựng</span></a>
+            <a class="tabbar__item" href="36-ai-chat.html">${icon('sparkle', 22)}<span>AI Coach</span></a>
             <a class="tabbar__item" href="16-ielts-list.html">${icon('target', 22)}<span>Luyện tập</span></a>
             <a class="tabbar__item" href="29-weekly-report.html">${icon('chart', 22)}<span>Tiến độ</span></a>
-            <a class="tabbar__item" href="33-profile.html">${icon('user', 22)}<span>Cá nhân</span></a>
+            <a class="tabbar__item" href="33b-account-menu.html">${icon('menu', 22)}<span>Thêm</span></a>
         </nav>
     </div>
     ${lexiFab()}
@@ -528,7 +526,7 @@ export const screens = {
         <nav class="shell__nav" aria-label="Điều hướng chính">
             <div class="nav">
                 <a class="nav__item" href="04-home.html">${icon('home', 20)}<span>Trang chủ</span></a>
-                <a class="nav__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 20)}<span>Từ vựng</span></a>
+                <a class="nav__item" href="36-ai-chat.html">${icon('sparkle', 20)}<span>AI Coach</span></a>
                 <a class="nav__item" href="16-ielts-list.html">${icon('target', 20)}<span>Luyện tập</span></a>
                 <a class="nav__item" href="29-weekly-report.html">${icon('chart', 20)}<span>Tiến độ</span></a>
                 <a class="nav__item" href="33-profile.html">${icon('user', 20)}<span>Cá nhân</span></a>
@@ -608,10 +606,10 @@ export const screens = {
 
         <nav class="tabbar only-mobile" aria-label="Điều hướng chính">
             <a class="tabbar__item" href="04-home.html">${icon('home', 22)}<span>Trang chủ</span></a>
-            <a class="tabbar__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 22)}<span>Từ vựng</span></a>
+            <a class="tabbar__item" href="36-ai-chat.html">${icon('sparkle', 22)}<span>AI Coach</span></a>
             <a class="tabbar__item" href="16-ielts-list.html">${icon('target', 22)}<span>Luyện tập</span></a>
             <a class="tabbar__item" href="29-weekly-report.html">${icon('chart', 22)}<span>Tiến độ</span></a>
-            <a class="tabbar__item" href="33-profile.html">${icon('user', 22)}<span>Cá nhân</span></a>
+            <a class="tabbar__item" href="33b-account-menu.html">${icon('menu', 22)}<span>Thêm</span></a>
         </nav>
     </div>
     ${lexiFab()}
@@ -633,7 +631,7 @@ export const screens = {
         <nav class="shell__nav" aria-label="Điều hướng chính">
             <div class="nav">
                 <a class="nav__item" href="04-home.html">${icon('home', 20)}<span>Trang chủ</span></a>
-                <a class="nav__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 20)}<span>Từ vựng</span></a>
+                <a class="nav__item" href="36-ai-chat.html">${icon('sparkle', 20)}<span>AI Coach</span></a>
                 <a class="nav__item" href="16-ielts-list.html">${icon('target', 20)}<span>Luyện tập</span></a>
                 <a class="nav__item" href="29-weekly-report.html">${icon('chart', 20)}<span>Tiến độ</span></a>
                 <a class="nav__item" href="33-profile.html">${icon('user', 20)}<span>Cá nhân</span></a>
@@ -733,10 +731,10 @@ export const screens = {
 
         <nav class="tabbar only-mobile" aria-label="Điều hướng chính">
             <a class="tabbar__item" href="04-home.html">${icon('home', 22)}<span>Trang chủ</span></a>
-            <a class="tabbar__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 22)}<span>Từ vựng</span></a>
+            <a class="tabbar__item" href="36-ai-chat.html">${icon('sparkle', 22)}<span>AI Coach</span></a>
             <a class="tabbar__item" href="16-ielts-list.html">${icon('target', 22)}<span>Luyện tập</span></a>
             <a class="tabbar__item" href="29-weekly-report.html">${icon('chart', 22)}<span>Tiến độ</span></a>
-            <a class="tabbar__item" href="33-profile.html">${icon('user', 22)}<span>Cá nhân</span></a>
+            <a class="tabbar__item" href="33b-account-menu.html">${icon('menu', 22)}<span>Thêm</span></a>
         </nav>
     </div>
     ${lexiFab()}
@@ -846,7 +844,7 @@ export const screens = {
         <nav class="shell__nav" aria-label="Điều hướng chính">
             <div class="nav">
                 <a class="nav__item" href="04-home.html">${icon('home', 20)}<span>Trang chủ</span></a>
-                <a class="nav__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 20)}<span>Từ vựng</span></a>
+                <a class="nav__item" href="36-ai-chat.html">${icon('sparkle', 20)}<span>AI Coach</span></a>
                 <a class="nav__item" href="16-ielts-list.html">${icon('target', 20)}<span>Luyện tập</span></a>
                 <a class="nav__item" href="29-weekly-report.html">${icon('chart', 20)}<span>Tiến độ</span></a>
                 <a class="nav__item" href="33-profile.html">${icon('user', 20)}<span>Cá nhân</span></a>
@@ -913,10 +911,10 @@ export const screens = {
 
         <nav class="tabbar only-mobile" aria-label="Điều hướng chính">
             <a class="tabbar__item" href="04-home.html">${icon('home', 22)}<span>Trang chủ</span></a>
-            <a class="tabbar__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 22)}<span>Từ vựng</span></a>
+            <a class="tabbar__item" href="36-ai-chat.html">${icon('sparkle', 22)}<span>AI Coach</span></a>
             <a class="tabbar__item" href="16-ielts-list.html">${icon('target', 22)}<span>Luyện tập</span></a>
             <a class="tabbar__item" href="29-weekly-report.html">${icon('chart', 22)}<span>Tiến độ</span></a>
-            <a class="tabbar__item" href="33-profile.html">${icon('user', 22)}<span>Cá nhân</span></a>
+            <a class="tabbar__item" href="33b-account-menu.html">${icon('menu', 22)}<span>Thêm</span></a>
         </nav>
     </div>
     ${lexiFab()}
@@ -996,7 +994,7 @@ export const screens = {
         <nav class="shell__nav" aria-label="Điều hướng chính">
             <div class="nav">
                 <a class="nav__item" href="04-home.html">${icon('home', 20)}<span>Trang chủ</span></a>
-                <a class="nav__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 20)}<span>Từ vựng</span></a>
+                <a class="nav__item" href="36-ai-chat.html">${icon('sparkle', 20)}<span>AI Coach</span></a>
                 <a class="nav__item" href="16-ielts-list.html">${icon('target', 20)}<span>Luyện tập</span></a>
                 <a class="nav__item" href="29-weekly-report.html">${icon('chart', 20)}<span>Tiến độ</span></a>
                 <a class="nav__item" href="33-profile.html">${icon('user', 20)}<span>Cá nhân</span></a>
@@ -1104,10 +1102,10 @@ export const screens = {
 
         <nav class="tabbar only-mobile" aria-label="Điều hướng chính">
             <a class="tabbar__item" href="04-home.html">${icon('home', 22)}<span>Trang chủ</span></a>
-            <a class="tabbar__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 22)}<span>Từ vựng</span></a>
+            <a class="tabbar__item" href="36-ai-chat.html">${icon('sparkle', 22)}<span>AI Coach</span></a>
             <a class="tabbar__item" href="16-ielts-list.html">${icon('target', 22)}<span>Luyện tập</span></a>
             <a class="tabbar__item" href="29-weekly-report.html">${icon('chart', 22)}<span>Tiến độ</span></a>
-            <a class="tabbar__item" href="33-profile.html">${icon('user', 22)}<span>Cá nhân</span></a>
+            <a class="tabbar__item" href="33b-account-menu.html">${icon('menu', 22)}<span>Thêm</span></a>
         </nav>
     </div>
     ${lexiFab()}
@@ -1294,7 +1292,7 @@ mark { background: var(--amber-soft); color: inherit; border-radius: 3px; paddin
         <nav class="shell__nav" aria-label="Điều hướng chính">
             <div class="nav">
                 <a class="nav__item" href="04-home.html">${icon('home', 20)}<span>Trang chủ</span></a>
-                <a class="nav__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 20)}<span>Từ vựng</span></a>
+                <a class="nav__item" href="36-ai-chat.html">${icon('sparkle', 20)}<span>AI Coach</span></a>
                 <a class="nav__item" href="16-ielts-list.html">${icon('target', 20)}<span>Luyện tập</span></a>
                 <a class="nav__item" href="29-weekly-report.html">${icon('chart', 20)}<span>Tiến độ</span></a>
                 <a class="nav__item" href="33-profile.html">${icon('user', 20)}<span>Cá nhân</span></a>
@@ -1416,10 +1414,10 @@ mark { background: var(--amber-soft); color: inherit; border-radius: 3px; paddin
 
         <nav class="tabbar only-mobile" aria-label="Điều hướng chính">
             <a class="tabbar__item" href="04-home.html">${icon('home', 22)}<span>Trang chủ</span></a>
-            <a class="tabbar__item" href="08-vocabulary-list.html" aria-current="page">${icon('book', 22)}<span>Từ vựng</span></a>
+            <a class="tabbar__item" href="36-ai-chat.html">${icon('sparkle', 22)}<span>AI Coach</span></a>
             <a class="tabbar__item" href="16-ielts-list.html">${icon('target', 22)}<span>Luyện tập</span></a>
             <a class="tabbar__item" href="29-weekly-report.html">${icon('chart', 22)}<span>Tiến độ</span></a>
-            <a class="tabbar__item" href="33-profile.html">${icon('user', 22)}<span>Cá nhân</span></a>
+            <a class="tabbar__item" href="33b-account-menu.html">${icon('menu', 22)}<span>Thêm</span></a>
         </nav>
     </div>
     ${lexiFab()}

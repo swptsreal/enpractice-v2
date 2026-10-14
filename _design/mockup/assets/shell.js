@@ -31,6 +31,7 @@ const P = {
     cross:     '<path d="M6 6l12 12M18 6 6 18"/>',
     lock:      '<rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>',
     flame:     '<path d="M12 3c3 4 6 5.5 6 9.5A6 6 0 0 1 6 12.5C6 8.5 9 7 12 3z"/><path d="M12 20a3 3 0 0 1-3-3c0-1.6 1.2-2.6 3-4.5 1.8 1.9 3 2.9 3 4.5a3 3 0 0 1-3 3z"/>',
+    menu:      '<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/>',
     play:      '<path d="M7 4.5 19 12 7 19.5z"/>',
     headphones:'<path d="M4.5 15v-2a7.5 7.5 0 0 1 15 0v2"/><rect x="3" y="14" width="4" height="6" rx="2"/><rect x="17" y="14" width="4" height="6" rx="2"/>',
     arrowRight:'<path d="M4.5 12h15"/><path d="M13.5 6l6 6-6 6"/>',
@@ -79,10 +80,18 @@ export function icon(name, size = 20, cls = '') {
  */
 const PRIMARY = [
     { id: 'home',    label: 'Trang chủ',  icon: 'home',    href: '04-home.html' },
-    { id: 'learn',   label: 'Từ vựng',     icon: 'book',    href: '08-vocabulary-list.html' },
+    { id: 'ai-chat', label: 'AI Coach',   icon: 'sparkle', href: '36-ai-chat.html' },
     { id: 'practice',label: 'Luyện tập',   icon: 'target',  href: '16-ielts-list.html' },
     { id: 'progress',label: 'Tiến độ',     icon: 'chart',   href: '29-weekly-report.html' },
     { id: 'profile', label: 'Cá nhân',     icon: 'user',    href: '33-profile.html' },
+];
+
+const MOBILE_TABS = [
+    { id: 'home',    label: 'Trang chủ',  icon: 'home',    href: '04-home.html' },
+    { id: 'ai-chat', label: 'AI Coach',   icon: 'sparkle', href: '36-ai-chat.html' },
+    { id: 'practice',label: 'Luyện tập',   icon: 'target',  href: '16-ielts-list.html' },
+    { id: 'progress',label: 'Tiến độ',     icon: 'chart',   href: '29-weekly-report.html' },
+    { id: 'more',    label: 'Thêm',       icon: 'menu',    href: '33b-account-menu.html' },
 ];
 
 const SECONDARY = [
@@ -97,7 +106,7 @@ const SECONDARY = [
     { label: 'Luyện Writing',     icon: 'pen',    href: '21-writing-list.html' },
     { label: 'Luyện Speaking',    icon: 'mic',    href: '24-speaking-list.html' },
     { label: 'Hội thoại tự chọn', icon: 'chat',   href: '27-custom-speaking.html' },
-    { label: 'AI Coach',          icon: 'sparkle',href: '36-ai-chat.html' },
+    { label: 'Từ vựng',           icon: 'book',   href: '08-vocabulary-list.html' },
     { label: 'Bảng xếp hạng',     icon: 'trophy', href: '28-leaderboard.html' },
     { label: 'Phần thưởng',       icon: 'gift',   href: '31-rewards.html' },
     { label: 'Ví credit',         icon: 'coin',   href: '32-credits.html' },
@@ -126,9 +135,10 @@ const SECONDARY = [
  * already carries Lexi, the title, the bell and the avatar, and a fifth element squeezes the title
  * into an ellipsis.
  */
-export function accountHeader({ unread = 3, initial = 'M', tier = 'Premium', open = false } = {}) {
+export function accountHeader({ unread = 3, initial = 'M', tier = 'Premium', credits = 240, open = false } = {}) {
     return `
 <div class="acct">
+    <a class="chip chip--teal only-mobile" href="32-credits.html" aria-label="Ví credit" style="text-decoration:none">${icon('coin', 14)} ${credits}</a>
     <button class="acct__icon" type="button" aria-label="Thông báo">${icon('bell', 18)}${
         unread > 0 ? `<span class="acct__dot">${unread}</span>` : ''
     }</button>
@@ -204,8 +214,8 @@ export function shell({
         (n) => `<a class="nav__item" href="${n.href}">${icon(n.icon, 18)}<span>${n.label}</span></a>`
     ).join('');
 
-    const tabs = PRIMARY.map(
-        (n) => `<a class="tabbar__item" href="${n.href}" ${n.id === active ? 'aria-current="page"' : ''}>
+    const tabs = MOBILE_TABS.map(
+        (n) => `<a class="tabbar__item" href="${n.href}" ${n.id === active || (active === 'profile' && n.id === 'more') || (active === 'more' && n.id === 'more') ? 'aria-current="page"' : ''}>
             ${icon(n.icon, 22)}<span>${n.label}</span></a>`
     ).join('');
 
@@ -310,11 +320,11 @@ export function lexiPanel() {
     </div>
 
     <!-- Suggestion chips: the panel has no room for a wall of options, and an empty composer is the
-         moment a learner gives up. Three is what fits without scrolling. -->
-    <div class="row g8 wrap lexi-panel__chips">
-        <button class="chip chip--outline" type="button">Giải thích chỗ này</button>
-        <button class="chip chip--outline" type="button">Cho mình ví dụ</button>
-        <button class="chip chip--outline" type="button">Sai ở đâu?</button>
+         moment a learner gives up. Single row with scroll. -->
+    <div class="row g8 nowrap no-scrollbar lexi-panel__chips" style="overflow-x:auto;flex-wrap:nowrap">
+        <button class="chip chip--outline" style="flex-shrink:0;white-space:nowrap" type="button">Giải thích chỗ này</button>
+        <button class="chip chip--outline" style="flex-shrink:0;white-space:nowrap" type="button">Cho mình ví dụ</button>
+        <button class="chip chip--outline" style="flex-shrink:0;white-space:nowrap" type="button">Sai ở đâu?</button>
     </div>
 
     <div class="lexi-panel__composer">

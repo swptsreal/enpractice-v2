@@ -1,8 +1,9 @@
 import { Suspense, lazy, useRef, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bell } from 'lucide-react';
+import { Bell, Coins } from 'lucide-react';
 import { Sidebar, TabBar } from './Shell';
+import { MoreSheet } from './MoreSheet';
 import OnboardingAutoOpen from './OnboardingAutoOpen';
 import AccountMenu from './AccountMenu';
 import { Lexi } from '../components/mascot/Lexi';
@@ -53,7 +54,7 @@ export default function AppLayout() {
     return (
         <ProviderStack>
             <PageHeaderProvider>
-                <ShellChrome title={title} t={t} />
+                <ShellChrome title={title} t={t} pathname={pathname} />
             </PageHeaderProvider>
         </ProviderStack>
     );
@@ -77,7 +78,7 @@ export default function AppLayout() {
  * would be a 401 in the console and nothing else. The gate hook short-circuits for a guest;
  * the bell is a child component that is simply not mounted.
  */
-function ShellChrome({ title, t }) {
+function ShellChrome({ title, t, pathname }) {
     const { isAuthenticated } = useAuth();
     const { availableBalance } = useCredit();
     const { shouldOpen, summary } = useOnboardingGate();
@@ -86,10 +87,15 @@ function ShellChrome({ title, t }) {
        >=1024px and still one line with no subtitle. */
     const subtitle = usePageHeaderSubtitle();
 
-    /* The helper's panel: one boolean, owned here because the shell owns the button that opens it
-       and the focus it must return to. */
-    const [lexiOpen, setLexiOpen] = useState(false);
+    /* The helper's panel: open when opened on the CURRENT route; automatically closes
+       on navigation without an effect. Suppressed on /ai-chat. */
+    const isAiChat = pathname === '/ai-chat';
+    const [openedPathname, setOpenedPathname] = useState(null);
+    const lexiOpen = openedPathname === pathname;
     const lexiButtonRef = useRef(null);
+
+    const [moreOpenedPathname, setMoreOpenedPathname] = useState(null);
+    const moreOpen = moreOpenedPathname === pathname;
 
     return (
         /* THE SHELL IS A FIXED VIEWPORT, AND `<main>` IS THE SCROLLER.
@@ -128,6 +134,17 @@ function ShellChrome({ title, t }) {
                         <h1 className="t-h1 truncate">{t(title)}</h1>
                         {subtitle ? <p className="t-micro muted truncate">{subtitle}</p> : null}
                     </div>
+
+                    {isAuthenticated ? (
+                        <Link
+                            to="/credits"
+                            className="inline-flex h-[30px] items-center gap-1.5 rounded-[var(--r-chip)] bg-[var(--teal-soft)] px-2.5 text-xs font-bold text-[var(--teal)] transition-colors hover:bg-[var(--teal)] hover:text-[var(--on-teal)] lg:hidden"
+                            aria-label={t('nav.credits')}
+                        >
+                            <Coins size={14} aria-hidden="true" />
+                            <span>{availableBalance != null ? availableBalance : '—'}</span>
+                        </Link>
+                    ) : null}
 
                     {isAuthenticated ? <NotificationBell label={t('a11y.notification')} /> : null}
 
@@ -170,42 +187,51 @@ function ShellChrome({ title, t }) {
             {/* The floating helper is the ONE persistent Lexi in the app. She is
                 absent from every timed screen — a mascot that talks during a
                 60-minute reading test is a liability, not a companion.
+                Suppressed on /ai-chat because the screen itself is the full AI coach. */}
+            {!isAiChat ? (
+                <>
+                    <button
+                        ref={lexiButtonRef}
+                        type="button"
+                        aria-haspopup="dialog"
+                        aria-expanded={lexiOpen}
+                        aria-controls="lexi-panel"
+                        aria-label={t('a11y.askLexi')}
+                        onClick={() =>
+                            setOpenedPathname((curr) => (curr === pathname ? null : pathname))
+                        }
+                        className="fixed right-4 bottom-[calc(var(--shell-tabbar)+16px)] z-30 grid size-14 place-items-center rounded-[var(--r-chip)] border-2 border-[var(--border-strong)] bg-[var(--surface)] shadow-[0_4px_0_0_var(--border),0_12px_24px_-10px_rgb(20_35_43/0.35)] lg:bottom-4"
+                    >
+                        <Lexi mood={lexiOpen ? 'thinking' : 'idle'} size="xs" />
+                    </button>
 
-                IT OPENS A PANEL, IT IS NOT A LINK. As a `<Link to="/ai-chat">` it navigated away
-                from the screen the question was about, which is the one thing a floating helper
-                must not do; `DESIGN-V2.md` §7.3 always said "Opens the Lexi panel" and the mockup
-                was the half that disagreed (`_design/mockup/36b-lexi-panel.html`).
-                The panel itself is LAZY: it carries `useAiChat` and the chat log, and putting that
-                in the shell chunk would charge every shell route for a panel most visits never
-                open. The first press pays for it, and only the first. */}
-            <button
-                ref={lexiButtonRef}
-                type="button"
-                aria-haspopup="dialog"
-                aria-expanded={lexiOpen}
-                aria-controls="lexi-panel"
-                aria-label={t('a11y.askLexi')}
-                onClick={() => setLexiOpen((open) => !open)}
-                className="fixed right-4 bottom-[calc(var(--shell-tabbar)+16px)] z-30 grid size-14 place-items-center rounded-[var(--r-chip)] border-2 border-[var(--border-strong)] bg-[var(--surface)] shadow-[0_4px_0_0_var(--border),0_12px_24px_-10px_rgb(20_35_43/0.35)] lg:bottom-4"
-            >
-                <Lexi mood={lexiOpen ? 'thinking' : 'idle'} size="xs" />
-            </button>
-
-            {lexiOpen ? (
-                <Suspense fallback={null}>
-                    <LexiPanel
-                        contextLabel={t(title)}
-                        onClose={() => {
-                            setLexiOpen(false);
-                            /* Focus goes back to the button that opened it. Without this a keyboard
-                               user is dropped at the top of the document when the panel closes. */
-                            lexiButtonRef.current?.focus();
-                        }}
-                    />
-                </Suspense>
+                    {lexiOpen ? (
+                        <Suspense fallback={null}>
+                            <LexiPanel
+                                contextLabel={t(title)}
+                                onClose={() => {
+                                    setOpenedPathname(null);
+                                    /* Focus goes back to the button that opened it. Without this a keyboard
+                                       user is dropped at the top of the document when the panel closes. */
+                                    lexiButtonRef.current?.focus();
+                                }}
+                            />
+                        </Suspense>
+                    ) : null}
+                </>
             ) : null}
 
-            <TabBar />
+            <TabBar
+                onToggleMore={() =>
+                    setMoreOpenedPathname((curr) => (curr === pathname ? null : pathname))
+                }
+                moreOpen={moreOpen}
+            />
+
+            <MoreSheet
+                open={moreOpen}
+                onClose={() => setMoreOpenedPathname(null)}
+            />
         </div>
     );
 }

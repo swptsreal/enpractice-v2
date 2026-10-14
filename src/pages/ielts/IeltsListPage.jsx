@@ -1,16 +1,26 @@
-import { useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Link, useSearchParams } from 'react-router-dom';
-import { Headphones, BookOpen, PenLine, Mic, Clock } from 'lucide-react';
-import { Card } from '../../components/ui/Card';
-import { ButtonLink } from '../../components/ui/Button';
-import { Band, Chip, ProgressBar, SkeletonCard } from '../../components/ui/Primitives';
-import { AsyncBoundary } from '../../components/ui/AsyncBoundary';
-import { useAsyncResource } from '../../hooks/useAsyncResource';
-import { readPage, unwrapData } from '../../api/envelope';
-import { ieltsApi } from '../../api';
-import { SKILL_LABEL_KEYS, DIFFICULTY_LABEL_KEYS, SKILL_TONE, DIFFICULTY_TONE } from '../../features/ielts/useIeltsDetail';
-import { getIeltsAccuracy, normalizeSkillFilter } from '../../utils/ielts';
+import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { Link, useSearchParams } from "react-router-dom";
+import { Headphones, BookOpen, PenLine, Mic, Clock } from "lucide-react";
+import { Card } from "../../components/ui/Card";
+import { ButtonLink } from "../../components/ui/Button";
+import {
+    Band,
+    Chip,
+    ProgressBar,
+    SkeletonCard,
+} from "../../components/ui/Primitives";
+import { AsyncBoundary } from "../../components/ui/AsyncBoundary";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { readPage, unwrapData } from "../../api/envelope";
+import { ieltsApi } from "../../api";
+import {
+    SKILL_LABEL_KEYS,
+    DIFFICULTY_LABEL_KEYS,
+    SKILL_TONE,
+    DIFFICULTY_TONE,
+} from "../../features/ielts/useIeltsDetail";
+import { getIeltsAccuracy, normalizeSkillFilter } from "../../utils/ielts";
 
 /**
  * Test library.
@@ -52,11 +62,21 @@ import { getIeltsAccuracy, normalizeSkillFilter } from '../../utils/ielts';
 
 /* `filter` is the backend's enum member, or null for "everything". */
 const SKILL_PILLS = [
-    { key: 'all', to: '/ielts', icon: BookOpen, filter: null },
-    { key: 'listening', to: '/ielts?skill=LISTENING', icon: Headphones, filter: 'LISTENING' },
-    { key: 'reading', to: '/ielts?skill=READING', icon: BookOpen, filter: 'READING' },
-    { key: 'writing', to: '/writing', icon: PenLine },
-    { key: 'speaking', to: '/speaking', icon: Mic },
+    { key: "all", to: "/ielts", icon: BookOpen, filter: null },
+    {
+        key: "listening",
+        to: "/ielts?skill=LISTENING",
+        icon: Headphones,
+        filter: "LISTENING",
+    },
+    {
+        key: "reading",
+        to: "/ielts?skill=READING",
+        icon: BookOpen,
+        filter: "READING",
+    },
+    { key: "writing", to: "/writing", icon: PenLine },
+    { key: "speaking", to: "/speaking", icon: Mic },
 ];
 
 /**
@@ -71,11 +91,11 @@ const SKILL_PILLS = [
  * beside `SKILL_LABEL_KEYS`, so this screen and the detail screen cannot drift.
  */
 const SKILL_PILL_LABEL_KEYS = {
-    all: 'ielts.skill.all',
-    listening: 'ielts.skill.listening',
-    reading: 'ielts.skill.reading',
-    writing: 'ielts.skill.writing',
-    speaking: 'ielts.skill.speaking',
+    all: "ielts.skill.all",
+    listening: "ielts.skill.listening",
+    reading: "ielts.skill.reading",
+    writing: "ielts.skill.writing",
+    speaking: "ielts.skill.speaking",
 };
 
 export default function IeltsListPage() {
@@ -85,7 +105,7 @@ export default function IeltsListPage() {
     /* `?skill=reading` and `?skill=SPEAKING` both normalise to "no filter" rather
        than being forwarded: the enum is case-sensitive and has no SPEAKING, and a
        hand-edited URL must not turn the list into a 400 error panel. */
-    const activeSkill = normalizeSkillFilter(params.get('skill'));
+    const activeSkill = normalizeSkillFilter(params.get("skill"));
 
     const tests = useAsyncResource(
         async () => {
@@ -107,7 +127,11 @@ export default function IeltsListPage() {
             const scores = {};
             if (items.length) {
                 try {
-                    for (const row of unwrapData(await ieltsApi.getHighestScores(items.map((test) => test.id)))) {
+                    for (const row of unwrapData(
+                        await ieltsApi.getHighestScores(
+                            items.map((test) => test.id),
+                        ),
+                    )) {
                         scores[row.testId] = row;
                     }
                 } catch {
@@ -123,7 +147,7 @@ export default function IeltsListPage() {
 
             return { items, scores };
         },
-        { initialData: { items: [], scores: {} }, deps: [activeSkill] }
+        { initialData: { items: [], scores: {} }, deps: [activeSkill] },
     );
     /* `?.` on both, and it is not defensive noise: `useAsyncResource` sets `data: null` when the
        request FAILS, so an unguarded `tests.data.items` throws while rendering the error state —
@@ -135,34 +159,30 @@ export default function IeltsListPage() {
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-3">
-                <p className="t-micro muted">{t('ielts.subtitle')}</p>
-                <ButtonLink to="/ielts/history" size="sm" variant="ghost">
-                    <Clock size={16} aria-hidden="true" />
-                    {t('ielts.history')}
-                </ButtonLink>
-            </div>
-
             {/* Labelled by SKILL, not by "filter": Writing and Speaking in this row are
                 links to their own modules, so calling the whole group a filter would be
                 a promise two of the five pills do not keep. */}
-            <ul aria-label={t('ielts.skillLabel')} className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+            <ul
+                aria-label={t("ielts.skillLabel")}
+                className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1"
+            >
                 {SKILL_PILLS.map(({ key, to, icon: Icon, filter }) => {
                     /* Only the pills that CARRY a filter can be current. Writing and
                        Speaking are route links to their own modules — with `undefined`
                        standing in for "no filter" they would light up as the active
                        filter on the unfiltered list. */
-                    const current = filter !== undefined && filter === activeSkill;
+                    const current =
+                        filter !== undefined && filter === activeSkill;
                     return (
                         <li key={key} className="shrink-0">
                             <Link
                                 to={to}
-                                aria-current={current ? 'page' : undefined}
+                                aria-current={current ? "page" : undefined}
                                 className={
-                                    'inline-flex min-h-10 items-center gap-1.5 rounded-[var(--r-chip)] border-2 px-3.5 text-sm font-bold whitespace-nowrap ' +
+                                    "inline-flex min-h-10 items-center gap-1.5 rounded-[var(--r-chip)] border-2 px-3.5 text-sm font-bold whitespace-nowrap " +
                                     (current
-                                        ? 'border-[var(--teal)] bg-[var(--teal)] text-[var(--on-teal)]'
-                                        : 'border-[var(--border)] bg-[var(--surface)] text-[var(--ink-soft)]')
+                                        ? "border-[var(--teal)] bg-[var(--teal)] text-[var(--on-teal)]"
+                                        : "border-[var(--border)] bg-[var(--surface)] text-[var(--ink-soft)]")
                                 }
                             >
                                 <Icon size={16} aria-hidden="true" />
@@ -173,7 +193,16 @@ export default function IeltsListPage() {
                 })}
             </ul>
 
-            <h2 className="t-h2">{t('ielts.available')}</h2>
+            <div className="flex items-center justify-between">
+                <h2 className="t-h2">{t("ielts.available")}</h2>
+                <Link
+                    to="/ielts/history"
+                    className="inline-flex items-center gap-1.5 text-sm font-bold]"
+                >
+                    <Clock size={16} aria-hidden="true" />
+                    {t("ielts.history")}
+                </Link>
+            </div>
 
             <AsyncBoundary
                 loading={tests.loading}
@@ -189,16 +218,26 @@ export default function IeltsListPage() {
                 }
                 /* An empty FILTERED list is not an empty library, and saying "there
                    are no tests" there would be a false statement about the product. */
-                emptyTitle={activeSkill ? t('ielts.emptyFilterTitle') : t('ielts.emptyTitle')}
-                emptyBody={activeSkill ? t('ielts.empty') : t('ielts.emptyBody')}
+                emptyTitle={
+                    activeSkill
+                        ? t("ielts.emptyFilterTitle")
+                        : t("ielts.emptyTitle")
+                }
+                emptyBody={
+                    activeSkill ? t("ielts.empty") : t("ielts.emptyBody")
+                }
                 emptyAction={
                     activeSkill ? (
                         <ButtonLink to="/ielts" size="sm" variant="primary">
-                            {t('ielts.clearFilter')}
+                            {t("ielts.clearFilter")}
                         </ButtonLink>
                     ) : (
-                        <ButtonLink to="/vocabulary" size="sm" variant="primary">
-                            {t('home.suggestVocab')}
+                        <ButtonLink
+                            to="/vocabulary"
+                            size="sm"
+                            variant="primary"
+                        >
+                            {t("home.suggestVocab")}
                         </ButtonLink>
                     )
                 }
@@ -206,11 +245,13 @@ export default function IeltsListPage() {
                 <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {list.map((test) => {
                         const id = test?.id;
-                        const title = test?.title ?? t('ielts.untitled');
-                        const skill = String(test?.skill ?? '').toUpperCase();
+                        const title = test?.title ?? t("ielts.untitled");
+                        const skill = String(test?.skill ?? "").toUpperCase();
                         const minutes = test?.timeLimitMinutes ?? null;
                         const questionCount = test?.totalQuestions ?? null;
-                        const difficulty = String(test?.difficulty ?? '').toUpperCase();
+                        const difficulty = String(
+                            test?.difficulty ?? "",
+                        ).toUpperCase();
 
                         /* ONE fact from the scores response drives FOUR things on the card — the band
                            badge, the bar, the percentage line and the button's label and weight. They
@@ -224,44 +265,83 @@ export default function IeltsListPage() {
                            highest-of-all-time number would be a claim the data cannot support. */
                         const score = scores[id];
                         const attempted = score?.attempted === true;
-                        const band = attempted && typeof score.highestBandScore === 'number' ? score.highestBandScore : null;
+                        const band =
+                            attempted &&
+                            typeof score.highestBandScore === "number"
+                                ? score.highestBandScore
+                                : null;
                         /* A 0% bar is a real result (0 of 40) and still needs a denominator before it
                            can be read as one; `getIeltsAccuracy` already guards the division. */
                         const measured =
                             attempted &&
-                            typeof score.correctCount === 'number' &&
-                            typeof score.totalQuestions === 'number' &&
+                            typeof score.correctCount === "number" &&
+                            typeof score.totalQuestions === "number" &&
                             score.totalQuestions > 0;
-                        const accuracy = measured ? Math.round(getIeltsAccuracy(score)) : null;
-                        const action = t(attempted ? 'ielts.retake' : 'ielts.startTest');
+                        const accuracy = measured
+                            ? Math.round(getIeltsAccuracy(score))
+                            : null;
+                        const action = t(
+                            attempted ? "ielts.retake" : "ielts.startTest",
+                        );
 
                         /* The count and the limit are two facts, so they are joined
                            once here rather than by two conditionals inside the JSX. */
                         const meta = [
-                            questionCount ? t('ielts.questionCount', { count: questionCount }) : null,
-                            minutes ? t('ielts.timeLimit', { count: minutes }) : null,
+                            questionCount
+                                ? t("ielts.questionCount", {
+                                      count: questionCount,
+                                  })
+                                : null,
+                            minutes
+                                ? t("ielts.timeLimit", { count: minutes })
+                                : null,
                         ]
                             .filter(Boolean)
-                            .join(' · ');
+                            .join(" · ");
 
                         return (
                             <li key={id}>
-                                <Card level="edge" padding="xl" className="flex h-full flex-col">
+                                <Card
+                                    level="edge"
+                                    padding="xl"
+                                    className="flex h-full flex-col"
+                                >
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <Chip tone={SKILL_TONE[skill] ?? 'neutral'}>
+                                        <Chip
+                                            tone={
+                                                SKILL_TONE[skill] ?? "neutral"
+                                            }
+                                        >
                                             {SKILL_LABEL_KEYS[skill]
                                                 ? t(SKILL_LABEL_KEYS[skill])
-                                                : t('ielts.skill.all')}
+                                                : t("ielts.skill.all")}
                                         </Chip>
                                         {DIFFICULTY_TONE[difficulty] ? (
-                                            <Chip tone={DIFFICULTY_TONE[difficulty]}>
-                                                {t(DIFFICULTY_LABEL_KEYS[difficulty])}
+                                            <Chip
+                                                tone={
+                                                    DIFFICULTY_TONE[difficulty]
+                                                }
+                                            >
+                                                {t(
+                                                    DIFFICULTY_LABEL_KEYS[
+                                                        difficulty
+                                                    ],
+                                                )}
                                             </Chip>
                                         ) : null}
-                                        {band !== null ? <Band value={band} className="ml-auto" /> : null}
+                                        {band !== null ? (
+                                            <Band
+                                                value={band}
+                                                className="ml-auto"
+                                            />
+                                        ) : null}
                                     </div>
                                     <h3 className="t-h3 mt-3">{title}</h3>
-                                    {meta ? <p className="t-micro muted mt-2">{meta}</p> : null}
+                                    {meta ? (
+                                        <p className="t-micro muted mt-2">
+                                            {meta}
+                                        </p>
+                                    ) : null}
 
                                     {/* The bar and its caption are ONE block: the number alone under a
                                         bar would leave the reader to work out what is being measured. */}
@@ -269,10 +349,14 @@ export default function IeltsListPage() {
                                         <div className="mt-2.5">
                                             <ProgressBar
                                                 value={accuracy}
-                                                label={t('ielts.bestAccuracy', { value: accuracy })}
+                                                label={t("ielts.bestAccuracy", {
+                                                    value: accuracy,
+                                                })}
                                             />
                                             <span className="t-micro muted mt-1 block">
-                                                {t('ielts.bestAccuracy', { value: accuracy })}
+                                                {t("ielts.bestAccuracy", {
+                                                    value: accuracy,
+                                                })}
                                             </span>
                                         </div>
                                     ) : null}
@@ -291,7 +375,9 @@ export default function IeltsListPage() {
                                                and spends a credit before the learner has seen what
                                                they are buying. */
                                             to={`/ielts/test/${encodeURIComponent(id)}`}
-                                            variant={attempted ? 'ghost' : 'primary'}
+                                            variant={
+                                                attempted ? "ghost" : "primary"
+                                            }
                                             size="sm"
                                             block
                                             /* The visible label is only "Bắt đầu" / "Làm lại", so a

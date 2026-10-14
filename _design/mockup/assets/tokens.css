@@ -475,11 +475,23 @@ a { color: var(--teal); text-decoration: none; }
     box-shadow: 0 var(--edge) 0 0 var(--border);
     font-size: 1rem; font-weight: 600;
 }
-.bubble--lexi { font-family: var(--font-display); font-weight: 700; }
+.bubble--lexi { font-family: var(--font-display); font-weight: 700; background: var(--surface); }
+.bubble--me,
+.bubble--user {
+    background: var(--teal-soft);
+    border-color: var(--teal);
+    color: var(--ink);
+}
 .bubble::after {
     content: ''; position: absolute; width: 14px; height: 14px;
     background: var(--surface);
     border-right: 2px solid var(--border-strong); border-bottom: 2px solid var(--border-strong);
+}
+.bubble--me::after,
+.bubble--user::after {
+    background: var(--teal-soft);
+    border-right-color: var(--teal);
+    border-bottom-color: var(--teal);
 }
 .bubble--left::after  { left: 22px; bottom: -9px; transform: rotate(45deg); }
 .bubble--right::after { right: 22px; bottom: -9px; transform: rotate(45deg); }

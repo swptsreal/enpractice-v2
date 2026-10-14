@@ -1,17 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Send, Loader2, Coins, Sparkles } from 'lucide-react';
-import { Lexi } from '../../components/mascot/Lexi';
-import { Card } from '../../components/ui/Card';
-import { Button, ButtonLink } from '../../components/ui/Button';
-import { Chip, SkeletonCard } from '../../components/ui/Primitives';
-import { AsyncBoundary } from '../../components/ui/AsyncBoundary';
-import { useAiChat } from '../../features/chat/useAiChat';
-import { ChatLog } from '../../features/chat/ChatLog';
-import { useProfile } from '../../features/profile/useProfile';
-import { useCredit } from '../../contexts/CreditContextCore';
-import { CREDIT_ACTIONS } from '../../features/credits/creditConstants';
-import { getCreditCostDisplay } from '../../features/credits/creditPolicy';
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { Lexi } from "../../components/mascot/Lexi";
+import { Button } from "../../components/ui/Button";
+import { SkeletonCard } from "../../components/ui/Primitives";
+import { AsyncBoundary } from "../../components/ui/AsyncBoundary";
+import { useAiChat } from "../../features/chat/useAiChat";
+import { ChatLog } from "../../features/chat/ChatLog";
+import { useProfile } from "../../features/profile/useProfile";
+import { useCredit } from "../../contexts/CreditContextCore";
+import { CREDIT_ACTIONS } from "../../features/credits/creditConstants";
+import { getCreditCostDisplay } from "../../features/credits/creditPolicy";
 
 /**
  * AI coach — `/ai-chat` (screen 36).
@@ -35,10 +34,10 @@ import { getCreditCostDisplay } from '../../features/credits/creditPolicy';
  * content is model output, so raw HTML stays inert.
  */
 const SUGGESTIONS = [
-    'aiChat.suggestion1',
-    'aiChat.suggestion2',
-    'aiChat.suggestion3',
-    'aiChat.suggestion4',
+    "aiChat.suggestion1",
+    "aiChat.suggestion2",
+    "aiChat.suggestion3",
+    "aiChat.suggestion4",
 ];
 
 export default function AiChatPage() {
@@ -47,14 +46,15 @@ export default function AiChatPage() {
     const { profile } = useProfile();
     const credit = useCredit();
 
-    const [draft, setDraft] = useState('');
+    const [draft, setDraft] = useState("");
     const logRef = useRef(null);
 
     const costEntry = credit.getCost(CREDIT_ACTIONS.AI_CHAT);
     const cost = getCreditCostDisplay(costEntry);
     const balance = credit.availableBalance;
     const balanceKnown = balance !== null && balance !== undefined;
-    const affordable = !cost || !balanceKnown || balance >= Number(costEntry?.cost ?? 0);
+    const affordable =
+        !cost || !balanceKnown || balance >= Number(costEntry?.cost ?? 0);
 
     /**
      * Lexi's opening line, built ONLY from data the account actually has.
@@ -65,18 +65,20 @@ export default function AiChatPage() {
     const opening = useMemo(() => {
         const weak = profile?.weakSkills ?? [];
         const overview = profile?.overview ?? {};
-        const studied = (overview.totalLessonsCompleted ?? 0) > 0 || (overview.totalStudyMinutes ?? 0) > 0;
+        const studied =
+            (overview.totalLessonsCompleted ?? 0) > 0 ||
+            (overview.totalStudyMinutes ?? 0) > 0;
 
         if (weak.length > 0) {
             return {
-                key: 'aiChat.openingWithWeakness',
-                values: { skills: weak.slice(0, 2).join(', ') },
+                key: "aiChat.openingWithWeakness",
+                values: { skills: weak.slice(0, 2).join(", ") },
             };
         }
         if (studied) {
-            return { key: 'aiChat.openingNoWeakness', values: {} };
+            return { key: "aiChat.openingNoWeakness", values: {} };
         }
-        return { key: 'aiChat.openingNewAccount', values: {} };
+        return { key: "aiChat.openingNewAccount", values: {} };
     }, [profile?.weakSkills, profile?.overview]);
 
     /* Keep the newest message in view as it streams. */
@@ -89,7 +91,7 @@ export default function AiChatPage() {
         e.preventDefault();
         const content = draft.trim();
         if (!content || chat.sending || !affordable) return;
-        setDraft('');
+        setDraft("");
         const ok = await chat.send(content);
         /* A failed send keeps the text so it is not lost. The optimistic bubble already
            shows it as failed, so restoring the composer would duplicate it — instead the
@@ -98,120 +100,120 @@ export default function AiChatPage() {
     }
 
     return (
-        <div className="mx-auto flex w-full max-w-[780px] flex-col gap-4">
-            {/* --- header: Lexi, context, balance --------------------------- */}
-            <Card level="edge" padding="xl" className="flex flex-wrap items-center gap-4">
-                <Lexi mood="explain" size="md" />
+        <div className="mx-auto flex h-[calc(100dvh-var(--shell-header)-var(--shell-tabbar)-24px)] lg:h-[calc(100dvh-var(--shell-header)-60px)] w-full max-w-[780px] flex-col gap-3">
+            {/* --- header: back, Lexi xs, title/subtitle (hidden on mobile) --- */}
+            <div className="hidden lg:flex shrink-0 items-center gap-3 rounded-[var(--r-card)] border-2 border-[var(--border)] bg-[var(--surface)] px-4 py-3 shadow-[0_var(--edge)_0_0_var(--border)]">
+                <Lexi mood="idle" size="xs" />
                 <div className="min-w-0 flex-1">
-                    {/* `h2`: the shell header already renders this route's title as the page's `h1`. */}
-                    <h2 className="t-h3">{t('aiChat.title')}</h2>
-                    <p className="t-micro muted">{t('aiChat.subtitle')}</p>
+                    <h2 className="t-label truncate text-[var(--ink)]">
+                        {t("aiChat.title")}
+                    </h2>
+                    <p className="t-micro muted truncate">
+                        {t("aiChat.subtitle")}
+                    </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                    <Chip tone={affordable ? 'teal' : 'wrong'} icon={Coins}>
-                        {balanceKnown ? t('aiChat.balance', { count: balance }) : '—'}
-                    </Chip>
-                    <ButtonLink to="/credits" size="sm" variant="ghost">
-                        {t('nav.credits')}
-                    </ButtonLink>
-                </div>
-            </Card>
+            </div>
 
-            {/* --- the log ------------------------------------------------- */}
-            <AsyncBoundary
-                loading={chat.historyLoading}
-                error={chat.historyError}
-                onRetry={chat.reload}
-                skeleton={
-                    <div className="flex flex-col gap-3">
-                        <SkeletonCard lines={2} />
-                        <SkeletonCard lines={3} />
-                    </div>
-                }
-                isEmpty={false}
-            >
-                {/* The log is shared with the floating panel (`ChatLog`), so the two cannot drift:
-                    the failed-send retry and the skeleton-inside-the-bubble live in one place. */}
-                <ChatLog
-                    chat={chat}
-                    opening={opening}
-                    logRef={logRef}
-                    className="flex max-h-[52vh] min-h-[240px] flex-col gap-3 overflow-y-auto p-1"
-                />
-            </AsyncBoundary>
+            {/* --- the log --- */}
+            <div className="flex flex-1 min-h-0 flex-col">
+                <AsyncBoundary
+                    loading={chat.historyLoading}
+                    error={chat.historyError}
+                    onRetry={chat.reload}
+                    skeleton={
+                        <div className="flex flex-col gap-3">
+                            <SkeletonCard lines={2} />
+                            <SkeletonCard lines={3} />
+                        </div>
+                    }
+                    isEmpty={false}
+                >
+                    {/* The log is shared with the floating panel (`ChatLog`), so the two cannot drift:
+                        the failed-send retry and the skeleton-inside-the-bubble live in one place. */}
+                    <ChatLog
+                        chat={chat}
+                        opening={opening}
+                        logRef={logRef}
+                        className="flex flex-1 min-h-0 flex-col gap-3.5 overflow-y-auto p-1"
+                    />
+                </AsyncBoundary>
+            </div>
 
-            {/* --- suggestions --------------------------------------------- */}
-            <div className="flex flex-wrap gap-1.5">
+            {/* --- suggestions: single row --- */}
+            <div className="flex shrink-0 flex-nowrap items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
                 {SUGGESTIONS.map((key) => (
                     <button
                         key={key}
                         type="button"
                         onClick={() => setDraft(t(key))}
                         disabled={chat.sending}
-                        className="min-h-9 rounded-[var(--r-chip)] bg-[var(--surface-alt)] px-3 text-xs font-bold text-[var(--ink-muted)] hover:text-[var(--ink)]"
+                        className="inline-flex h-[30px] shrink-0 whitespace-nowrap items-center rounded-[var(--r-chip)] border-2 border-[var(--border-strong)] bg-transparent px-3 text-[0.8125rem] font-bold tracking-[0.01em] text-[var(--ink-soft)] hover:bg-[var(--surface-alt)] cursor-pointer disabled:opacity-50"
                     >
                         {t(key)}
                     </button>
                 ))}
             </div>
 
-            {/* --- composer ------------------------------------------------- */}
-            <Card level="edge" padding="xl">
-                <form onSubmit={onSubmit} className="flex flex-col gap-3">
-                    <label className="flex flex-col gap-1.5">
-                        <span className="sr-only">{t('aiChat.composerLabel')}</span>
-                        <textarea
-                            className="min-h-[72px] resize-y rounded-[var(--r-control)] border-2 border-[var(--border-strong)] bg-[var(--surface)] p-3.5"
-                            value={draft}
-                            onChange={(e) => setDraft(e.target.value.slice(0, chat.maxCharacters))}
-                            placeholder={t('aiChat.composerPlaceholder')}
-                            maxLength={chat.maxCharacters}
-                            rows={2}
+            {/* --- 1-line composer (.chat__input) --- */}
+            <form onSubmit={onSubmit} className="chat__input shrink-0">
+                <label className="min-w-0 flex-1">
+                    <span className="sr-only">{t("aiChat.composerLabel")}</span>
+                    <input
+                        className="chat__input-field"
+                        value={draft}
+                        onChange={(e) =>
+                            setDraft(
+                                e.target.value.slice(0, chat.maxCharacters),
+                            )
+                        }
+                        placeholder={t("aiChat.composerPlaceholder")}
+                        maxLength={chat.maxCharacters}
+                    />
+                </label>
+
+                <Button
+                    type="submit"
+                    variant="primary"
+                    size="md"
+                    disabled={!draft.trim() || chat.sending || !affordable}
+                >
+                    {chat.sending ? (
+                        <Loader2
+                            size={18}
+                            className="animate-spin"
+                            aria-hidden="true"
                         />
-                    </label>
+                    ) : (
+                        <ArrowRight size={18} aria-hidden="true" />
+                    )}
+                    <span>
+                        {cost
+                            ? t("aiChat.sendWithCost", {
+                                  amount: cost.amountLabel,
+                              })
+                            : t("aiChat.send")}
+                    </span>
+                </Button>
+            </form>
+            {!chat.isConnected ? (
+                <div className="flex shrink-0 items-center justify-between px-1">
+                    <span className="t-micro muted inline-flex items-center gap-1.5">
+                        <Sparkles size={13} aria-hidden="true" />
+                        {t("aiChat.connecting")}
+                    </span>
+                </div>
+            ) : null}
 
-                    <div className="flex flex-wrap items-center gap-3">
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            size="lg"
-                            disabled={!draft.trim() || chat.sending || !affordable}
-                        >
-                            {chat.sending ? (
-                                <Loader2 size={18} className="animate-spin" aria-hidden="true" />
-                            ) : (
-                                <Send size={18} aria-hidden="true" />
-                            )}
-                            {/* The cost is on the button, before it is pressed. */}
-                            {cost ? t('aiChat.sendWithCost', { amount: cost.amountLabel }) : t('aiChat.send')}
-                        </Button>
-
-                        <span className="t-micro muted">
-                            {draft.length}/{chat.maxCharacters}
-                        </span>
-
-                        {!chat.isConnected ? (
-                            <span className="t-micro muted inline-flex items-center gap-1.5">
-                                <Sparkles size={13} aria-hidden="true" />
-                                {t('aiChat.connecting')}
-                            </span>
-                        ) : null}
-
-                        <span className="flex-1" />
-                        <span className="t-micro muted">
-                            {affordable ? t('aiChat.costNote') : t('aiChat.insufficient')}
-                        </span>
-                    </div>
-
-                    {chat.sendError ? (
-                        <p role="alert" className="t-micro text-[var(--wrong)]">
-                            {chat.sendError.message === 'INVALID_REQUEST'
-                                ? t('aiChat.messageRequired')
-                                : t('common.error.generic')}
-                        </p>
-                    ) : null}
-                </form>
-            </Card>
+            {chat.sendError ? (
+                <p
+                    role="alert"
+                    className="t-micro shrink-0 text-center text-[var(--wrong)]"
+                >
+                    {chat.sendError.message === "INVALID_REQUEST"
+                        ? t("aiChat.messageRequired")
+                        : t("common.error.generic")}
+                </p>
+            ) : null}
         </div>
     );
 }

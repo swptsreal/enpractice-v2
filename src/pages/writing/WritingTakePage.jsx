@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Clock, FileText, Loader2, Send, Check, Coins, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Clock, FileText, Loader2, Send, Check, Coins, Lightbulb, BookOpen, PenLine } from 'lucide-react';
 import { Button, ButtonLink } from '../../components/ui/Button';
 import { Chip, SkeletonCard } from '../../components/ui/Primitives';
 import { AsyncBoundary } from '../../components/ui/AsyncBoundary';
-import { Lexi } from '../../components/mascot/Lexi';
 import { useWritingTask, useSubmitEssay, countWords } from '../../features/writing/useWriting';
 import { useCredit } from '../../contexts/CreditContextCore';
 import { CREDIT_ACTIONS } from '../../features/credits/creditConstants';
 import { getCreditCostDisplay } from '../../features/credits/creditPolicy';
+import { cn } from '../../lib/cn';
 
 /**
  * Writing task — `/writing/task/:taskId` (screen 22).
@@ -44,6 +44,7 @@ export default function WritingTakePage() {
     const [elapsed, setElapsed] = useState(0);
     const [savedAt, setSavedAt] = useState(null);
     const [submitError, setSubmitError] = useState(null);
+    const [pane, setPane] = useState('prompt');
 
     const cost = getCreditCostDisplay(credit.getCost(CREDIT_ACTIONS.WRITING_START));
     const balance = credit.availableBalance;
@@ -166,141 +167,174 @@ export default function WritingTakePage() {
                     </ButtonLink>
                 }
             >
-                {/* TWO DIFFERENT CONTRACTS, ONE CONTAINER, because the two breakpoints really do
-                    stack differently. Below lg BOTH panes are visible (prompt on top, editor below),
-                    so there is no single row to bound: the area itself scrolls and the submit bar
-                    sticks to the bottom of it, which is what the mockup draws. At lg the panes sit
-                    side by side and each gets its own bounded 1fr row instead, so the prompt scrolls
-                    independently of the editor and the editor's footer can never be pushed out. */}
-                <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[380px_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden">
-                    {/* --- prompt pane --------------------------------------- */}
-                    <aside className="min-h-0 border-b-2 border-[var(--border)] bg-[var(--surface)] p-4 lg:overflow-y-auto lg:border-r-2 lg:border-b-0 lg:p-5">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <Chip tone="neutral">{t(`writing.type.${task?.taskType}`)}</Chip>
-                            {task?.timeLimitMinutes ? (
-                                <Chip tone="neutral" icon={Clock}>
-                                    {t('home.minutes', { count: task.timeLimitMinutes })}
-                                </Chip>
-                            ) : null}
-                            <Chip tone="teal" icon={FileText}>
-                                {t('writing.wordRange', { min: task?.minWords, max: task?.maxWords })}
-                            </Chip>
-                        </div>
-
-                        <h1 className="t-h2 mt-3">{task?.title}</h1>
-
-                        {task?.contentText ? (
-                            <p className="prose-reading mt-3 whitespace-pre-line">{task.contentText}</p>
-                        ) : null}
-                        {task?.instructionText ? (
-                            <p className="t-body soft mt-3 whitespace-pre-line border-l-2 border-[var(--border-strong)] pl-3">
-                                {task.instructionText}
-                            </p>
-                        ) : null}
-
-                        {/* (task.imageUrls ?? []).length > 0 — a Task 1 chart, when present */}
-                        {(task?.imageUrls ?? []).length > 0 ? (
-                            <ul className="mt-3 flex flex-col gap-2">
-                                {task.imageUrls.map((url) => (
-                                    <li key={url}>
-                                        <img
-                                            src={url}
-                                            alt={t('writing.chartAlt')}
-                                            className="w-full rounded-[var(--r-card)] border-2 border-[var(--border)]"
-                                        />
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : null}
-
-                        <section className="mt-4 border-t-2 border-[var(--border)] pt-3.5">
-                            <h2 className="t-label">{t('writing.criteriaTitle')}</h2>
-                            <ul className="mt-2 flex flex-col gap-1.5">
-                                {CRITERIA.map((c) => (
-                                    <li key={c} className="t-micro muted flex items-start gap-2">
-                                        <Check size={13} className="mt-0.5 shrink-0 text-[var(--teal)]" aria-hidden="true" />
-                                        {t(`writing.criterion.${c}`)}
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
-
-                        <div className="mt-4 flex items-start gap-2.5 rounded-[var(--r-card)] bg-[var(--amber-soft)] p-3">
-                            <Lightbulb size={16} className="mt-0.5 shrink-0 text-[var(--amber)]" aria-hidden="true" />
-                            <p className="t-micro">{t('writing.lexiTip')}</p>
-                        </div>
-                    </aside>
-
-                    {/* --- editor pane --------------------------------------- */}
-                    {/* `lg:overflow-y-auto` is a safety valve, not the normal path: if the textarea's
-                        minimum height plus the footer cannot fit a short desktop pane, the pane
-                        scrolls rather than clipping the submit button out of reach. */}
-                    <section className="flex min-h-0 flex-col p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] lg:overflow-y-auto lg:p-5">
-                        <label className="flex min-h-0 flex-1 flex-col gap-1.5">
-                            <span className="t-label">{t('writing.editorLabel')}</span>
-                            <textarea
-                                className="min-h-[46vh] flex-1 resize-y rounded-[var(--r-card)] border-2 border-[var(--border-strong)] bg-[var(--surface)] p-4 leading-relaxed lg:min-h-[10rem]"
-                                value={essay}
-                                onChange={(e) => setEssay(e.target.value)}
-                                placeholder={t('writing.editorPlaceholder')}
-                                spellCheck
-                                lang="en"
-                                aria-describedby="word-count"
-                            />
-                        </label>
-
-                        <div className="mt-3 flex flex-wrap items-center gap-3">
-                            {/* Word count: information, never a gate. */}
-                            <span id="word-count" className="t-mono text-sm">
-                                {target != null
-                                    ? t('writing.wordCountOf', { count: words, target })
-                                    : t('writing.wordCount', { count: words })}
-                            </span>
-                            {underTarget ? <Chip tone="amber">{t('writing.underTarget')}</Chip> : null}
-                            {overMax ? <Chip tone="amber">{t('writing.overMax')}</Chip> : null}
-                            {savedAt ? (
-                                <span className="t-micro muted inline-flex items-center gap-1.5">
-                                    <Check size={13} aria-hidden="true" className="text-[var(--correct)]" />
-                                    {t('writing.savedLocally')}
-                                </span>
-                            ) : null}
-                        </div>
-
-                        {submitError ? (
-                            <p role="alert" className="t-micro mt-3 text-[var(--wrong)]">
-                                {t('common.error.generic')}
-                            </p>
-                        ) : null}
-
-                        {/* Sticky below lg only: while the whole area scrolls, the submit bar must
-                            stay reachable (the mockup's rule); at lg the pane is bounded and the bar
-                            is simply last, so sticky would only add a background it does not need. */}
-                        <div className="sticky bottom-0 mt-4 flex flex-wrap items-center gap-3 border-t-2 border-[var(--border)] bg-[var(--canvas)] pt-4 lg:static lg:bg-transparent">
-                            <Button
-                                variant="primary"
-                                size="lg"
-                                disabled={submitting || !essay.trim() || !affordable}
-                                onClick={onSubmit}
-                            >
-                                {submitting ? (
-                                    <Loader2 size={18} className="animate-spin" aria-hidden="true" />
-                                ) : (
-                                    <Send size={18} aria-hidden="true" />
+                <>
+                    {/* Mobile: two-tab switch between prompt and editor. Desktop: both panes visible. */}
+                    <div
+                        role="tablist"
+                        aria-label={t('writing.paneSwitchLabel')}
+                        className="flex shrink-0 gap-1.5 border-b-2 border-[var(--border)] bg-[var(--surface)] p-2 lg:hidden"
+                    >
+                        {[
+                            { id: 'prompt', icon: BookOpen, label: t('writing.promptTab') },
+                            { id: 'editor', icon: PenLine, label: `${t('writing.editorTab')} (${words} ${t('writing.wordsShort')})` },
+                        ].map(({ id, icon: Icon, label }) => (
+                            <button
+                                key={id}
+                                type="button"
+                                role="tab"
+                                id={`tab-${id}`}
+                                aria-controls={`pane-${id}`}
+                                aria-selected={pane === id}
+                                onClick={() => setPane(id)}
+                                className={cn(
+                                    'flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-[var(--r-sm)] text-sm font-bold',
+                                    pane === id
+                                        ? 'bg-[var(--teal)] text-[var(--on-teal)]'
+                                        : 'bg-[var(--surface-alt)] text-[var(--ink-muted)]'
                                 )}
-                                {cost ? t('writing.submitWithCost', { amount: cost.amountLabel }) : t('writing.submit')}
-                            </Button>
-                            <span className="t-micro muted inline-flex items-center gap-1.5">
-                                <Coins size={14} aria-hidden="true" />
-                                {affordable ? t('writing.gradingWait') : t('writing.insufficient')}
-                            </span>
-                        </div>
-                    </section>
-                </div>
-            </AsyncBoundary>
+                            >
+                                <Icon size={16} aria-hidden="true" />
+                                {label}
+                            </button>
+                        ))}
+                    </div>
 
-            <div className="flex justify-center border-t-2 border-[var(--border)] p-3">
-                <Lexi mood="thinking" size="xs" />
-            </div>
+                    <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] overflow-hidden lg:grid-cols-[380px_minmax(0,1fr)]">
+                        {/* --- prompt pane --------------------------------------- */}
+                        <aside
+                            id="pane-prompt"
+                            role="tabpanel"
+                            aria-labelledby="tab-prompt"
+                            className={cn(
+                                'min-h-0 overflow-y-auto border-[var(--border)] bg-[var(--surface)] p-4 lg:block lg:border-r-2 lg:border-b-0 lg:p-5',
+                                pane === 'prompt' ? 'block' : 'hidden'
+                            )}
+                        >
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Chip tone="neutral">{t(`writing.type.${task?.taskType}`)}</Chip>
+                                {task?.timeLimitMinutes ? (
+                                    <Chip tone="neutral" icon={Clock}>
+                                        {t('home.minutes', { count: task.timeLimitMinutes })}
+                                    </Chip>
+                                ) : null}
+                                <Chip tone="teal" icon={FileText}>
+                                    {t('writing.wordRange', { min: task?.minWords, max: task?.maxWords })}
+                                </Chip>
+                            </div>
+
+                            <h1 className="t-h2 mt-3">{task?.title}</h1>
+
+                            {task?.contentText ? (
+                                <p className="prose-reading mt-3 whitespace-pre-line">{task.contentText}</p>
+                            ) : null}
+                            {task?.instructionText ? (
+                                <p className="t-body soft mt-3 whitespace-pre-line border-l-2 border-[var(--border-strong)] pl-3">
+                                    {task.instructionText}
+                                </p>
+                            ) : null}
+
+                            {/* (task.imageUrls ?? []).length > 0 — a Task 1 chart, when present */}
+                            {(task?.imageUrls ?? []).length > 0 ? (
+                                <ul className="mt-3 flex flex-col gap-2">
+                                    {task.imageUrls.map((url) => (
+                                        <li key={url}>
+                                            <img
+                                                src={url}
+                                                alt={t('writing.chartAlt')}
+                                                className="w-full rounded-[var(--r-card)] border-2 border-[var(--border)]"
+                                            />
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : null}
+
+                            <section className="mt-4 border-t-2 border-[var(--border)] pt-3.5">
+                                <h2 className="t-label">{t('writing.criteriaTitle')}</h2>
+                                <ul className="mt-2 flex flex-col gap-1.5">
+                                    {CRITERIA.map((c) => (
+                                        <li key={c} className="t-micro muted flex items-start gap-2">
+                                            <Check size={13} className="mt-0.5 shrink-0 text-[var(--teal)]" aria-hidden="true" />
+                                            {t(`writing.criterion.${c}`)}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </section>
+
+                            <div className="mt-4 flex items-start gap-2.5 rounded-[var(--r-card)] bg-[var(--amber-soft)] p-3">
+                                <Lightbulb size={16} className="mt-0.5 shrink-0 text-[var(--amber)]" aria-hidden="true" />
+                                <p className="t-micro">{t('writing.lexiTip')}</p>
+                            </div>
+                        </aside>
+
+                        {/* --- editor pane --------------------------------------- */}
+                        <section
+                            id="pane-editor"
+                            role="tabpanel"
+                            aria-labelledby="tab-editor"
+                            className={cn(
+                                'flex min-h-0 flex-col overflow-y-auto bg-[var(--canvas)] p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] lg:flex lg:p-5',
+                                pane === 'editor' ? 'flex' : 'hidden'
+                            )}
+                        >
+                            <label className="flex min-h-0 flex-1 flex-col gap-1.5">
+                                <span className="t-label">{t('writing.editorLabel')}</span>
+                                <textarea
+                                    className="min-h-[220px] flex-1 resize-y rounded-[var(--r-card)] border-2 border-[var(--border-strong)] bg-[var(--surface)] p-4 leading-relaxed lg:min-h-[10rem]"
+                                    value={essay}
+                                    onChange={(e) => setEssay(e.target.value)}
+                                    placeholder={t('writing.editorPlaceholder')}
+                                    spellCheck
+                                    lang="en"
+                                    aria-describedby="word-count"
+                                />
+                            </label>
+
+                            <div className="mt-3 flex flex-wrap items-center gap-3">
+                                {/* Word count: information, never a gate. */}
+                                <span id="word-count" className="t-mono text-sm">
+                                    {target != null
+                                        ? t('writing.wordCountOf', { count: words, target })
+                                        : t('writing.wordCount', { count: words })}
+                                </span>
+                                {underTarget ? <Chip tone="amber">{t('writing.underTarget')}</Chip> : null}
+                                {overMax ? <Chip tone="amber">{t('writing.overMax')}</Chip> : null}
+                                {savedAt ? (
+                                    <span className="t-micro muted inline-flex items-center gap-1.5">
+                                        <Check size={13} aria-hidden="true" className="text-[var(--correct)]" />
+                                        {t('writing.savedLocally')}
+                                    </span>
+                                ) : null}
+                            </div>
+
+                            {submitError ? (
+                                <p role="alert" className="t-micro mt-3 text-[var(--wrong)]">
+                                    {t('common.error.generic')}
+                                </p>
+                            ) : null}
+
+                            <div className="mt-4 flex flex-wrap items-center gap-3 border-t-2 border-[var(--border)] pt-4">
+                                <Button
+                                    variant="primary"
+                                    size="lg"
+                                    disabled={submitting || !essay.trim() || !affordable}
+                                    onClick={onSubmit}
+                                >
+                                    {submitting ? (
+                                        <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+                                    ) : (
+                                        <Send size={18} aria-hidden="true" />
+                                    )}
+                                    {cost ? t('writing.submitWithCost', { amount: cost.amountLabel }) : t('writing.submit')}
+                                </Button>
+                                <span className="t-micro muted inline-flex items-center gap-1.5">
+                                    <Coins size={14} aria-hidden="true" />
+                                    {affordable ? t('writing.gradingWait') : t('writing.insufficient')}
+                                </span>
+                            </div>
+                        </section>
+                    </div>
+                </>
+            </AsyncBoundary>
         </div>
     );
 }

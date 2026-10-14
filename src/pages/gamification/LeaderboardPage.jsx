@@ -1,13 +1,23 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Trophy, Minus, TrendingUp, TrendingDown, Info, Users } from 'lucide-react';
-import { Lexi } from '../../components/mascot/Lexi';
-import { Card, RowBox } from '../../components/ui/Card';
-import { ButtonLink } from '../../components/ui/Button';
-import { Chip, Stat, SkeletonCard } from '../../components/ui/Primitives';
-import { AsyncBoundary } from '../../components/ui/AsyncBoundary';
-import { cn } from '../../lib/cn';
-import { useLeaderboard, LEADERBOARD_PERIODS } from '../../features/gamification/useGamification';
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+    Trophy,
+    Minus,
+    TrendingUp,
+    TrendingDown,
+    Info,
+    Users,
+} from "lucide-react";
+import { Lexi } from "../../components/mascot/Lexi";
+import { Card, RowBox } from "../../components/ui/Card";
+import { ButtonLink } from "../../components/ui/Button";
+import { Chip, Stat, SkeletonCard } from "../../components/ui/Primitives";
+import { AsyncBoundary } from "../../components/ui/AsyncBoundary";
+import { cn } from "../../lib/cn";
+import {
+    useLeaderboard,
+    LEADERBOARD_PERIODS,
+} from "../../features/gamification/useGamification";
 
 /**
  * Leaderboard — `/leaderboard` (screen 28).
@@ -28,9 +38,12 @@ import { useLeaderboard, LEADERBOARD_PERIODS } from '../../features/gamification
  */
 export default function LeaderboardPage() {
     const { t } = useTranslation();
-    const [period, setPeriod] = useState('WEEKLY');
+    const [period, setPeriod] = useState("WEEKLY");
 
-    const { myRank, entries, loading, error, reload } = useLeaderboard({ period, size: 20 });
+    const { myRank, entries, loading, error, reload } = useLeaderboard({
+        period,
+        size: 20,
+    });
 
     /**
      * Ranks are not unique, so compare against the PREVIOUS row rather than assuming a
@@ -43,16 +56,23 @@ export default function LeaderboardPage() {
 
     return (
         <div className="mx-auto flex w-full max-w-[820px] flex-col gap-4">
-            <p className="t-micro muted">{t('leaderboard.subtitle')}</p>
-
             {/* --- the user's own position, stated calmly ------------------- */}
-            <Card level="edge" padding="xl" className="flex flex-col gap-4 md:flex-row md:items-center">
-                <Lexi mood={(myRank?.rank ?? 99) <= 3 ? 'celebrate' : 'happy'} size="md" />
+            <Card
+                level="edge"
+                padding="xl"
+                className="flex flex-col gap-4 md:flex-row md:items-center"
+            >
+                <Lexi
+                    mood={(myRank?.rank ?? 99) <= 3 ? "celebrate" : "happy"}
+                    size="md"
+                />
                 <div className="min-w-0 flex-1">
                     {myRank ? (
                         <>
                             <span className="t-micro muted">
-                                {t('leaderboard.yourPosition', { period: t(`leaderboard.period.${period}`) })}
+                                {t("leaderboard.yourPosition", {
+                                    period: t(`leaderboard.period.${period}`),
+                                })}
                             </span>
                             <div className="flex flex-wrap items-baseline gap-3">
                                 <span className="font-mono text-4xl font-bold tabular-nums text-[var(--teal)]">
@@ -60,34 +80,50 @@ export default function LeaderboardPage() {
                                 </span>
                                 {myRank.totalParticipants ? (
                                     <span className="t-body soft">
-                                        {t('leaderboard.ofParticipants', { count: myRank.totalParticipants })}
+                                        {t("leaderboard.ofParticipants", {
+                                            count: myRank.totalParticipants,
+                                        })}
                                     </span>
                                 ) : null}
                             </div>
                             <p className="t-micro muted mt-1">
                                 {myRank.xpToNextRank > 0
-                                    ? t('leaderboard.xpToNext', { count: myRank.xpToNextRank })
-                                    : t('leaderboard.topOfBoard')}
+                                    ? t("leaderboard.xpToNext", {
+                                          count: myRank.xpToNextRank,
+                                      })
+                                    : t("leaderboard.topOfBoard")}
                             </p>
                         </>
                     ) : (
                         <>
                             {/* `myRank` is null with no XP — the real new-account state. */}
-                            <span className="t-h3 block">{t('leaderboard.unrankedTitle')}</span>
-                            <p className="t-body soft mt-1">{t('leaderboard.unrankedBody')}</p>
+                            <span className="t-h3 block">
+                                {t("leaderboard.unrankedTitle")}
+                            </span>
+                            <p className="t-body soft mt-1">
+                                {t("leaderboard.unrankedBody")}
+                            </p>
                         </>
                     )}
                 </div>
                 <div className="flex shrink-0 flex-col gap-2">
-                    <Stat value={myRank?.xp ?? 0} label={t('leaderboard.yourXp')} tone="amber" />
+                    <Stat
+                        value={myRank?.xp ?? 0}
+                        label={t("leaderboard.yourXp")}
+                        tone="amber"
+                    />
                     <ButtonLink to="/rewards" size="sm" variant="ghost">
-                        {t('leaderboard.earnXp')}
+                        {t("leaderboard.earnXp")}
                     </ButtonLink>
                 </div>
             </Card>
 
             {/* --- period --------------------------------------------------- */}
-            <div role="group" aria-label={t('leaderboard.periodLabel')} className="flex flex-wrap gap-1.5">
+            <div
+                role="group"
+                aria-label={t("leaderboard.periodLabel")}
+                className="flex flex-wrap gap-1.5"
+            >
                 {LEADERBOARD_PERIODS.map((value) => (
                     <button
                         key={value}
@@ -95,10 +131,10 @@ export default function LeaderboardPage() {
                         aria-pressed={period === value}
                         onClick={() => setPeriod(value)}
                         className={cn(
-                            'min-h-11 rounded-[var(--r-control)] px-3.5 text-sm font-bold',
+                            "min-h-11 rounded-[var(--r-control)] px-3.5 text-sm font-bold",
                             period === value
-                                ? 'bg-[var(--teal)] text-[var(--on-teal)]'
-                                : 'bg-[var(--surface-alt)] text-[var(--ink-muted)]'
+                                ? "bg-[var(--teal)] text-[var(--on-teal)]"
+                                : "bg-[var(--surface-alt)] text-[var(--ink-muted)]",
                         )}
                     >
                         {t(`leaderboard.period.${value}`)}
@@ -118,11 +154,11 @@ export default function LeaderboardPage() {
                         ))}
                     </div>
                 }
-                emptyTitle={t('leaderboard.emptyTitle')}
-                emptyBody={t('leaderboard.emptyBody')}
+                emptyTitle={t("leaderboard.emptyTitle")}
+                emptyBody={t("leaderboard.emptyBody")}
                 emptyAction={
                     <ButtonLink to="/rewards" size="sm" variant="primary">
-                        {t('leaderboard.earnXp')}
+                        {t("leaderboard.earnXp")}
                     </ButtonLink>
                 }
             >
@@ -137,16 +173,17 @@ export default function LeaderboardPage() {
                                     center
                                     className={cn(
                                         /* A tie is shown as a tie, not broken arbitrarily. */
-                                        entry.tiedWithPrevious && 'border-l-4 border-l-[var(--amber)]'
+                                        entry.tiedWithPrevious &&
+                                            "border-l-4 border-l-[var(--amber)]",
                                     )}
                                 >
                                     <span
                                         aria-hidden="true"
                                         className={cn(
-                                            't-mono grid size-10 shrink-0 place-items-center rounded-[var(--r-sm)] text-sm font-bold',
+                                            "t-mono grid size-10 shrink-0 place-items-center rounded-[var(--r-sm)] text-sm font-bold",
                                             medal
-                                                ? 'bg-[var(--amber-soft)] text-[var(--amber)]'
-                                                : 'bg-[var(--surface-alt)] text-[var(--ink-muted)]'
+                                                ? "bg-[var(--amber-soft)] text-[var(--amber)]"
+                                                : "bg-[var(--surface-alt)] text-[var(--ink-muted)]",
                                         )}
                                     >
                                         {entry.rank}
@@ -154,17 +191,26 @@ export default function LeaderboardPage() {
 
                                     <span className="min-w-0 flex-1">
                                         <span className="t-label flex items-center gap-2 text-[var(--ink)]">
-                                            {entry.displayName ?? t('leaderboard.anonymous')}
+                                            {entry.displayName ??
+                                                t("leaderboard.anonymous")}
                                             {medal ? (
-                                                <Trophy size={14} className="text-[var(--amber)]" aria-hidden="true" />
+                                                <Trophy
+                                                    size={14}
+                                                    className="text-[var(--amber)]"
+                                                    aria-hidden="true"
+                                                />
                                             ) : null}
                                         </span>
                                         <span className="t-micro muted">
-                                            {t('leaderboard.rankLabel', { rank: entry.rank })}
-                                            {entry.tiedWithPrevious ? ` · ${t('leaderboard.tied')}` : ''}
+                                            {t("leaderboard.rankLabel", {
+                                                rank: entry.rank,
+                                            })}
+                                            {entry.tiedWithPrevious
+                                                ? ` · ${t("leaderboard.tied")}`
+                                                : ""}
                                             {entry.currentStreak > 0
-                                                ? ` · ${t('common.streakDays', { count: entry.currentStreak })}`
-                                                : ''}
+                                                ? ` · ${t("common.streakDays", { count: entry.currentStreak })}`
+                                                : ""}
                                         </span>
                                     </span>
 
@@ -172,15 +218,31 @@ export default function LeaderboardPage() {
                                         {/* A rank change is a measured movement, never a warning. */}
                                         {entry.rankChange ? (
                                             <Chip
-                                                tone={entry.rankChange > 0 ? 'correct' : 'neutral'}
-                                                icon={entry.rankChange > 0 ? TrendingUp : TrendingDown}
+                                                tone={
+                                                    entry.rankChange > 0
+                                                        ? "correct"
+                                                        : "neutral"
+                                                }
+                                                icon={
+                                                    entry.rankChange > 0
+                                                        ? TrendingUp
+                                                        : TrendingDown
+                                                }
                                             >
-                                                {entry.rankChange > 0 ? `+${entry.rankChange}` : entry.rankChange}
+                                                {entry.rankChange > 0
+                                                    ? `+${entry.rankChange}`
+                                                    : entry.rankChange}
                                             </Chip>
                                         ) : (
-                                            <Minus size={14} className="text-[var(--ink-faint)]" aria-hidden="true" />
+                                            <Minus
+                                                size={14}
+                                                className="text-[var(--ink-faint)]"
+                                                aria-hidden="true"
+                                            />
                                         )}
-                                        <span className="t-mono tabular-nums text-[var(--amber)]">{entry.xp}</span>
+                                        <span className="t-mono tabular-nums text-[var(--amber)]">
+                                            {entry.xp}
+                                        </span>
                                     </span>
                                 </RowBox>
                             </li>
@@ -192,18 +254,28 @@ export default function LeaderboardPage() {
             {/* The product's own framing, stated where a user might feel ranked. */}
             <Card level="flat" padding="lg">
                 <div className="flex items-start gap-3">
-                    <Info size={16} className="mt-0.5 shrink-0 text-[var(--ink-muted)]" aria-hidden="true" />
-                    <p className="t-micro soft">{t('leaderboard.ethicsNote')}</p>
+                    <Info
+                        size={16}
+                        className="mt-0.5 shrink-0 text-[var(--ink-muted)]"
+                        aria-hidden="true"
+                    />
+                    <p className="t-micro soft">
+                        {t("leaderboard.ethicsNote")}
+                    </p>
                 </div>
             </Card>
 
             <div className="flex items-center justify-center gap-3">
-                <Users size={16} className="text-[var(--ink-muted)]" aria-hidden="true" />
+                <Users
+                    size={16}
+                    className="text-[var(--ink-muted)]"
+                    aria-hidden="true"
+                />
                 <ButtonLink to="/challenges" size="sm" variant="ghost">
-                    {t('nav.challenges')}
+                    {t("nav.challenges")}
                 </ButtonLink>
                 <ButtonLink to="/rewards" size="sm" variant="ghost">
-                    {t('nav.rewards')}
+                    {t("nav.rewards")}
                 </ButtonLink>
             </div>
         </div>

@@ -10,7 +10,7 @@ const rail = (active) => `
     <nav class="shell__nav" aria-label="Điều hướng chính">
         <div class="nav">
             <a class="nav__item" href="04-home.html" ${active === 'home' ? 'aria-current="page"' : ''}>${icon('home', 20)}<span>Trang chủ</span></a>
-            <a class="nav__item" href="08-vocabulary-list.html" ${active === 'learn' ? 'aria-current="page"' : ''}>${icon('book', 20)}<span>Từ vựng</span></a>
+            <a class="nav__item" href="36-ai-chat.html" ${active === 'ai-chat' ? 'aria-current="page"' : ''}>${icon('sparkle', 20)}<span>AI Coach</span></a>
             <a class="nav__item" href="16-ielts-list.html" ${active === 'practice' ? 'aria-current="page"' : ''}>${icon('target', 20)}<span>Luyện tập</span></a>
             <a class="nav__item" href="29-weekly-report.html" ${active === 'progress' ? 'aria-current="page"' : ''}>${icon('chart', 20)}<span>Tiến độ</span></a>
             <a class="nav__item" href="33-profile.html" ${active === 'account' ? 'aria-current="page"' : ''}>${icon('user', 20)}<span>Cá nhân</span></a>
@@ -28,7 +28,7 @@ const rail = (active) => `
             <a class="nav__item" href="12-dictionary.html">${icon('book', 18)}<span>Sổ tay</span></a>
                 <a class="nav__item" href="07-vocabulary-check.html">${icon('search', 18)}<span>Tra từ &amp; hỏi AI</span></a>
                 <a class="nav__item" href="15-review.html">${icon('clock', 18)}<span>Ôn tập từ vựng</span></a>
-            <a class="nav__item" href="36-ai-chat.html">${icon('sparkle', 18)}<span>AI Coach</span></a>
+            <a class="nav__item" href="08-vocabulary-list.html">${icon('book', 18)}<span>Từ vựng</span></a>
             <a class="nav__item" href="28-leaderboard.html">${icon('trophy', 18)}<span>Xếp hạng</span></a>
             <a class="nav__item" href="31-rewards.html">${icon('gift', 18)}<span>Phần thưởng</span></a>
             <a class="nav__item" href="32-credits.html">${icon('coin', 18)}<span>Ví credit</span></a>
@@ -45,10 +45,10 @@ const rail = (active) => `
 const tabbar = (active) => `
 <nav class="tabbar only-mobile" aria-label="Điều hướng chính">
     <a class="tabbar__item" href="04-home.html" ${active === 'home' ? 'aria-current="page"' : ''}>${icon('home', 22)}<span>Trang chủ</span></a>
-    <a class="tabbar__item" href="08-vocabulary-list.html" ${active === 'learn' ? 'aria-current="page"' : ''}>${icon('book', 22)}<span>Từ vựng</span></a>
+    <a class="tabbar__item" href="36-ai-chat.html" ${active === 'ai-chat' ? 'aria-current="page"' : ''}>${icon('sparkle', 22)}<span>AI Coach</span></a>
     <a class="tabbar__item" href="16-ielts-list.html" ${active === 'practice' ? 'aria-current="page"' : ''}>${icon('target', 22)}<span>Luyện tập</span></a>
     <a class="tabbar__item" href="29-weekly-report.html" ${active === 'progress' ? 'aria-current="page"' : ''}>${icon('chart', 22)}<span>Tiến độ</span></a>
-    <a class="tabbar__item" href="33-profile.html" ${active === 'account' ? 'aria-current="page"' : ''}>${icon('user', 22)}<span>Cá nhân</span></a>
+    <a class="tabbar__item" href="33b-account-menu.html" ${active === 'more' || active === 'account' ? 'aria-current="page"' : ''}>${icon('menu', 22)}<span>Thêm</span></a>
 </nav>`;
 
 /* The rail is identical on every app screen, so it lives here once. `lexiOpen` exists for the one
@@ -491,8 +491,14 @@ export const screens = {
         <span class="chip chip--teal hide-lg">${icon('coin', 14)} 1 credit</span>
     </header>
 
+    <!-- Mobile: a two-tab switch. Desktop: both panes visible at once. -->
+    <div class="exam__tabs only-mobile" role="tablist" aria-label="Chuyển giữa đề bài và làm bài" data-tabs="wr">
+        <button role="tab" aria-selected="true" data-tab="wr-prompt">${icon('book', 16)} Đề bài</button>
+        <button role="tab" aria-selected="false" data-tab="wr-editor">${icon('pen', 16)} Làm bài (142 từ)</button>
+    </div>
+
     <div class="write__body">
-        <section class="write__prompt" aria-label="Đề bài">
+        <section class="write__prompt" data-panel="wr-prompt" aria-label="Đề bài">
             <span class="chip chip--outline">Task 2 · Essay</span>
             <h2 class="t-h3" style="margin-top:12px">Some people think governments should spend money on public transport rather than on new roads.</h2>
             <p class="t-body soft" style="margin-top:8px">Discuss both views and give your own opinion.</p>
@@ -507,7 +513,7 @@ export const screens = {
                 <p class="t-micro soft">Mẹo: mỗi đoạn thân bài nên có một câu chủ đề rõ ràng.</p></div>
         </section>
 
-        <section class="write__editor" aria-label="Bài viết">
+        <section class="write__editor" data-panel="wr-editor" aria-label="Bài viết">
             <label class="field" style="height:100%">
                 <span class="sr-only">Bài viết của bạn</span>
                 <textarea class="textarea" style="min-height:380px;height:100%">It is often argued that public money would be better spent on public transport than on building new roads. While I accept that road expansion can relieve congestion in the short term, I believe that investment in public transport produces greater long-term benefits for both the environment and social equality.
@@ -535,6 +541,9 @@ On the one hand, supporters of road building point out that…</textarea>
 </div>`,
   style: `
 .write { min-height: 100vh; display: flex; flex-direction: column; background: var(--canvas); }
+.exam__tabs { display: flex; gap: 6px; padding: 8px 12px; background: var(--surface); border-bottom: 2px solid var(--border); }
+.exam__tabs [role='tab'] { flex: 1; min-height: 42px; border: 0; border-radius: var(--r-sm); background: var(--surface-alt); color: var(--ink-muted); font-weight: 700; font-size: .875rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.exam__tabs [role='tab'][aria-selected='true'] { background: var(--teal); color: var(--on-teal); }
 .write__body { flex: 1; display: grid; grid-template-columns: 380px 1fr; gap: 0; min-height: 0; }
 .write__prompt { padding: 24px; background: var(--surface); border-right: 2px solid var(--border); overflow-y: auto; }
 .write__editor { padding: 20px 24px; display: flex; flex-direction: column; gap: 10px; }
@@ -542,8 +551,10 @@ On the one hand, supporters of road building point out that…</textarea>
 .write__foot { padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 2px solid var(--border); }
 @media (max-width: 1023px) {
     .write__body { grid-template-columns: 1fr; }
-    .write__prompt { border-right: 0; border-bottom: 2px solid var(--border); padding: 16px 14px; }
+    .write__prompt { border-right: 0; padding: 16px 14px; }
+    .write__prompt[hidden] { display: none; }
     .write__editor { padding: 14px; padding-bottom: 90px; }
+    .write__editor[hidden] { display: none; }
 }
 ` },
 
@@ -832,7 +843,7 @@ On the one hand, supporters of road building point out that…</textarea>
                 <div class="bubble bubble--lexi bubble--left">Chúng ta nói về du lịch bền vững nhé. Theo bạn, du lịch đại chúng gây hại gì cho địa phương?</div>
             </div>
             <div class="msg msg--me">
-                <div class="bubble bubble--right">I think it can destroy the environment because too many people visit the same place and it makes a lot of rubbish.</div>
+                <div class="bubble bubble--user bubble--right">I think it can destroy the environment because too many people visit the same place and it makes a lot of rubbish.</div>
             </div>
             <div class="msg msg--ai">
                 <span data-lexi="thinking" data-size="xs"></span>
@@ -842,7 +853,7 @@ On the one hand, supporters of road building point out that…</textarea>
                 </div>
             </div>
             <div class="msg msg--me">
-                <div class="bubble bubble--right">Yes please, and then ask me the next question.</div>
+                <div class="bubble bubble--user bubble--right">Yes please, and then ask me the next question.</div>
             </div>
             <div class="msg msg--ai">
                 <span data-lexi="explain" data-size="xs"></span>
@@ -855,8 +866,8 @@ On the one hand, supporters of road building point out that…</textarea>
 
         <div class="chat__suggest">
             <span class="t-micro muted">Gợi ý</span>
-            <div class="row g8 wrap" style="margin-top:6px">
-                ${['Cho tôi một câu hỏi khó hơn', 'Sửa lỗi ngữ pháp của tôi', 'Giải thích "overtourism"'].map((s) => `<button class="chip chip--outline" type="button">${s}</button>`).join('')}
+            <div class="row g8 nowrap no-scrollbar" style="margin-top:6px;overflow-x:auto;flex-wrap:nowrap">
+                ${['Cho tôi một câu hỏi khó hơn', 'Sửa lỗi ngữ pháp của tôi', 'Giải thích "overtourism"'].map((s) => `<button class="chip chip--outline" style="flex-shrink:0;white-space:nowrap" type="button">${s}</button>`).join('')}
             </div>
         </div>
 
@@ -1646,12 +1657,11 @@ On the one hand, supporters of road building point out that…</textarea>
 '36-ai-chat': { file: '36-ai-chat.html', title: 'AI Coach', subtitle: 'Chat streaming · credit badge', group: 'Tài khoản',
   note: 'Nêu rõ chi phí mỗi tin nhắn trước khi gửi', shell: true, body: `
 <div class="chat">
-    <header class="exam__bar">
+    <header class="exam__bar only-lg">
         <a class="btn btn--ghost btn--icon btn--sm" href="04-home.html" aria-label="Quay lại">${icon('arrowLeft', 18)}</a>
         <span data-lexi="idle" data-size="xs"></span>
         <div class="grow" style="min-width:0"><span class="t-label truncate" style="display:block">Lexi — AI Coach</span>
         <span class="t-micro muted">Biết tiến độ và điểm yếu của bạn</span></div>
-        <span class="chip chip--teal">${icon('coin', 14)} 240</span>
         <button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Lịch sử">${icon('clock', 18)}</button>
     </header>
 
@@ -1662,7 +1672,7 @@ On the one hand, supporters of road building point out that…</textarea>
                 <div class="bubble bubble--lexi bubble--left">Chào Minh! Tuần này bạn mạnh Listening, yếu Matching Headings. Bạn muốn luyện dạng đó hay hỏi gì khác?</div>
             </div>
             <div class="msg msg--me">
-                <div class="bubble bubble--right">Giải thích cho mình cách làm dạng Matching Headings nhanh hơn.</div>
+                <div class="bubble bubble--user bubble--right">Giải thích cho mình cách làm dạng Matching Headings nhanh hơn.</div>
             </div>
             <div class="msg msg--ai">
                 <span data-lexi="explain" data-size="xs"></span>
@@ -1686,8 +1696,8 @@ On the one hand, supporters of road building point out that…</textarea>
         </div>
 
         <div class="chat__suggest">
-            <div class="row g8 wrap">
-                ${['Cho tôi 5 câu luyện tập', 'Xem điểm yếu của tôi', 'Lên kế hoạch tuần này'].map((s) => `<button class="chip chip--outline" type="button">${s}</button>`).join('')}
+            <div class="row g8 nowrap no-scrollbar" style="overflow-x:auto;flex-wrap:nowrap">
+                ${['Cho tôi 5 câu luyện tập', 'Xem điểm yếu của tôi', 'Lên kế hoạch tuần này'].map((s) => `<button class="chip chip--outline" style="flex-shrink:0;white-space:nowrap" type="button">${s}</button>`).join('')}
             </div>
         </div>
 
@@ -1709,6 +1719,8 @@ On the one hand, supporters of road building point out that…</textarea>
 .chat__input .input { border: 0; }
 .chat__input .input:focus { outline: none; }
 .chat__bar { height: calc(var(--shell-tabbar) + env(safe-area-inset-bottom, 0px)); }
+@media (max-width: 1023px) { .chat .exam__bar { display: none !important; } }
+@media (min-width: 1024px) { .chat .exam__bar.only-lg { display: flex !important; } }
 ` },
 
 };

@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { Mic, MicOff, Send, Loader2, Coins, Info, Flag, RotateCcw, Sparkles } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mic, MicOff, Loader2, Coins, Flag, RotateCcw, Sparkles, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Lexi } from '../../components/mascot/Lexi';
 import { Card } from '../../components/ui/Card';
 import { Button, ButtonLink } from '../../components/ui/Button';
-import { Chip, Stat } from '../../components/ui/Primitives';
+import { Chip } from '../../components/ui/Primitives';
 import { Markdown } from '../../components/ui/Markdown';
 import { cn } from '../../lib/cn';
 import { useSpeechRecording } from '../../hooks/useSpeechRecording';
@@ -20,6 +20,12 @@ import {
     VOICES,
     optionLabelKey,
 } from '../../features/speaking/useCustomConversation';
+
+const SUGGESTIONS = [
+    'customSpeaking.suggestion1',
+    'customSpeaking.suggestion2',
+    'customSpeaking.suggestion3',
+];
 
 /**
  * Custom speaking conversation — `/custom-speaking` (screen 27).
@@ -261,157 +267,180 @@ export default function CustomSpeakingPage() {
 
     /* --------------------------------------------------------------- chat */
     return (
-        <div className="mx-auto flex w-full max-w-[780px] flex-col gap-4">
-            {/* --- header: Lexi, topic, balance ---------------------------- */}
-            <Card level="edge" padding="xl" className="flex flex-wrap items-center gap-4">
-                <Lexi mood={conversation.sending ? 'thinking' : 'happy'} size="md" />
+        <div className="mx-auto flex h-[calc(100dvh-var(--shell-header)-var(--shell-tabbar)-44px)] lg:h-[calc(100dvh-var(--shell-header)-60px)] w-full max-w-[780px] flex-col gap-3">
+            {/* --- header: back, title/topic/turn, balance, finish button --- */}
+            <div className="flex shrink-0 items-center gap-3 rounded-[var(--r-card)] border-2 border-[var(--border)] bg-[var(--surface)] px-4 py-3 shadow-[0_var(--edge)_0_0_var(--border)]">
+                <Link
+                    to="/speaking"
+                    aria-label={t('common.back', 'Quay lại')}
+                    className="inline-flex size-9 items-center justify-center rounded-[var(--r-control)] text-[var(--ink-soft)] hover:bg-[var(--surface-alt)]"
+                >
+                    <ArrowLeft size={18} aria-hidden="true" />
+                </Link>
                 <div className="min-w-0 flex-1">
-                    <h1 className="t-h3">{conversation.step?.title ?? t('customSpeaking.title')}</h1>
-                    <p className="t-micro muted">
-                        {t(`customSpeaking.option.style.${conversation.step?.style ?? 'CASUAL'}`)}
-                        {' · '}
-                        {t(`customSpeaking.option.expertise.${conversation.step?.expertise ?? 'GENERAL'}`)}
+                    <h1 className="t-label truncate text-[var(--ink)]">
+                        {conversation.step?.title ?? t('customSpeaking.title')}
+                    </h1>
+                    <p className="t-micro muted truncate">
+                        {conversation.step?.topic ? `${t('customSpeaking.topicLabel')}: ${conversation.step.topic} · ` : ''}
+                        {t('customSpeaking.turnN', { number: conversation.userTurnCount + 1 })}
                         {turnsLeft != null ? ` · ${t('customSpeaking.turnsLeft', { count: turnsLeft })}` : ''}
                     </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                    <Chip tone={affordable ? 'teal' : 'wrong'} icon={Coins}>
-                        {balanceKnown ? t('aiChat.balance', { count: balance }) : '—'}
-                    </Chip>
-                </div>
-            </Card>
+                <Chip tone={affordable ? 'teal' : 'wrong'} icon={Coins}>
+                    {balanceKnown ? t('aiChat.balance', { count: balance }) : '—'}
+                </Chip>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={onFinish}
+                    disabled={conversation.finishing}
+                    className="text-xs"
+                >
+                    <Flag size={14} aria-hidden="true" />
+                    <span className="hidden sm:inline">{t('customSpeaking.finish')}</span>
+                </Button>
+            </div>
 
-            {/* --- the log ------------------------------------------------- */}
+            {/* --- the log: Lexi white bubble left, user teal bubble right --- */}
             <div
                 aria-live="polite"
                 aria-label={t('aiChat.logLabel')}
-                className="flex max-h-[52vh] min-h-[260px] flex-col gap-3 overflow-y-auto p-1"
+                className="flex flex-1 min-h-0 flex-col gap-3.5 overflow-y-auto p-1"
             >
-                {conversation.log.map((entry, i) => (
-                    <div key={`${entry.role}-${i}`} className={cn('flex items-start gap-2.5', entry.role === 'user' && 'flex-row-reverse')}>
-                        {entry.role === 'assistant' ? <Lexi mood="idle" size="xs" /> : null}
+                {conversation.log.map((entry, i) => {
+                    const isUser = entry.role === 'user';
+                    return (
                         <div
-                            className={cn(
-                                'min-w-0 max-w-[86%] rounded-[var(--r-card)] border-2 p-3.5',
-                                entry.role === 'user'
-                                    ? 'border-[var(--teal)] bg-[var(--teal-soft)]'
-                                    : 'border-[var(--border)] bg-[var(--surface)]'
-                            )}
+                            key={`${entry.role}-${i}`}
+                            className={cn('flex items-end gap-2.5', isUser ? 'justify-end' : 'justify-start')}
                         >
-                            <span className="t-micro muted mb-1 block">
-                                {entry.role === 'user' ? t('aiChat.you') : t('aiChat.lexi')}
-                            </span>
-                            {entry.role === 'user' ? (
-                                <p className="whitespace-pre-line">{entry.text}</p>
-                            ) : (
-                                <Markdown content={entry.text} />
-                            )}
+                            {!isUser ? <Lexi mood="explain" size="xs" /> : null}
+                            <div
+                                className={cn(
+                                    'bubble min-w-0 max-w-[min(84%,540px)]',
+                                    isUser ? 'bubble--user bubble--right' : 'bubble--lexi bubble--left'
+                                )}
+                            >
+                                <span className="sr-only">
+                                    {isUser ? t('aiChat.you') : t('aiChat.lexi')}
+                                </span>
+                                {isUser ? (
+                                    <p className="whitespace-pre-line">{entry.text}</p>
+                                ) : (
+                                    <Markdown content={entry.text} />
+                                )}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
 
                 {conversation.sending ? (
-                    <div className="flex items-start gap-2.5">
+                    <div className="flex items-end gap-2.5">
                         <Lexi mood="thinking" size="xs" />
-                        <div className="min-w-0 max-w-[86%] rounded-[var(--r-card)] border-2 border-[var(--border)] bg-[var(--surface)] p-3.5">
-                            <span className="t-micro muted mb-1 block">{t('customSpeaking.speakingNow')}</span>
+                        <div className="bubble bubble--lexi bubble--left min-w-0 max-w-[min(84%,540px)]">
+                            <span className="t-micro muted mb-1.5 block">
+                                {t('customSpeaking.speakingNow')}
+                            </span>
                             <span aria-hidden="true" className="flex flex-col gap-2">
-                                <span className="block h-3.5 w-full animate-pulse rounded bg-[var(--surface-alt)]" />
-                                <span className="block h-3.5 w-2/5 animate-pulse rounded bg-[var(--surface-alt)]" />
+                                <span className="block h-3.5 w-32 animate-pulse rounded bg-[var(--surface-alt)]" />
                             </span>
                         </div>
                     </div>
                 ) : null}
             </div>
 
-            {/* --- composer ------------------------------------------------ */}
-            <Card level="edge" padding="xl">
-                <form onSubmit={onSend} className="flex flex-col gap-3">
-                    <label className="flex flex-col gap-1.5">
-                        <span className="sr-only">{t('customSpeaking.replyLabel')}</span>
-                        <textarea
-                            className="min-h-[72px] resize-y rounded-[var(--r-control)] border-2 border-[var(--border-strong)] bg-[var(--surface)] p-3.5"
-                            value={draft || (recording ? transcript : '')}
-                            onChange={(e) => {
-                                setDraft(e.target.value);
-                                if (recording) setTranscript(e.target.value);
-                            }}
-                            placeholder={t('customSpeaking.replyPlaceholder')}
-                            rows={2}
-                        />
-                    </label>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                        {/* Mic: record, or stop and keep the transcript as the reply. */}
-                        <Button
+            {/* --- suggestion chips: single row --- */}
+            <div className="flex shrink-0 flex-col gap-1.5">
+                <span className="t-micro muted">{t('customSpeaking.suggestHeading', 'Gợi ý')}</span>
+                <div className="flex flex-nowrap items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+                    {SUGGESTIONS.map((key) => (
+                        <button
+                            key={key}
                             type="button"
-                            variant={recording ? 'danger' : 'secondary'}
-                            size="lg"
-                            onClick={() => {
-                                if (recording) {
-                                    stopRecording();
-                                    setDraft(transcript);
-                                } else {
-                                    startRecording();
-                                }
-                            }}
+                            onClick={() => setDraft(t(key))}
+                            className="inline-flex h-[30px] shrink-0 whitespace-nowrap items-center rounded-[var(--r-chip)] border-2 border-[var(--border-strong)] bg-transparent px-3 text-[0.8125rem] font-bold tracking-[0.01em] text-[var(--ink-soft)] hover:bg-[var(--surface-alt)] cursor-pointer"
                         >
-                            {recording ? <MicOff size={18} aria-hidden="true" /> : <Mic size={18} aria-hidden="true" />}
-                            {recording ? t('customSpeaking.stopRecording') : t('customSpeaking.record')}
-                        </Button>
+                            {t(key)}
+                        </button>
+                    ))}
+                </div>
+            </div>
 
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            size="lg"
-                            disabled={!(draft || transcript).trim() || conversation.sending || !affordable}
-                        >
-                            {conversation.sending ? (
-                                <Loader2 size={18} className="animate-spin" aria-hidden="true" />
-                            ) : (
-                                <Send size={18} aria-hidden="true" />
-                            )}
-                            {cost ? t('customSpeaking.sendWithCost', { amount: cost.amountLabel }) : t('customSpeaking.send')}
-                        </Button>
-
-                        <span className="flex-1" />
-
-                        <Button type="button" variant="ghost" size="sm" onClick={onFinish} disabled={conversation.finishing}>
-                            <Flag size={15} aria-hidden="true" />
-                            {t('customSpeaking.finish')}
-                        </Button>
-                    </div>
-
-                    {/* The cost, stated a second time, where the decision is made. */}
-                    <p className="t-micro muted flex flex-wrap items-center gap-2 border-t-2 border-[var(--border)] pt-3">
-                        <Info size={13} aria-hidden="true" />
-                        {affordable
-                            ? cost
-                                ? t('customSpeaking.costLine', { amount: cost.amountLabel, balance: balanceKnown ? balance : '—' })
-                                : t('customSpeaking.freeLine')
-                            : t('customSpeaking.insufficient')}
-                    </p>
-
-                    {conversation.gradingEnabled ? (
-                        <p className="t-micro muted">{t('customSpeaking.gradingOn')}</p>
-                    ) : (
-                        <p className="t-micro muted">{t('customSpeaking.gradingOff')}</p>
+            {/* --- 1-line composer (.chat__input) --- */}
+            <form onSubmit={onSend} className="chat__input shrink-0">
+                <button
+                    type="button"
+                    aria-label={recording ? t('customSpeaking.stopRecording') : t('customSpeaking.record')}
+                    onClick={() => {
+                        if (recording) {
+                            stopRecording();
+                            setDraft(transcript);
+                        } else {
+                            startRecording();
+                        }
+                    }}
+                    className={cn(
+                        'inline-flex size-9 shrink-0 items-center justify-center rounded-[var(--r-control)] transition-colors',
+                        recording
+                            ? 'bg-[var(--wrong)] text-white animate-pulse'
+                            : 'text-[var(--ink-soft)] hover:bg-[var(--surface-alt)]'
                     )}
+                >
+                    {recording ? <MicOff size={18} aria-hidden="true" /> : <Mic size={18} aria-hidden="true" />}
+                </button>
 
-                    {conversation.error ? (
-                        <p role="alert" className="t-micro text-[var(--wrong)]">
-                            {t('common.error.generic')}
-                        </p>
-                    ) : null}
-                </form>
-            </Card>
+                <label className="min-w-0 flex-1">
+                    <span className="sr-only">{t('customSpeaking.replyLabel')}</span>
+                    <input
+                        className="chat__input-field"
+                        value={draft || (recording ? transcript : '')}
+                        onChange={(e) => {
+                            setDraft(e.target.value);
+                            if (recording) setTranscript(e.target.value);
+                        }}
+                        placeholder={t('customSpeaking.replyPlaceholder')}
+                    />
+                </label>
 
-            <div className="flex items-center justify-center gap-3">
+                <Button
+                    type="submit"
+                    variant="primary"
+                    size="md"
+                    disabled={!(draft || transcript).trim() || conversation.sending || !affordable}
+                >
+                    {conversation.sending ? (
+                        <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+                    ) : (
+                        <ArrowRight size={18} aria-hidden="true" />
+                    )}
+                    <span>
+                        {cost ? t('customSpeaking.sendWithCost', { amount: cost.amountLabel }) : t('customSpeaking.send')}
+                    </span>
+                </Button>
+            </form>
+
+            {/* --- cost note and reset --- */}
+            <p className="t-micro muted shrink-0 text-center">
+                {affordable
+                    ? cost
+                        ? t('customSpeaking.costLine', { amount: cost.amountLabel, balance: balanceKnown ? balance : '—' })
+                        : t('customSpeaking.freeLine')
+                    : t('customSpeaking.insufficient')}
+            </p>
+
+            {conversation.error ? (
+                <p role="alert" className="t-micro shrink-0 text-center text-[var(--wrong)]">
+                    {t('common.error.generic')}
+                </p>
+            ) : null}
+
+            <div className="flex shrink-0 items-center justify-center gap-3 pt-0.5">
                 <Button variant="ghost" size="sm" onClick={conversation.reset}>
                     <RotateCcw size={15} aria-hidden="true" />
                     {t('customSpeaking.newConversation')}
                 </Button>
-                <Stat value={conversation.userTurnCount} label={t('customSpeaking.yourTurns')} tone="teal" />
             </div>
         </div>
     );

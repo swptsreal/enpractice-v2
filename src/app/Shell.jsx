@@ -1,7 +1,7 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Flame, Coins } from 'lucide-react';
-import { PRIMARY_NAV, SECONDARY_NAV, activePrimaryId } from './navigation';
+import { PRIMARY_NAV, SECONDARY_NAV, MOBILE_PRIMARY_NAV, MORE_NAV, activePrimaryId } from './navigation';
 import { Lexi } from '../components/mascot/Lexi';
 import { Chip } from '../components/ui/Primitives';
 import { cn } from '../lib/cn';
@@ -135,10 +135,11 @@ export function Sidebar({ streakDays = 0, credits = 0, className }) {
  * navigate could scroll out of existence. Five destinations are always visible
  * and thumb-reachable, with safe-area padding for the home indicator.
  */
-export function TabBar({ className }) {
+export function TabBar({ className, onToggleMore, moreOpen = false }) {
     const { t } = useTranslation();
     const { pathname } = useLocation();
     const active = activePrimaryId(pathname);
+    const isMoreActive = MORE_NAV.some((item) => pathname === item.to || pathname.startsWith(item.to + '/'));
 
     return (
         <nav
@@ -150,7 +151,31 @@ export function TabBar({ className }) {
             )}
         >
             <ul className="flex">
-                {PRIMARY_NAV.map(({ id, to, labelKey, icon: Icon }) => {
+                {MOBILE_PRIMARY_NAV.map(({ id, to, labelKey, icon: Icon }) => {
+                    if (id === 'more') {
+                        const isCurrent = isMoreActive || moreOpen;
+                        return (
+                            <li key={id} className="flex-1">
+                                <button
+                                    type="button"
+                                    aria-haspopup="dialog"
+                                    aria-expanded={moreOpen}
+                                    aria-controls="more-sheet"
+                                    aria-label={t(labelKey)}
+                                    onClick={onToggleMore}
+                                    className={cn(
+                                        'flex h-[var(--shell-tabbar)] w-full flex-col items-center justify-center gap-1',
+                                        'text-[0.6875rem] font-bold transition-colors',
+                                        isCurrent ? 'text-[var(--teal)]' : 'text-[var(--ink-muted)]'
+                                    )}
+                                >
+                                    <Icon size={22} aria-hidden="true" />
+                                    <span>{t(labelKey)}</span>
+                                </button>
+                            </li>
+                        );
+                    }
+
                     const { isCurrent, ariaCurrent } = primaryItemState(active, id);
                     return (
                         <li key={id} className="flex-1">

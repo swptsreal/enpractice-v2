@@ -11,10 +11,12 @@ same screen number, different shell — so the folder holds 37 frames for 36 scr
 `/vocabulary/check` is reachable both signed in and signed out, and those two states must not show the
 same page furniture. Every other screen draws one frame.
 
-**The rail's section tabs.** The rail (≥1024px) and the tab bar (<1024px) carry **five primary
-destinations**, and each one is a *section*, so its `href` is that section's **landing** page — not
-"the first frame I happened to write in the section". The vocabulary module is the case that got this
-wrong:
+**The rail's section tabs & mobile tab bar.**
+- **Desktop (≥1024px):** Thanh rail mang 5 section chính (**Trang chủ**, **AI Coach**, **Luyện tập**, **Tiến độ**, **Cá nhân**) và nhóm "Khác" chứa các chức năng còn lại (bao gồm **Từ vựng**).
+- **Mobile (<1024px):** Bottom nav hiển thị 5 mục ngón tay dễ chạm: **Trang chủ**, **AI Coach**, **Luyện tập**, **Tiến độ**, và **Thêm** (thay thế vị trí Cá nhân). Tab **Thêm** mở drawer/sheet gom toàn bộ các chức năng còn lại trên sidebar (Hồ sơ cá nhân, Từ vựng, Lộ trình, Sổ tay, Tra từ & hỏi AI, Ôn tập từ vựng, Writing, Speaking, Hội thoại tự chọn, Bảng xếp hạng, Phần thưởng, Ví credit, Thông báo, Cài đặt, Đăng xuất).
+- **Header chính (Shell Header):** Chứa Lexi (mobile), tiêu đề trang, **Badge credit** (`.chip--teal` hiển thị số dư credit và link đến `/credits`, chỉ hiển thị trên mobile `<1024px` vì desktop đã có ở chân sidebar rail), nút **Thông báo** (`NotificationBell`), và avatar tài khoản.
+
+The vocabulary module is the case that got this wrong:
 
 | Primary tab | Landing | The section also contains |
 |---|---|---|
@@ -175,6 +177,8 @@ way back into the app. The fix is the split above.
 - **Layout:** List. Tabs (all / not done / done) + filter + a responsive card grid.
 - **Three states all designed:** populated grid, a real empty state with Lexi (`explain` mood) and a create action, and a loading state of skeleton cards — not a spinner.
 - **Each card carries its provenance** (AI-generated vs user's own) as a chip, and the previous score as a band badge when it exists; the primary action changes from "Bắt đầu" to "Làm lại" accordingly.
+- **Thao tác tạo nhanh (+5, +10, +20 câu):** Không điều hướng sang màn làm bài, giữ người dùng ở lại trang danh sách; hệ thống tự động poll danh sách và cập nhật thẻ bài mới khi hoàn tất.
+- **Tag New:** Hiển thị chip `New` (`chip--amber`) cho các bài test có `createdAt` dưới 1 ngày và chưa hoàn thành.
 
 ### 09 · Vocabulary test taking — `/vocabulary/take/:attemptId` `[code-verified]`
 - **Layout:** Take. **One question per screen**, which is the change from v1's batched form.
@@ -397,8 +401,10 @@ way back into the app. The fix is the split above.
 - Each card shows the full prompt (truncated at a sensible length), word target, recommended time, and a state chip. **The "Đang chấm" state is a designed state**, because v1's AI grading is asynchronous: the card shows an amber clock chip and its action becomes "Xem trạng thái" rather than pretending the result is ready.
 
 ### 22 · Writing task — `/writing/task/:taskId/take` `[code-verified]`
-- **Layout:** Split. Prompt pane (380px, `--surface`) and editor pane, both full height, at ≥1024px; stacked below with the prompt on top and a sticky submit bar at the bottom.
-- **Anatomy:** prompt + task type chip → the four grading criteria listed explicitly → one Lexi tip → editor → autosave indicator + live word count → submit.
+- **Layout:** Split — tương tự màn 18 (`ielts/take`).
+  - **Desktop (≥1024px):** 2 pane song song độc lập (Prompt pane 380px bên trái và Editor pane bên phải), mỗi pane cuộn riêng biệt.
+  - **Mobile (<1024px):** Chuyển đổi 2 tab ("Đề bài" và "Làm bài") giúp tập trung gõ bài và dễ dàng chuyển qua xem lại đề mà không bị cuộn chồng chéo làm vỡ giao diện. Tab "Làm bài" hiển thị kèm số từ đã viết.
+- **Anatomy:** Header với nút thoát và timer → (Mobile) 2 tab switch → Prompt pane (đề bài, type chip, tiêu chí chấm, mẹo Lexi) và Editor pane (textarea, đếm từ, cảnh báo min/max từ, nút nộp bài).
 - **Word count is a live chip** against the target ("142 / 250 từ"), not a hard block: the user may submit under length, and the count is information, not a gate.
 - **The cost is on the submit button** ("Nộp bài · 1 credit") and repeated in the footer with the expected wait ("30–60 giây để chấm").
 
@@ -428,8 +434,9 @@ way back into the app. The fix is the split above.
 - The transcript carries the caveat that speech recognition can err, and repeated words are highlighted in the transcript itself.
 
 ### 27 · Custom speaking conversation — `/custom-speaking` `[code-verified]`
-- **Layout:** Chat.
-- **Anatomy:** log of alternating Lexi/user bubbles → suggestion chips → composer with a mic button → per-message cost line.
+- **Layout:** Chat, 780px max, kéo dài toàn bộ chiều dọc (`flex-1 min-h-0`). Chat log giãn trọn chiều dọc, cụm gợi ý xếp trên 1 hàng ngang cuộn mượt (`.chat__suggest`), composer ghim sát đáy.
+- **Anatomy:** header bar with back button, topic/turn context and balance chip → log of alternating Lexi/user bubbles → suggestion chips (`.chat__suggest`) → sleek 1-row composer (`.chat__input` with mic toggle, text input, send) → centered per-message cost line.
+- **Bubbles:** Lexi bubble is white (`var(--surface)`) with left tail (`.bubble--left`), display font; learner bubble is system teal (`var(--teal-soft)`, border `var(--teal)`) with right tail (`.bubble--right`).
 - **Lexi's turns do real work:** she corrects a phrase, gives the improved sentence, and asks the next question. The correction is shown as an italic rewrite rather than a red mark, because this is conversation practice, not an exam.
 - The streaming state is a bubble with a "Đang nói…" label and a skeleton line.
 - Cost is stated twice — a balance chip in the header and "Mỗi lượt AI tốn 1 credit · còn 12 credit" under the composer.
@@ -519,11 +526,13 @@ to render with no type at all.
 - Data section: export, delete AI chat history, delete account — with the destructive action in the danger variant and separated.
 
 ### 36 · AI coach — `/ai-chat` `[code-verified]`
-- **Layout:** Chat, 780px max.
-- **Anatomy:** header with Lexi, context line and balance → log → suggestion chips → composer with the cost on the send button.
+- **Layout:** Chat, 780px max, kéo dài toàn bộ chiều dọc (`flex-1 min-h-0`). Chat log giãn trọn chiều dọc, cụm gợi ý xếp trên 1 hàng ngang cuộn mượt (`.chat__suggest`), composer ghim sát đáy.
+- **Anatomy:** Header trang (ẩn khi ở mobile `<1024px`, chỉ hiển thị trên desktop `≥1024px` với nút quay lại, Lexi, dòng context; badge credit không hiển thị ở header trang mà chuyển về header chung cạnh notification) → log → suggestion outline chips (`.chat__suggest`) → sleek 1-row composer (`.chat__input`) with the cost on the send button.
+- **Bubbles:** Lexi bubble is white (`var(--surface)`) with left tail (`.bubble--left`), display font; learner bubble is system teal (`var(--teal-soft)`, border `var(--teal)`) with right tail (`.bubble--right`).
 - **Lexi's first message carries real data** ("Tuần này bạn mạnh Listening, yếu Matching Headings") so the coach demonstrates that it knows the user before asking for a question.
 - Answers can use structured content (an ordered list for the three-step method) and end with the specific reason it applies to this user ("Bạn hay chọn theo từ trùng — đó là lý do 3 câu sai lần trước").
 - The streaming state is a skeleton line inside a bubble.
+- **Panel nổi (36b · LexiPanel):** mở từ nút 56px, dialog không modal, giữ nguyên màn đang xem. Cụm gợi ý xếp trên 1 hàng ngang có scroll (`.no-scrollbar`), chip outline, composer gọn ở đáy. Nút nổi và panel bị ẩn hoàn toàn khi người học đang ở chính màn `/ai-chat`.
 
 ---
 

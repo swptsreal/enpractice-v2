@@ -1,4 +1,4 @@
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../components/ui/Button';
 import { Markdown } from '../../components/ui/Markdown';
@@ -24,6 +24,24 @@ export function ChatLog({ chat, opening, logRef, className }) {
             aria-label={t('aiChat.logLabel')}
             className={className}
         >
+            {chat.hasMoreHistory ? (
+                <div className="flex justify-center py-2">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={chat.loadingOlder}
+                        onClick={chat.loadOlder}
+                        className="gap-2 text-xs"
+                    >
+                        {chat.loadingOlder ? (
+                            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+                        ) : null}
+                        {t('common.loadMore')}
+                    </Button>
+                </div>
+            ) : null}
+
             {/* Lexi opens, demonstrating what she knows — or saying she does not know yet, which is
                 the honest version for a new account. */}
             {opening?.key ? (
@@ -34,7 +52,7 @@ export function ChatLog({ chat, opening, logRef, className }) {
 
             {chat.messages.map((message) => {
                 const isUser = message.role === 'user';
-                const failed = message.status === 'failed';
+                const failed = message.status === 'failed' || message.status === 'error';
                 return (
                     <ChatBubble
                         key={message.id}

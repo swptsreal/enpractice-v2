@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { PRIMARY_NAV, SECONDARY_NAV, activePrimaryId } from './navigation';
+import { PRIMARY_NAV, SECONDARY_NAV, MOBILE_PRIMARY_NAV, MORE_NAV, activePrimaryId } from './navigation';
 /* The REAL locale bundles, not the seed: the seed is the input and the bundle is what ships, and the
    failure this catches — a rail label that exists in one and not the other — is invisible otherwise. */
 import en from '../i18n/locales/en';
@@ -24,32 +24,25 @@ import vi from '../i18n/locales/vi';
  * test list (`/vocabulary`, the landing) and the review (`/review`).
  */
 describe('navigation', () => {
-    it('lands the "Từ vựng" tab on the vocabulary practice list, not on the lookup screen', () => {
-        const learn = PRIMARY_NAV.find((item) => item.id === 'learn');
-        expect(learn.to).toBe('/vocabulary');
+    it('places AI Coach in primary navigation and moves Từ vựng to secondary navigation', () => {
+        const aiChat = PRIMARY_NAV.find((item) => item.id === 'aiChat');
+        expect(aiChat.to).toBe('/ai-chat');
+        expect(aiChat.labelKey).toBe('nav.aiChat');
 
-        /* The lookup screen keeps its own, separately named destination — the rail must not list one
-           screen under two labels, which is what made the tab look like it led into the section. */
-        const lookup = SECONDARY_NAV.find((item) => item.labelKey === 'nav.vocabCheck');
-        expect(lookup.to).toBe('/vocabulary/check');
-        expect(lookup.to).not.toBe(learn.to);
+        const vocab = SECONDARY_NAV.find((item) => item.to === '/vocabulary');
+        expect(vocab).toBeDefined();
+        expect(vocab.labelKey).toBe('nav.learn');
 
-        /* And the practice list itself is NOT repeated in the secondary group either: it is the
-           section LANDING, reachable from the tab, so a second entry would put two rail items on one
-           screen and highlight both. The label still names the screen for its header — `pageTitles`
-           maps `/vocabulary` to `nav.vocabTest`. */
-        expect(SECONDARY_NAV.some((item) => item.to === '/vocabulary')).toBe(false);
+        expect(PRIMARY_NAV.some((item) => item.to === '/vocabulary')).toBe(false);
+        expect(SECONDARY_NAV.some((item) => item.to === '/ai-chat')).toBe(false);
     });
 
-    it('names the tab after its SECTION, and gives the section both of its destinations', () => {
-        /* A label that names neither the section nor a destination is how the wrong landing survived:
-           "Học" was unverifiable by reading it. */
+    it('names the tabs after their sections and gives each destination resolved labels', () => {
+        expect(vi.nav.aiChat).toBe('AI Coach');
+        expect(en.nav.aiChat).toBe('AI Coach');
         expect(vi.nav.learn).toBe('Từ vựng');
         expect(en.nav.learn).toBe('Vocabulary');
 
-        /* `/review` is the section's second destination — the review you do after the test — so it is
-           on the rail, and under the same name its page title uses. Without it a designed screen had
-           no way in. */
         const review = SECONDARY_NAV.find((item) => item.to === '/review');
         expect(review, '/review is not on the rail').toBeDefined();
         expect(review.labelKey).toBe('nav.review');
@@ -64,23 +57,24 @@ describe('navigation', () => {
         }
     });
 
-    it('keeps the whole vocabulary module inside the "Từ vựng" section', () => {
-        /* The landing changed; the SECTION did not. If this regressed, the rail would lose its
-           highlight as soon as a learner opened the test list the tab just sent them to. */
-        for (const pathname of [
-            '/vocabulary',
-            '/vocabulary/check',
-            '/vocabulary/test',
-            '/vocabulary/result/abc',
-            '/vocabulary/history',
-            '/dictionary',
-            '/dictionary/review',
-            '/review',
-            '/evaluation',
-            '/path',
-        ]) {
-            expect(activePrimaryId(pathname), pathname).toBe('learn');
-        }
+    it('assigns activePrimaryId correctly for primary routes and returns null for secondary', () => {
+        expect(activePrimaryId('/ai-chat')).toBe('aiChat');
+        expect(activePrimaryId('/ai-chat/history')).toBe('aiChat');
+        expect(activePrimaryId('/ielts')).toBe('practice');
+        expect(activePrimaryId('/writing')).toBe('practice');
+        expect(activePrimaryId('/speaking')).toBe('practice');
+        expect(activePrimaryId('/custom-speaking')).toBe('practice');
+        expect(activePrimaryId('/weekly-report')).toBe('progress');
+        expect(activePrimaryId('/leaderboard')).toBe('progress');
+        expect(activePrimaryId('/profile')).toBe('account');
+        expect(activePrimaryId('/settings')).toBe('account');
+        expect(activePrimaryId('/home')).toBe('home');
+        expect(activePrimaryId('/')).toBe('home');
+
+        // Secondary routes have no primary tab active
+        expect(activePrimaryId('/vocabulary')).toBeNull();
+        expect(activePrimaryId('/dictionary')).toBeNull();
+        expect(activePrimaryId('/review')).toBeNull();
     });
 
     it('never points the rail at a screen that has no route', () => {
@@ -100,5 +94,28 @@ describe('navigation', () => {
     it('gives every destination a distinct path, so no two labels lead to one screen', () => {
         const destinations = [...PRIMARY_NAV, ...SECONDARY_NAV].map((item) => item.to);
         expect(new Set(destinations).size).toBe(destinations.length);
+    });
+
+    it('provides mobile navigation with "Thêm" replacing "Cá nhân" and housing remaining sidebar items', () => {
+        expect(MOBILE_PRIMARY_NAV.map((i) => i.id)).toEqual([
+            'home',
+            'aiChat',
+            'practice',
+            'progress',
+            'more',
+        ]);
+        expect(vi.nav.more).toBe('Thêm');
+        expect(en.nav.more).toBe('More');
+
+        expect(MORE_NAV.some((item) => item.to === '/profile')).toBe(true);
+        for (const item of SECONDARY_NAV) {
+            expect(MORE_NAV.some((m) => m.to === item.to)).toBe(true);
+        }
+
+        for (const key of MORE_NAV.map((item) => item.labelKey)) {
+            const [, leaf] = key.split('.');
+            expect(vi.nav[leaf], `vi is missing ${key}`).toBeTruthy();
+            expect(en.nav[leaf], `en is missing ${key}`).toBeTruthy();
+        }
     });
 });

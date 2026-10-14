@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Loader2, Send, X } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Lexi } from '../components/mascot/Lexi';
-import { ChatLog } from '../features/chat/ChatLog';
-import { useAiChat } from '../features/chat/useAiChat';
-import { CREDIT_ACTIONS } from '../features/credits/creditConstants';
-import { getCreditCostDisplay } from '../features/credits/creditPolicy';
-import { useCredit } from '../contexts/CreditContextCore';
+import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Loader2, Send, X } from "lucide-react";
+import { Button } from "../components/ui/Button";
+import { Lexi } from "../components/mascot/Lexi";
+import { ChatLog } from "../features/chat/ChatLog";
+import { useAiChat } from "../features/chat/useAiChat";
+import { CREDIT_ACTIONS } from "../features/credits/creditConstants";
+import { getCreditCostDisplay } from "../features/credits/creditPolicy";
+import { useCredit } from "../contexts/CreditContextCore";
 
 /**
  * Lexi in a panel: the floating helper's conversation, without leaving the screen.
@@ -38,7 +38,7 @@ export default function LexiPanel({ contextLabel, onClose }) {
     const chat = useAiChat();
     const credit = useCredit();
 
-    const [draft, setDraft] = useState('');
+    const [draft, setDraft] = useState("");
     const logRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -46,7 +46,8 @@ export default function LexiPanel({ contextLabel, onClose }) {
     const cost = getCreditCostDisplay(costEntry);
     const balance = credit.availableBalance;
     const balanceKnown = balance !== null && balance !== undefined;
-    const affordable = !cost || !balanceKnown || balance >= Number(costEntry?.cost ?? 0);
+    const affordable =
+        !cost || !balanceKnown || balance >= Number(costEntry?.cost ?? 0);
 
     /* Focus the composer on open: the panel exists to be typed into, and a keyboard user should not
        have to tab through the shell to reach it. */
@@ -58,10 +59,10 @@ export default function LexiPanel({ contextLabel, onClose }) {
        button is the thing that knows it opened this panel. */
     useEffect(() => {
         const onKeyDown = (event) => {
-            if (event.key === 'Escape') onClose();
+            if (event.key === "Escape") onClose();
         };
-        document.addEventListener('keydown', onKeyDown);
-        return () => document.removeEventListener('keydown', onKeyDown);
+        document.addEventListener("keydown", onKeyDown);
+        return () => document.removeEventListener("keydown", onKeyDown);
     }, [onClose]);
 
     /* Keep the newest message in view as it streams. */
@@ -74,7 +75,7 @@ export default function LexiPanel({ contextLabel, onClose }) {
         event.preventDefault();
         const content = draft.trim();
         if (!content || chat.sending || !affordable) return;
-        setDraft('');
+        setDraft("");
         const ok = await chat.send(content);
         /* A failed send keeps the text: it is the learner's own sentence. The optimistic bubble
            already shows the failure with a retry, so the composer is restored rather than the text
@@ -87,7 +88,7 @@ export default function LexiPanel({ contextLabel, onClose }) {
             id="lexi-panel"
             role="dialog"
             aria-modal="false"
-            aria-label={t('a11y.askLexi')}
+            aria-label={t("a11y.askLexi")}
             /* Bottom sheet above the tab bar on phones, 380px popover bottom-right at >=1024px. A
                380px panel next to a 56px button does not fit a 390px screen. */
             className="fixed inset-x-3 bottom-[calc(var(--shell-tabbar)+88px)] z-40 flex flex-col gap-3 rounded-[var(--r-card)] border-2 border-[var(--border)] bg-[var(--surface)] p-3.5 shadow-[0_16px_36px_-14px_rgb(20_35_43/0.4)] lg:inset-x-auto lg:right-4 lg:bottom-[88px] lg:w-[380px]"
@@ -96,50 +97,76 @@ export default function LexiPanel({ contextLabel, onClose }) {
                 <span className="flex min-w-0 items-center gap-2.5">
                     <Lexi mood="thinking" size="xs" />
                     <span className="min-w-0">
-                        <strong className="t-label block">{t('a11y.askLexi')}</strong>
+                        <strong className="t-label block">
+                            {t("a11y.askLexi")}
+                        </strong>
                         {/* What she can see, said rather than left to be guessed. */}
                         <span className="t-micro muted block truncate">
-                            {t('aiChat.panelContext', { page: contextLabel })}
+                            {t("aiChat.panelContext", { page: contextLabel })}
                         </span>
                     </span>
                 </span>
-                <Button variant="ghost" size="sm" iconOnly aria-label={t('common.close')} onClick={onClose}>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
+                    aria-label={t("common.close")}
+                    onClick={onClose}
+                >
                     <X size={18} aria-hidden="true" />
                 </Button>
             </header>
 
             <ChatLog
                 chat={chat}
-                opening={{ key: 'aiChat.panelOpening', values: { page: contextLabel } }}
+                opening={{
+                    key: "aiChat.panelOpening",
+                    values: { page: contextLabel },
+                }}
                 logRef={logRef}
                 className="flex max-h-[42vh] min-h-[160px] flex-col gap-3 overflow-y-auto p-0.5"
             />
 
-            {/* Three suggestions, not ten: this is the moment a learner with an empty composer gives
-                up, and the panel has no room for a wall of options. */}
-            <div className="flex flex-wrap gap-1.5">
-                {['aiChat.suggestion1', 'aiChat.suggestion2', 'aiChat.suggestion3'].map((key) => (
+            {/* Three suggestions, not ten: single row with horizontal scroll. */}
+            <div className="flex shrink-0 flex-nowrap items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+                {[
+                    "aiChat.suggestion1",
+                    "aiChat.suggestion2",
+                    "aiChat.suggestion3",
+                ].map((key) => (
                     <button
                         key={key}
                         type="button"
                         onClick={() => setDraft(t(key))}
-                        className="min-h-11 rounded-[var(--r-chip)] border-2 border-[var(--border)] px-3 text-left text-sm font-semibold text-[var(--ink-soft)] hover:border-[var(--teal)] hover:text-[var(--ink)]"
+                        className="inline-flex h-[30px] shrink-0 whitespace-nowrap items-center rounded-[var(--r-chip)] border-2 border-[var(--border-strong)] bg-transparent px-3 text-[0.8125rem] font-bold tracking-[0.01em] text-[var(--ink-soft)] hover:bg-[var(--surface-alt)] cursor-pointer"
                     >
                         {t(key)}
                     </button>
                 ))}
             </div>
 
-            <form onSubmit={onSubmit} className="flex flex-col gap-1.5 border-t-2 border-[var(--border)] pt-3">
+            <form
+                onSubmit={onSubmit}
+                className="flex flex-col gap-1.5 border-t-2 border-[var(--border)] pt-3"
+            >
                 <div className="flex items-center gap-2">
                     <label className="min-w-0 flex-1">
-                        <span className="sr-only">{t('aiChat.composerLabel')}</span>
+                        <span className="sr-only">
+                            {t("aiChat.composerLabel")}
+                        </span>
                         <input
                             ref={inputRef}
                             className="min-h-11 w-full rounded-[var(--r-control)] border-2 border-[var(--border-strong)] bg-[var(--surface)] px-3.5"
                             value={draft}
-                            onChange={(event) => setDraft(event.target.value.slice(0, chat.maxCharacters))}
-                            placeholder={t('aiChat.composerPlaceholder')}
+                            onChange={(event) =>
+                                setDraft(
+                                    event.target.value.slice(
+                                        0,
+                                        chat.maxCharacters,
+                                    ),
+                                )
+                            }
+                            placeholder={t("aiChat.composerPlaceholder")}
                             maxLength={chat.maxCharacters}
                         />
                     </label>
@@ -147,11 +174,21 @@ export default function LexiPanel({ contextLabel, onClose }) {
                         type="submit"
                         variant="primary"
                         iconOnly
-                        aria-label={cost ? t('aiChat.sendWithCost', { amount: cost.amountLabel }) : t('aiChat.send')}
+                        aria-label={
+                            cost
+                                ? t("aiChat.sendWithCost", {
+                                      amount: cost.amountLabel,
+                                  })
+                                : t("aiChat.send")
+                        }
                         disabled={!draft.trim() || chat.sending || !affordable}
                     >
                         {chat.sending ? (
-                            <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+                            <Loader2
+                                size={18}
+                                className="animate-spin"
+                                aria-hidden="true"
+                            />
                         ) : (
                             <Send size={18} aria-hidden="true" />
                         )}
@@ -167,9 +204,9 @@ export default function LexiPanel({ contextLabel, onClose }) {
                 </span>
                 {chat.sendError ? (
                     <p role="alert" className="t-micro text-[var(--wrong)]">
-                        {chat.sendError.message === 'INVALID_REQUEST'
-                            ? t('aiChat.messageRequired')
-                            : t('common.error.generic')}
+                        {chat.sendError.message === "INVALID_REQUEST"
+                            ? t("aiChat.messageRequired")
+                            : t("common.error.generic")}
                     </p>
                 ) : null}
             </form>

@@ -9,6 +9,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" />
 <style>
 .write { min-height: 100vh; display: flex; flex-direction: column; background: var(--canvas); }
+.exam__tabs { display: flex; gap: 6px; padding: 8px 12px; background: var(--surface); border-bottom: 2px solid var(--border); }
+.exam__tabs [role='tab'] { flex: 1; min-height: 42px; border: 0; border-radius: var(--r-sm); background: var(--surface-alt); color: var(--ink-muted); font-weight: 700; font-size: .875rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.exam__tabs [role='tab'][aria-selected='true'] { background: var(--teal); color: var(--on-teal); }
 .write__body { flex: 1; display: grid; grid-template-columns: 380px 1fr; gap: 0; min-height: 0; }
 .write__prompt { padding: 24px; background: var(--surface); border-right: 2px solid var(--border); overflow-y: auto; }
 .write__editor { padding: 20px 24px; display: flex; flex-direction: column; gap: 10px; }
@@ -16,8 +19,10 @@
 .write__foot { padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 2px solid var(--border); }
 @media (max-width: 1023px) {
     .write__body { grid-template-columns: 1fr; }
-    .write__prompt { border-right: 0; border-bottom: 2px solid var(--border); padding: 16px 14px; }
+    .write__prompt { border-right: 0; padding: 16px 14px; }
+    .write__prompt[hidden] { display: none; }
     .write__editor { padding: 14px; padding-bottom: 90px; }
+    .write__editor[hidden] { display: none; }
 }
 </style>
 </head>
@@ -39,8 +44,18 @@
         aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg> 1 credit</span>
     </header>
 
+    <!-- Mobile: a two-tab switch. Desktop: both panes visible at once. -->
+    <div class="exam__tabs only-mobile" role="tablist" aria-label="Chuyển giữa đề bài và làm bài" data-tabs="wr">
+        <button role="tab" aria-selected="true" data-tab="wr-prompt"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg> Đề bài</button>
+        <button role="tab" aria-selected="false" data-tab="wr-editor"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 20l3.5-.8L20 6.7a2 2 0 0 0-2.8-2.8L4.8 16.5z"/><path d="M15.5 5.5 18.5 8.5"/></svg> Làm bài (142 từ)</button>
+    </div>
+
     <div class="write__body">
-        <section class="write__prompt" aria-label="Đề bài">
+        <section class="write__prompt" data-panel="wr-prompt" aria-label="Đề bài">
             <span class="chip chip--outline">Task 2 · Essay</span>
             <h2 class="t-h3" style="margin-top:12px">Some people think governments should spend money on public transport rather than on new roads.</h2>
             <p class="t-body soft" style="margin-top:8px">Discuss both views and give your own opinion.</p>
@@ -68,7 +83,7 @@
                 <p class="t-micro soft">Mẹo: mỗi đoạn thân bài nên có một câu chủ đề rõ ràng.</p></div>
         </section>
 
-        <section class="write__editor" aria-label="Bài viết">
+        <section class="write__editor" data-panel="wr-editor" aria-label="Bài viết">
             <label class="field" style="height:100%">
                 <span class="sr-only">Bài viết của bạn</span>
                 <textarea class="textarea" style="min-height:380px;height:100%">It is often argued that public money would be better spent on public transport than on building new roads. While I accept that road expansion can relieve congestion in the short term, I believe that investment in public transport produces greater long-term benefits for both the environment and social equality.

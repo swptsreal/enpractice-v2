@@ -1,9 +1,15 @@
 const HISTORY_STATUS_MAP = Object.freeze({
     COMPLETE: 'completed',
+    completed: 'completed',
     PARTIAL: 'partial',
+    partial: 'partial',
     FAILED: 'error',
+    failed: 'error',
+    error: 'error',
     CANCELLED: 'cancelled',
+    cancelled: 'cancelled',
     STREAMING: 'interrupted',
+    streaming: 'interrupted',
 });
 
 const TERMINAL_STATUSES = new Set([
@@ -14,7 +20,7 @@ const TERMINAL_STATUSES = new Set([
 ]);
 
 export function normalizeHistoryMessage(message, currentUserId) {
-    const role = message.role === 'USER' ? 'user' : 'assistant';
+    const role = message.role === 'USER' || message.role === 'user' ? 'user' : 'assistant';
 
     return {
         id: message.id,
@@ -25,7 +31,7 @@ export function normalizeHistoryMessage(message, currentUserId) {
         role,
         senderId: role === 'user' ? currentUserId : 'AI',
         content: message.content || '',
-        status: HISTORY_STATUS_MAP[message.status] || 'error',
+        status: HISTORY_STATUS_MAP[message.status] || (message.status ? String(message.status).toLowerCase() : 'completed'),
         errorCode: message.errorCode ?? null,
         createdAt: message.createdAt,
         completedAt: message.completedAt ?? null,

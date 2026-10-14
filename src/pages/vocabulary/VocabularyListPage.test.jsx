@@ -163,6 +163,84 @@ describe('VocabularyListPage — empty and error', () => {
         });
         expect(screen.queryByText('Chưa đủ dữ liệu để tạo bài test')).not.toBeInTheDocument();
     });
+
+    it('stays on list page after generating a test instead of navigating away', async () => {
+        getTests.mockResolvedValue(pageOf([READY_TEST]));
+        generateTest.mockResolvedValue({
+            data: {
+                success: true,
+                message: 'OK',
+                data: { testId: 't2', status: 'PENDING', createdAt: new Date().toISOString() },
+            },
+        });
+
+        const user = userEvent.setup();
+        renderList();
+
+        expect(await screen.findByText('Sẵn sàng')).toBeInTheDocument();
+
+        const btn5 = screen.getByRole('button', { name: /5 câu/i });
+        await user.click(btn5);
+
+        await waitFor(() => {
+            expect(generateTest).toHaveBeenCalledWith(
+                expect.objectContaining({ questionCount: 5 })
+            );
+        });
+
+        expect(screen.getByText('Tạo bài test mới')).toBeInTheDocument();
+    });
+
+    it('renders "New" tag when test is created within 24 hours and not completed', async () => {
+        const recentIso = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+        getTests.mockResolvedValue(
+            pageOf([
+                {
+                    ...READY_TEST,
+                    testId: 'recent-uncompleted',
+                    title: 'Recent uncompleted',
+                    createdAt: recentIso,
+                    attemptCount: 0,
+                    latestAccuracyPercent: null,
+                    latestAttemptStatus: null,
+                },
+            ])
+        );
+
+        renderList();
+        expect(await screen.findByText('New')).toBeInTheDocument();
+    });
+
+    it('does NOT render "New" tag when test is completed or older than 24 hours', async () => {
+        const recentIso = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+        const oldIso = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+        getTests.mockResolvedValue(
+            pageOf([
+                {
+                    ...READY_TEST,
+                    testId: 'recent-completed',
+                    title: 'Recent completed',
+                    createdAt: recentIso,
+                    attemptCount: 1,
+                    latestAccuracyPercent: 90,
+                    latestAttemptStatus: 'COMPLETED',
+                },
+                {
+                    ...READY_TEST,
+                    testId: 'old-uncompleted',
+                    title: 'Old uncompleted',
+                    createdAt: oldIso,
+                    attemptCount: 0,
+                    latestAccuracyPercent: null,
+                    latestAttemptStatus: null,
+                },
+            ])
+        );
+
+        renderList();
+        await screen.findByText('Recent completed');
+        expect(screen.queryByText('New')).not.toBeInTheDocument();
+    });
 });
 
 describe('VocabularyHistoryPage — the mobile table fix', () => {

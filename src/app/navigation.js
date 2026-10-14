@@ -17,6 +17,7 @@ import {
     BookMarked,
     Route,
     Clock,
+    Menu,
 } from 'lucide-react';
 
 /**
@@ -57,29 +58,29 @@ import {
  */
 export const PRIMARY_NAV = [
     { id: 'home', to: '/home', labelKey: 'nav.home', icon: Home },
-    { id: 'learn', to: '/vocabulary', labelKey: 'nav.learn', icon: BookOpen },
+    { id: 'aiChat', to: '/ai-chat', labelKey: 'nav.aiChat', icon: Sparkles },
     { id: 'practice', to: '/ielts', labelKey: 'nav.practice', icon: Target },
     { id: 'progress', to: '/weekly-report', labelKey: 'nav.progress', icon: ChartLine },
     { id: 'account', to: '/profile', labelKey: 'nav.account', icon: UserRound },
+];
+
+export const MOBILE_PRIMARY_NAV = [
+    { id: 'home', to: '/home', labelKey: 'nav.home', icon: Home },
+    { id: 'aiChat', to: '/ai-chat', labelKey: 'nav.aiChat', icon: Sparkles },
+    { id: 'practice', to: '/ielts', labelKey: 'nav.practice', icon: Target },
+    { id: 'progress', to: '/weekly-report', labelKey: 'nav.progress', icon: ChartLine },
+    { id: 'more', labelKey: 'nav.more', icon: Menu },
 ];
 
 export const SECONDARY_NAV = [
     { to: '/path', labelKey: 'nav.path', icon: Route },
     { to: '/dictionary', labelKey: 'nav.dictionary', icon: BookMarked },
     { to: '/vocabulary/check', labelKey: 'nav.vocabCheck', icon: Search },
-    /* The "Từ vựng" section's OTHER destination, beside the test list the tab opens. A section tab
-       can only open one screen, so the review needs its own entry or a designed screen has no way in
-       — which is the state this was in. Same label as its page title (`nav.review`), so the rail and
-       the header cannot disagree. */
     { to: '/review', labelKey: 'nav.review', icon: Clock },
-    /* `/vocabulary` — "Test từ vựng" — is deliberately NOT listed here. It is the "Từ vựng" section's
-       LANDING, and the primary tab already goes there, so listing it again put two rail entries on
-       one screen (both highlighted at once). The label still names the screen: `pageTitles` maps
-       `/vocabulary` to `nav.vocabTest` for its header. */
     { to: '/writing', labelKey: 'nav.writing', icon: PenLine },
     { to: '/speaking', labelKey: 'nav.speaking', icon: Mic },
     { to: '/custom-speaking', labelKey: 'nav.customSpeaking', icon: MessagesSquare },
-    { to: '/ai-chat', labelKey: 'nav.aiChat', icon: Sparkles },
+    { to: '/vocabulary', labelKey: 'nav.learn', icon: BookOpen },
     { to: '/leaderboard', labelKey: 'nav.leaderboard', icon: Trophy },
     { to: '/rewards', labelKey: 'nav.rewards', icon: Gift },
     { to: '/credits', labelKey: 'nav.credits', icon: Coins },
@@ -87,22 +88,30 @@ export const SECONDARY_NAV = [
     { to: '/settings', labelKey: 'nav.settings', icon: Settings },
 ];
 
+export const MORE_NAV = [
+    { to: '/profile', labelKey: 'nav.account', icon: UserRound },
+    ...SECONDARY_NAV,
+];
+
 /**
  * Which primary destination owns a pathname. The rail and the tab bar must
  * agree, so this is computed once rather than per component.
  */
 export function activePrimaryId(pathname) {
+    if (pathname.startsWith('/ai-chat')) {
+        return 'aiChat';
+    }
     if (pathname.startsWith('/ielts') || pathname.startsWith('/writing') || pathname.startsWith('/speaking') || pathname.startsWith('/custom-speaking')) {
         return 'practice';
-    }
-    if (pathname.startsWith('/vocabulary') || pathname.startsWith('/dictionary') || pathname.startsWith('/review') || pathname.startsWith('/evaluation') || pathname.startsWith('/path')) {
-        return 'learn';
     }
     if (pathname.startsWith('/leaderboard') || pathname.startsWith('/rewards') || pathname.startsWith('/credits') || pathname.startsWith('/weekly-report') || pathname.startsWith('/challenges') || pathname.startsWith('/xp')) {
         return 'progress';
     }
-    if (pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/notifications') || pathname.startsWith('/ai-chat')) {
+    if (pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/notifications')) {
         return 'account';
     }
-    return 'home';
+    if (pathname === '/' || pathname.startsWith('/home')) {
+        return 'home';
+    }
+    return null;
 }

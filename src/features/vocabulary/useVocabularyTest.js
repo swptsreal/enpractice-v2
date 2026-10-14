@@ -263,7 +263,7 @@ export function useVocabularyTestList({ page = 0, size = 12 } = {}) {
         chain.current += 1;
         passes.current = 0;
         const myChain = chain.current;
-        timer.current = setTimeout(() => schedulePoll(myChain), POLL_MS);
+        schedulePoll(myChain);
     }, [schedulePoll, clearTimer]);
 
     /**

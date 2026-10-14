@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { aiChatApi } from '../../api';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
+import { aiChatApi, getAccessToken } from '../../api';
 import { unwrapData } from '../../api/envelope';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRealtimeStomp } from '../../contexts/RealtimeStompContextCore';
@@ -13,7 +14,8 @@ import {
     interruptStreamingMessages,
 } from './chatMessageState';
 import { getChatRealtimeContract, buildChatRequest, normalizeChatContent } from './chatRealtimeContract';
-import { normalizeHistoryPage } from './chatHistoryMapper';
+import { mergeChatMessages, normalizeHistoryPage } from './chatHistoryMapper';
+import { getChatHistory, saveChatHistory } from '../../utils/chatStorage';
 
 /* A data hook must start its request in an effect and set its loading flag before it
    starts; the rule is right about component code and wrong about this primitive. */
@@ -51,50 +53,127 @@ import { normalizeHistoryPage } from './chatHistoryMapper';
 
 const MAX_CHARACTERS = 1000;
 
+function getAuthIdentity(user) {
+    if (user?.id) return String(user.id);
+    if (user?.userId) return String(user.userId);
+    if (user?.sub) return String(user.sub);
+    const token = getAccessToken();
+    if (!token) return null;
+    try {
+        const decoded = jwtDecode(token);
+        return decoded?.sub ? String(decoded.sub) : null;
+    } catch {
+        return null;
+    }
+}
+
+function extractHistoryMessages(data) {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.messages)) return data.messages;
+    if (Array.isArray(data?.data?.messages)) return data.data.messages;
+    return null;
+}
+
 export function useAiChat({ historyLimit = 50 } = {}) {
     const { user, isAuthenticated } = useAuth();
     const { subscribe, publish, isConnected, ensureConnected, connectionVersion } = useRealtimeStomp();
 
     const mode = isAuthenticated ? REALTIME_MODES.AUTHENTICATED : REALTIME_MODES.GUEST;
-    /* The authenticated queue is `/topic/realtime-chat/{identity}`, so the identity must
-     * be the same value the server put in the topic. `id` is what the backend uses. */
-    const identity = user?.id ?? user?.userId ?? user?.sub ?? null;
+    const identity = getAuthIdentity(user);
 
     const [messages, setMessages] = useState([]);
     const [historyLoading, setHistoryLoading] = useState(true);
     const [historyError, setHistoryError] = useState(null);
+    const [hasMoreHistory, setHasMoreHistory] = useState(false);
+    const [loadingOlder, setLoadingOlder] = useState(false);
     const [sending, setSending] = useState(false);
     const [sendError, setSendError] = useState(null);
     const [streaming, setStreaming] = useState(false);
 
+    const historyCursorRef = useRef(null);
+    const hasMoreHistoryRef = useRef(false);
+
     const contract = useMemo(() => getChatRealtimeContract(mode, identity), [mode, identity]);
 
-    /* --- history ---------------------------------------------------------- */
-    useEffect(() => {
-        let cancelled = false;
+    /* --- history loader --------------------------------------------------- */
+    const loadInitialHistory = useCallback(async () => {
         setHistoryLoading(true);
 
-        aiChatApi
-            .getMessages({ limit: historyLimit })
-            .then((response) => {
-                if (cancelled) return;
-                const data = unwrapData(response);
-                /* The endpoint may return a bare array or a page; the mapper handles both. */
-                const normalized = Array.isArray(data) ? normalizeHistoryPage(data, identity) : normalizeStoredMessages(data);
-                setMessages(normalized);
-                setHistoryError(null);
-            })
-            .catch((err) => {
-                if (!cancelled) setHistoryError(err);
-            })
-            .finally(() => {
-                if (!cancelled) setHistoryLoading(false);
-            });
+        if (!isAuthenticated) {
+            const stored = normalizeStoredMessages(getChatHistory(identity));
+            setMessages(stored);
+            setHistoryLoading(false);
+            return;
+        }
 
-        return () => {
-            cancelled = true;
-        };
-    }, [historyLimit, identity]);
+        try {
+            const response = await aiChatApi.getMessages({ limit: historyLimit });
+            const data = unwrapData(response);
+            const rawList = extractHistoryMessages(data);
+            const normalized = rawList ? normalizeHistoryPage(rawList, identity) : [];
+
+            historyCursorRef.current = data?.nextBeforeSequence ?? null;
+            hasMoreHistoryRef.current = Boolean(data?.hasMore);
+            setHasMoreHistory(Boolean(data?.hasMore));
+
+            setMessages((prev) => mergeChatMessages(prev, normalized));
+            setHistoryError(null);
+        } catch (err) {
+            setHistoryError(err);
+        } finally {
+            setHistoryLoading(false);
+        }
+    }, [historyLimit, identity, isAuthenticated]);
+
+    useEffect(() => {
+        loadInitialHistory().catch(() => {});
+    }, [loadInitialHistory]);
+
+    /* --- load older history (pagination) ---------------------------------- */
+    const loadOlder = useCallback(async () => {
+        const cursor = historyCursorRef.current;
+        if (!isAuthenticated || !hasMoreHistoryRef.current || cursor == null || loadingOlder) {
+            return false;
+        }
+
+        setLoadingOlder(true);
+        try {
+            const response = await aiChatApi.getMessages({
+                beforeSequence: cursor,
+                limit: historyLimit,
+            });
+            const data = unwrapData(response);
+            const rawList = extractHistoryMessages(data);
+            const normalized = rawList ? normalizeHistoryPage(rawList, identity) : [];
+
+            historyCursorRef.current = data?.nextBeforeSequence ?? null;
+            hasMoreHistoryRef.current = Boolean(data?.hasMore);
+            setHasMoreHistory(Boolean(data?.hasMore));
+
+            setMessages((prev) => mergeChatMessages(prev, normalized));
+            return true;
+        } catch {
+            return false;
+        } finally {
+            setLoadingOlder(false);
+        }
+    }, [historyLimit, identity, isAuthenticated, loadingOlder]);
+
+    /* --- reconcile latest history (after AI message or reconnect) --------- */
+    const reconcileLatestHistory = useCallback(async () => {
+        if (!isAuthenticated) return;
+        try {
+            const response = await aiChatApi.getMessages({ limit: historyLimit });
+            const data = unwrapData(response);
+            const rawList = extractHistoryMessages(data);
+            if (rawList && rawList.length > 0) {
+                const normalized = normalizeHistoryPage(rawList, identity);
+                setMessages((prev) => mergeChatMessages(prev, normalized));
+            }
+        } catch {
+            // background reconciliation fails silently
+        }
+    }, [historyLimit, identity, isAuthenticated]);
 
     /* --- the incoming stream --------------------------------------------- */
     /**
@@ -116,10 +195,13 @@ export function useAiChat({ historyLimit = 50 } = {}) {
                 return;
             }
             setMessages((prev) => applyIncomingEvent(prev, event));
-            if (event.type === 'COMPLETE' || event.type === 'ERROR') setStreaming(false);
+            if (event.type === 'COMPLETE' || event.type === 'ERROR') {
+                setStreaming(false);
+                reconcileLatestHistory();
+            }
             if (event.type === 'DELTA') setStreaming(true);
         });
-    }, [contract?.queue, subscribe, connectionVersion]);
+    }, [contract?.queue, subscribe, connectionVersion, reconcileLatestHistory]);
 
     /**
      * A dropped connection leaves any in-flight send unresolved forever.
@@ -127,9 +209,19 @@ export function useAiChat({ historyLimit = 50 } = {}) {
      * spins until they reload.
      */
     useEffect(() => {
-        if (isConnected) return;
-        setMessages((prev) => markUnresolvedSendingMessages(prev));
-    }, [isConnected]);
+        if (!isConnected) {
+            setMessages((prev) => markUnresolvedSendingMessages(prev));
+            return;
+        }
+        reconcileLatestHistory();
+    }, [isConnected, reconcileLatestHistory]);
+
+    /* --- guest persistence ----------------------------------------------- */
+    useEffect(() => {
+        if (!isAuthenticated && identity && messages.length > 0) {
+            saveChatHistory(identity, messages);
+        }
+    }, [identity, isAuthenticated, messages]);
 
     /* --- send ------------------------------------------------------------- */
     const send = useCallback(
@@ -193,6 +285,9 @@ export function useAiChat({ historyLimit = 50 } = {}) {
         messages,
         historyLoading,
         historyError,
+        hasMoreHistory,
+        loadingOlder,
+        loadOlder,
         sending,
         sendError,
         streaming,
@@ -200,7 +295,7 @@ export function useAiChat({ historyLimit = 50 } = {}) {
         maxCharacters: MAX_CHARACTERS,
         send,
         retry,
-        reload: () => setMessages([]),
+        reload: loadInitialHistory,
     };
 }
 

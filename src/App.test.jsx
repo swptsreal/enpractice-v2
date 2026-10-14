@@ -221,6 +221,25 @@ describe('signed-in routing', () => {
         const { container } = await renderRoute('/home');
         expect(container.querySelectorAll('h1')).toHaveLength(1);
     });
+
+    it('hides the floating Lexi helper on /ai-chat', async () => {
+        const home = await renderRoute('/home');
+        expect(home.container.querySelector('button[aria-label="Hỏi Lexi"]')).not.toBeNull();
+
+        const chat = await renderRoute('/ai-chat');
+        expect(chat.container.querySelector('button[aria-label="Hỏi Lexi"]')).toBeNull();
+    });
+
+    it('renders the credit badge in the shell header next to the notification bell (mobile only)', async () => {
+        const { container } = await renderRoute('/home');
+        const header = container.querySelector('header');
+        expect(header).not.toBeNull();
+        const creditLink = header.querySelector('a[href="/credits"]');
+        expect(creditLink).not.toBeNull();
+        expect(creditLink.className).toContain('lg:hidden');
+        const notifBtn = header.querySelector('a[href="/notifications"], button[aria-label*="Thông báo"]');
+        expect(notifBtn).not.toBeNull();
+    });
 });
 
 describe('timed surface isolation', () => {
