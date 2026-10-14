@@ -28,12 +28,6 @@ const INITIAL_SNAPSHOT = {
 };
 
 function getRealtimeStompUrl() {
-    /* `VITE_API_URL` để TRỐNG ở dev — nghĩa là "cùng origin", và dev server proxy `/ws`.
-       Khi đó phải lấy scheme + host từ chính trang, để trang https thành `wss:` và đi qua
-       proxy thay vì gọi thẳng cổng 8082: một socket `ws://` từ trang https bị browser chặn
-       vì mixed content TRƯỚC khi gửi frame nào, và đó chính là lý do `/ai-chat`, speaking,
-       custom-speaking không có phản hồi (broker log: 0 session).
-       Quy tắc này nằm trong `lib/wsUrl.js` để socket speech dùng chung, không lặp lại lần 3. */
     return resolveWsUrl("/ws/realtime-chat");
 }
 
@@ -52,27 +46,6 @@ export function RealtimeStompProvider({ children }) {
     );
     const [subscriptions] = useState(createRealtimeStompSubscriptions);
 
-    /**
-     * THE CLIENT AND ITS CONTROLLER ARE CREATED TOGETHER, IN ONE INITIALIZER, AND THAT IS
-     * LOAD-BEARING.
-     *
-     * They used to be two separate lazy `useState` initializers, which React StrictMode invokes
-     * TWICE. The second invocation of `new Client(...)` produced a discarded client, but the second
-     * `createRealtimeTransportController({ client })` received the FIRST client and re-assigned its
-     * `beforeConnect` / `onConnect` / `onDisconnect` callbacks. So the live controller drove
-     * `client.activate()` while the callbacks belonged to a discarded controller with its own
-     * `targetMode` — which read `idle`, threw "Realtime target mode is idle", and left the promise
-     * `connect()` returned UNSETTLED (its `pendingConnection` had already been nulled, so
-     * `rejectPending` was a no-op).
-     *
-     * The symptom was exactly what was reported and had NO error anywhere: no WebSocket was ever
-     * constructed (`page.on('websocket')` saw only Vite's HMR socket) and the screen sat on
-     * "Đang kết nối tới máy chủ AI…" forever. Traced by tagging each controller with an id — the
-     * `activating` log came from one instance and the `beforeConnect` log from another.
-     *
-     * Creating both here means a discarded second pass produces a SELF-CONSISTENT discarded pair
-     * (its own client AND its own controller), so it cannot reach into the live one.
-     */
     const [realtime] = useState(() => {
         const client = new Client({
             brokerURL: getRealtimeStompUrl(),

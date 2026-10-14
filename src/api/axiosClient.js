@@ -5,19 +5,6 @@ import { getCurrentLanguage } from "../i18n";
  * EN Practice — Custom Axios Client
  * Configured with auth session helpers, refresh-token retry, and API unwrap logic.
  */
-
-/**
- * `VITE_API_URL` is the backend BASE URL, WITHOUT the `/api` suffix — the suffix is added
- * here and nowhere else, so the variable means the same thing to every consumer.
- *
- * Empty (the development value) means SAME ORIGIN: the Vite dev server proxies `/api`, so
- * the page stays https-same-origin. An absolute `http://localhost:8082` here would be
- * blocked as mixed content by the https dev page.
- *
- * A trailing `/api` is tolerated and stripped, matching `lib/wsUrl.js`: both consumers
- * accept the same two shapes, so a value left over from the older convention (where the
- * suffix WAS part of the variable) cannot turn every request into `/api/api`.
- */
 export const API_ROOT = String(import.meta.env.VITE_API_URL ?? "")
     .replace(/\/+$/, "")
     .replace(/\/api$/, "");
