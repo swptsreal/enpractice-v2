@@ -2074,8 +2074,8 @@ On the one hand, supporters of road building point out that…</textarea>
 },
 
 /* ==================================================================== 36 */
-'36-ai-chat': { file: '36-ai-chat.html', title: 'AI Coach', subtitle: 'Chat streaming · credit badge', group: 'Tài khoản',
-  note: 'Nêu rõ chi phí mỗi tin nhắn trước khi gửi', shell: true, body: `
+'36-ai-chat': { file: '36-ai-chat.html', title: 'AI Coach', subtitle: 'Chat streaming · mic · nghe lại', group: 'Tài khoản',
+  note: 'Lexi đọc được từng câu trả lời; ô nhập có mic để hỏi bằng giọng nói', shell: true, body: `
 <div class="chat">
     <header class="exam__bar only-lg">
         <a class="btn btn--ghost btn--icon btn--sm" href="04-home.html" aria-label="Quay lại">${icon('arrowLeft', 18)}</a>
@@ -2086,10 +2086,33 @@ On the one hand, supporters of road building point out that…</textarea>
     </header>
 
     <div class="chat__body" id="main">
+        <!-- THE SAME VOICE PAIR AS THE CONVERSATION SCREEN, and deliberately a PAIR:
+              - every Lexi answer can be HEARD ("Nghe"), because reading a long explanation and
+                hearing it are different jobs and this product grades speaking;
+              - the composer can be SPOKEN into (mic), because typing a question in a second
+                language is the friction the coach exists to remove.
+
+             NO AUTOPLAY, and that is the difference from screen 24b. A conversation question is
+             one sentence you must answer, so it plays as soon as it appears; a coach answer is a
+             page of explanation that would start talking over whatever the learner is doing. The
+             answer waits for a press, and the button states it is playing.
+
+             WHILE RECORDING the input is replaced by a red chip "Đang ghi âm" and a mono timer,
+             the mic becomes a stop control, and send is disabled — the same recording language as
+             screens 24b/25. The transcript lands IN the input for editing before it is sent: speech
+             recognition errs, and a question sent to a paid coach should not be a transcript nobody
+             checked. Starting a recording also stops any answer that is playing, so Lexi's voice is
+             not recorded into the learner's question.
+
+             ON A BROWSER THAT CANNOT TRANSCRIBE the mic is ABSENT rather than disabled: a control
+             that cannot work and cannot be fixed from here is worse than no control, and the input
+             still does the whole job. -->
         <div class="chat__log" aria-live="polite">
             <div class="msg msg--ai">
                 <span data-lexi="idle" data-size="xs"></span>
-                <div class="bubble bubble--lexi bubble--left">Chào Minh! Tuần này bạn mạnh Listening, yếu Matching Headings. Bạn muốn luyện dạng đó hay hỏi gì khác?</div>
+                <div class="bubble bubble--lexi bubble--left">Chào Minh! Tuần này bạn mạnh Listening, yếu Matching Headings. Bạn muốn luyện dạng đó hay hỏi gì khác?
+                    <div><button class="btn btn--ghost btn--sm" type="button" style="margin-top:10px">${icon('headphones', 15)} Nghe</button></div>
+                </div>
             </div>
             <div class="msg msg--me">
                 <div class="bubble bubble--user bubble--right">Giải thích cho mình cách làm dạng Matching Headings nhanh hơn.</div>
@@ -2104,6 +2127,7 @@ On the one hand, supporters of road building point out that…</textarea>
                         <li>So với tiêu đề: đúng khi <em>nghĩa</em> khớp, không phải khi <em>từ</em> trùng.</li>
                     </ol>
                     <span class="t-micro muted" style="display:block;margin-top:8px">Bạn hay chọn theo từ trùng — đó là lý do 3 câu sai lần trước.</span>
+                    <div><button class="btn btn--ghost btn--sm" type="button" style="margin-top:10px">${icon('headphones', 15)} Nghe</button></div>
                 </div>
             </div>
             <div class="msg msg--ai">
@@ -2122,6 +2146,7 @@ On the one hand, supporters of road building point out that…</textarea>
         </div>
 
         <form class="chat__input" onsubmit="return false">
+            <button class="btn btn--ghost btn--icon" type="button" aria-label="Ghi âm câu hỏi">${icon('mic', 20)}</button>
             <label class="grow"><span class="sr-only">Nhập câu hỏi</span><input class="input" placeholder="Hỏi Lexi về bài của bạn…" /></label>
             <button class="btn btn--primary" type="submit">${icon('arrowRight', 18)} Gửi · 1 credit</button>
         </form>

@@ -863,6 +863,11 @@ export default {
         composerLabel: 'Câu hỏi của bạn',
         composerPlaceholder: 'Hỏi Lexi bất cứ điều gì về việc học IELTS…',
         messageRequired: 'Nhập câu hỏi trước đã.',
+        listen: 'Nghe',
+        listening: 'Đang phát…',
+        recordLabel: 'Ghi âm câu hỏi',
+        recordStop: 'Dừng ghi âm',
+        recording: 'Đang ghi âm',
         sendFailed: 'Không gửi được tin này.',
         openingWithWeakness:
             'Chào bạn. Nhìn dữ liệu luyện tập gần đây, bạn đang yếu ở {{skills}}. Bạn muốn bắt đầu từ đó, hay hỏi việc khác?',

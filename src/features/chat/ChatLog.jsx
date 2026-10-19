@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../../components/ui/Button';
 import { Markdown } from '../../components/ui/Markdown';
 import { ChatBubble } from './ChatBubble';
+import { SpeakButton } from './ChatVoice';
 
 /**
  * The conversation log: Lexi's opening line, the messages, and the streaming placeholder.
@@ -47,6 +48,7 @@ export function ChatLog({ chat, opening, logRef, className }) {
             {opening?.key ? (
                 <ChatBubble role="assistant" lexiMood="explain">
                     <p>{t(opening.key, opening.values)}</p>
+                    <SpeakButton text={t(opening.key, opening.values)} />
                 </ChatBubble>
             ) : null}
 
@@ -65,6 +67,13 @@ export function ChatLog({ chat, opening, logRef, className }) {
                         ) : (
                             <Markdown content={message.content} />
                         )}
+
+                        {/* Every answer can be HEARD, including a finished stream. Not while it is
+                            still streaming: a half-written answer read aloud is noise, and the
+                            text underneath is still changing. */}
+                        {!isUser && message.status !== 'streaming' ? (
+                            <SpeakButton text={message.content} />
+                        ) : null}
 
                         {/* The streaming state is a skeleton INSIDE the bubble, so the answer grows
                             where it will end up rather than in a spinner somewhere else. */}

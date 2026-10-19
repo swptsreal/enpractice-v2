@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
@@ -57,8 +57,78 @@ vi.mock('../../contexts/AuthContext', () => ({
     AuthProvider: ({ children }) => children,
 }));
 
+/** The TTS helper is recorded, not simulated: the assertion is WHAT was asked to be spoken. */
+const speakWithVoice = vi.fn().mockResolvedValue(undefined);
+const stopSpeaking = vi.fn();
+vi.mock('../../utils/ttsHelper', () => ({
+    speakWithVoice: (...a) => speakWithVoice(...a),
+    stopSpeaking: (...a) => stopSpeaking(...a),
+    speak: vi.fn(),
+    speakEnglish: vi.fn(),
+}));
+
+/** A controllable microphone: pressing the mic sets `recording`, and the transcript is whatever
+ *  speech recognition returned — which is what must land in the input. `__voice` is the test's
+ *  handle on it: the hook re-reads this state on every render, and `set` forces that render, the
+ *  way a real recognition result would. */
+let voiceState = { recording: false, transcript: '', timer: 0, sttSupported: true };
+const voiceSubscribers = new Set();
+const startRecording = vi.fn(() => {
+    voiceState = { ...voiceState, recording: true, transcript: '', timer: 0 };
+});
+const stopRecording = vi.fn(() => {
+    voiceState = { ...voiceState, recording: false };
+});
+
+vi.mock('../../hooks/useSpeechRecording', async () => {
+    const { useEffect, useState } = await import('react');
+    return {
+        __voice: {
+            set(next) {
+                voiceState = { ...voiceState, ...next };
+                for (const notify of voiceSubscribers) notify();
+            },
+            reset() {
+                voiceState = { recording: false, transcript: '', timer: 0, sttSupported: true };
+                for (const notify of voiceSubscribers) notify();
+            },
+        },
+        useSpeechRecording: () => {
+            const [, force] = useState(0);
+            useEffect(() => {
+                const notify = () => force((n) => n + 1);
+                voiceSubscribers.add(notify);
+                return () => voiceSubscribers.delete(notify);
+            }, []);
+            return {
+                recording: voiceState.recording,
+                transcript: voiceState.transcript,
+                setTranscript: (value) => {
+                    voiceState = { ...voiceState, transcript: value };
+                },
+                timer: voiceState.timer,
+                sttSupported: voiceState.sttSupported,
+                audioChunksRef: { current: [] },
+                startRecording: () => {
+                    startRecording();
+                    force((n) => n + 1);
+                },
+                stopRecording: () => {
+                    stopRecording();
+                    force((n) => n + 1);
+                },
+                cancelRecording: () => {
+                    voiceState = { ...voiceState, recording: false, transcript: '', timer: 0 };
+                    force((n) => n + 1);
+                },
+            };
+        },
+    };
+});
+
 const { i18nReady } = await import('../../i18n');
 const { default: AiChatPage } = await import('./AiChatPage');
+const { __voice } = await import('../../hooks/useSpeechRecording');
 
 beforeAll(async () => {
     await i18nReady;
@@ -192,6 +262,112 @@ describe('AiChatPage — suggestions', () => {
         await user.click(chip);
 
         expect(screen.getByPlaceholderText(/Hỏi Lexi/)).toHaveValue('Làm sao để cải thiện Matching Headings?');
+    });
+});
+
+describe('AiChatPage — the voice pair (listen + speak)', () => {
+    beforeEach(() => {
+        __voice.reset();
+        speakWithVoice.mockClear();
+        startRecording.mockClear();
+        stopRecording.mockClear();
+        stopSpeaking.mockClear();
+    });
+
+    it('asks the TTS endpoint for the ANSWER IT DRAWS, with the markdown stripped', async () => {
+        getProfile.mockResolvedValue(profileWith(['Fluency']));
+        const user = userEvent.setup();
+        speakWithVoice.mockClear();
+        renderPage();
+
+        /* The opening line is a Lexi answer too, so it is speakable. There is exactly one
+           requested text and it is the sentence on screen. */
+        const openingButton = await screen.findByRole('button', { name: /^Nghe$/ });
+        await user.click(openingButton);
+
+        await waitFor(() => expect(speakWithVoice).toHaveBeenCalledTimes(1));
+        const spoken = speakWithVoice.mock.calls[0][0];
+        expect(spoken).toMatch(/Matching Headings|yếu ở/);
+        /* No markdown punctuation survives into the spoken string. */
+        expect(spoken).not.toMatch(/[*#`_]/);
+    });
+
+    it('offers a listen control on every finished Lexi answer, and none on the learner’s', async () => {
+        getProfile.mockResolvedValue(profileWith(['Fluency']));
+        getMessages.mockResolvedValueOnce(
+            envelope({
+                messages: [
+                    { id: 'm1', sequence: 1, role: 'USER', status: 'COMPLETE', content: 'Xin chào Lexi' },
+                    {
+                        id: 'm2',
+                        sequence: 2,
+                        role: 'ASSISTANT',
+                        status: 'COMPLETE',
+                        content: '## Điểm mạnh\n\nBạn nói khá trôi chảy.',
+                    },
+                ],
+                nextBeforeSequence: null,
+                hasMore: false,
+            })
+        );
+        renderPage();
+
+        /* The opening bubble + the history answer = two listen controls, and the learner's message
+           is not one of them. */
+        const listenButtons = await screen.findAllByRole('button', { name: /^Nghe$/ });
+        expect(listenButtons).toHaveLength(2);
+    });
+
+    it('puts the MIC TRANSCRIPT INTO THE INPUT instead of sending it', async () => {
+        getProfile.mockResolvedValue(profileWith(['Fluency']));
+        const user = userEvent.setup();
+        publish.mockClear();
+        renderPage();
+
+        await user.click(await screen.findByRole('button', { name: /Ghi âm câu hỏi/ }));
+        expect(startRecording).toHaveBeenCalled();
+        /* Lexi is silenced before the microphone opens, or her voice lands in the question. */
+        expect(stopSpeaking).toHaveBeenCalled();
+
+        /* Speech recognition returns something while the learner talks. */
+        __voice.set({ recording: true, transcript: 'How do I improve my reading score?', timer: 7 });
+        const stop = await screen.findByRole('button', { name: /Dừng ghi âm/ });
+        await user.click(stop);
+
+        await waitFor(() =>
+            expect(screen.getByPlaceholderText(/Hỏi Lexi/)).toHaveValue(
+                'How do I improve my reading score?'
+            )
+        );
+        /* NOTHING WAS SENT: the transcript is a draft to check, not a message. */
+        expect(publish).not.toHaveBeenCalled();
+    });
+
+    it('appends a transcript to what was already typed rather than replacing it', async () => {
+        getProfile.mockResolvedValue(profileWith(['Fluency']));
+        const user = userEvent.setup();
+        renderPage();
+
+        await user.type(await screen.findByPlaceholderText(/Hỏi Lexi/), 'Giải thích giúp mình');
+        await user.click(screen.getByRole('button', { name: /Ghi âm câu hỏi/ }));
+        __voice.set({ recording: true, transcript: 'cách làm dạng này', timer: 3 });
+        await user.click(await screen.findByRole('button', { name: /Dừng ghi âm/ }));
+
+        await waitFor(() =>
+            expect(screen.getByPlaceholderText(/Hỏi Lexi/)).toHaveValue(
+                'Giải thích giúp mình cách làm dạng này'
+            )
+        );
+    });
+
+    it('shows no mic at all when the browser cannot transcribe', async () => {
+        /* A control that cannot work and cannot be fixed from this screen is worse than none. */
+        __voice.set({ sttSupported: false });
+        getProfile.mockResolvedValue(profileWith(['Fluency']));
+        renderPage();
+
+        await screen.findByPlaceholderText(/Hỏi Lexi/);
+        expect(screen.queryByRole('button', { name: /Ghi âm câu hỏi/ })).not.toBeInTheDocument();
     });
 });
 

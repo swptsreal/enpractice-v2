@@ -859,6 +859,11 @@ export default {
         composerLabel: 'Your question',
         composerPlaceholder: 'Ask Lexi anything about studying for IELTS…',
         messageRequired: 'Type a question first.',
+        listen: 'Listen',
+        listening: 'Playing…',
+        recordLabel: 'Record your question',
+        recordStop: 'Stop recording',
+        recording: 'Recording',
         sendFailed: 'This message could not be sent.',
         openingWithWeakness:
             'Hello. Looking at your recent practice, you are weakest at {{skills}}. Shall we start there, or is there something else on your mind?',

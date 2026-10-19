@@ -316,6 +316,9 @@ export function lexiPanel() {
                 câu cuối của mỗi đoạn trước khi ghép tiêu đề.
             </p>
             <span class="t-micro muted">Vừa xong</span>
+            <!-- The panel answers OUT LOUD too: same affordance as the full page, so the two cannot
+                 become two different conversations. -->
+            <div><button class="btn btn--ghost btn--sm" type="button" style="margin-top:8px">${icon('headphones', 15)} Nghe</button></div>
         </div>
     </div>
 
@@ -329,6 +332,7 @@ export function lexiPanel() {
 
     <div class="lexi-panel__composer">
         <div class="row g8">
+            <button class="btn btn--ghost btn--icon" type="button" aria-label="Ghi âm câu hỏi">${icon('mic', 20)}</button>
             <input class="input" placeholder="Hỏi Lexi…" aria-label="Câu hỏi cho Lexi" />
             <button class="btn btn--primary btn--icon" type="button" aria-label="Gửi">${icon('arrowRight', 18)}</button>
         </div>

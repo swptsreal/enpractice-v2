@@ -7,6 +7,7 @@ import { SkeletonCard } from "../../components/ui/Primitives";
 import { AsyncBoundary } from "../../components/ui/AsyncBoundary";
 import { useAiChat } from "../../features/chat/useAiChat";
 import { ChatLog } from "../../features/chat/ChatLog";
+import { ChatComposerField } from "../../features/chat/ChatVoice";
 import { useProfile } from "../../features/profile/useProfile";
 import { useCredit } from "../../contexts/CreditContextCore";
 import { CREDIT_ACTIONS } from "../../features/credits/creditConstants";
@@ -29,6 +30,11 @@ import { getCreditCostDisplay } from "../../features/credits/creditPolicy";
  *
  * THE STREAMING STATE IS A SKELETON LINE INSIDE THE BUBBLE, not a separate spinner, so
  * the answer grows in place where it will end up.
+ *
+ * THE VOICE PAIR LIVES IN `features/chat/ChatVoice.jsx` and is shared with the floating panel:
+ * every Lexi answer can be heard ("Nghe"), and the composer takes speech through its mic — the
+ * transcript lands in the input for editing rather than being sent. There is no autoplay here,
+ * unlike the conversation screen: an explanation is a page of text, not one question.
  *
  * Message rendering goes through `Markdown`, which does NOT use `rehype-raw` — the
  * content is model output, so raw HTML stays inert.
@@ -154,22 +160,16 @@ export default function AiChatPage() {
                 ))}
             </div>
 
-            {/* --- 1-line composer (.chat__input) --- */}
+            {/* --- 1-line composer (.chat__input): mic, input, send ------------------- */}
             <form onSubmit={onSubmit} className="chat__input shrink-0">
-                <label className="min-w-0 flex-1">
-                    <span className="sr-only">{t("aiChat.composerLabel")}</span>
-                    <input
-                        className="chat__input-field"
-                        value={draft}
-                        onChange={(e) =>
-                            setDraft(
-                                e.target.value.slice(0, chat.maxCharacters),
-                            )
-                        }
-                        placeholder={t("aiChat.composerPlaceholder")}
-                        maxLength={chat.maxCharacters}
-                    />
-                </label>
+                <ChatComposerField
+                    value={draft}
+                    onChange={setDraft}
+                    maxLength={chat.maxCharacters}
+                    placeholder={t("aiChat.composerPlaceholder")}
+                    label={t("aiChat.composerLabel")}
+                    inputClassName="chat__input-field"
+                />
 
                 <Button
                     type="submit"

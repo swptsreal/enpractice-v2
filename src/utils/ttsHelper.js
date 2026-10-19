@@ -7,15 +7,34 @@ import axiosClient from '../api/axiosClient';
 
 // Currently playing audio element (for cancellation)
 let currentAudio = null;
+/**
+ * Resolves the promise that owns the "playing" state of the clip in `currentAudio`.
+ *
+ * A PAUSED CLIP NEVER FIRES `ended`, so the promise returned by `playBase64Audio` would never
+ * settle: the button that started it would stay on "Đang phát…" for good, and pressing a second
+ * listen control would leave the first one frozen. Settling it here is what makes the two
+ * controls agree about which one is speaking.
+ */
+let settleCurrentPlayback = null;
 
-export async function speakWithVoice(text, voiceName = 'US_NEURAL_J') {
-    if (!text) return;
-
+/** Stop whatever is speaking: the server clip, and the browser's own utterance. */
+function cancelPlayback() {
     window.speechSynthesis?.cancel();
     if (currentAudio) {
         currentAudio.pause();
         currentAudio = null;
     }
+    if (settleCurrentPlayback) {
+        const settle = settleCurrentPlayback;
+        settleCurrentPlayback = null;
+        settle();
+    }
+}
+
+export async function speakWithVoice(text, voiceName = 'US_NEURAL_J') {
+    if (!text) return;
+
+    cancelPlayback();
 
     try {
         const data = await axiosClient.post('/tts/synthesize', {
@@ -47,21 +66,20 @@ export async function speakWithVoice(text, voiceName = 'US_NEURAL_J') {
  */
 function playBase64Audio(base64) {
     return new Promise((resolve, reject) => {
-        // Stop any currently playing audio
-        if (currentAudio) {
-            currentAudio.pause();
-            currentAudio = null;
-        }
+        cancelPlayback();
 
         const audio = new Audio(`data:audio/mp3;base64,${base64}`);
         currentAudio = audio;
+        settleCurrentPlayback = resolve;
 
         audio.onended = () => {
             currentAudio = null;
+            settleCurrentPlayback = null;
             resolve();
         };
         audio.onerror = (e) => {
             currentAudio = null;
+            settleCurrentPlayback = null;
             reject(e);
         };
 
@@ -103,11 +121,7 @@ function speakWithBrowser(text, lang = 'en', rate = 1.0) {
  * learner's transcript would come back with the question inside it.
  */
 export function stopSpeaking() {
-    window.speechSynthesis?.cancel();
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-    }
+    cancelPlayback();
 }
 
 /**
@@ -119,12 +133,7 @@ export function stopSpeaking() {
 export async function speak(text, lang = 'en', rate = 1.0) {
     if (!text) return;
 
-    // Cancel any ongoing speech / audio
-    window.speechSynthesis?.cancel();
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-    }
+    cancelPlayback();
 
     try {
         const data = await axiosClient.post('/tts/synthesize-vocabulary', {

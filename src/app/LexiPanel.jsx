@@ -4,6 +4,7 @@ import { Loader2, Send, X } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Lexi } from "../components/mascot/Lexi";
 import { ChatLog } from "../features/chat/ChatLog";
+import { ChatComposerField } from "../features/chat/ChatVoice";
 import { useAiChat } from "../features/chat/useAiChat";
 import { CREDIT_ACTIONS } from "../features/credits/creditConstants";
 import { getCreditCostDisplay } from "../features/credits/creditPolicy";
@@ -150,26 +151,15 @@ export default function LexiPanel({ contextLabel, onClose }) {
                 className="flex flex-col gap-1.5 border-t-2 border-[var(--border)] pt-3"
             >
                 <div className="flex items-center gap-2">
-                    <label className="min-w-0 flex-1">
-                        <span className="sr-only">
-                            {t("aiChat.composerLabel")}
-                        </span>
-                        <input
-                            ref={inputRef}
-                            className="min-h-11 w-full rounded-[var(--r-control)] border-2 border-[var(--border-strong)] bg-[var(--surface)] px-3.5"
-                            value={draft}
-                            onChange={(event) =>
-                                setDraft(
-                                    event.target.value.slice(
-                                        0,
-                                        chat.maxCharacters,
-                                    ),
-                                )
-                            }
-                            placeholder={t("aiChat.composerPlaceholder")}
-                            maxLength={chat.maxCharacters}
-                        />
-                    </label>
+                    <ChatComposerField
+                        value={draft}
+                        onChange={setDraft}
+                        maxLength={chat.maxCharacters}
+                        placeholder={t("aiChat.composerPlaceholder")}
+                        label={t("aiChat.composerLabel")}
+                        inputClassName="min-h-11 w-full rounded-[var(--r-control)] border-2 border-[var(--border-strong)] bg-[var(--surface)] px-3.5"
+                        inputRef={inputRef}
+                    />
                     <Button
                         type="submit"
                         variant="primary"
