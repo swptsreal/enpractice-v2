@@ -97,6 +97,20 @@ function speakWithBrowser(text, lang = 'en', rate = 1.0) {
 }
 
 /**
+ * Stop whatever is speaking right now: the server clip if it is playing, and the browser's
+ * own utterance. Exported because a screen that is about to RECORD must silence the partner
+ * first — a voice playing out of the speakers is a voice the microphone will hear, and the
+ * learner's transcript would come back with the question inside it.
+ */
+export function stopSpeaking() {
+    window.speechSynthesis?.cancel();
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+    }
+}
+
+/**
  * Speak text aloud — calls server TTS API first, falls back to browser SpeechSynthesis
  * @param {string} text - Text to speak
  * @param {'en'|'vi'} lang - Language code

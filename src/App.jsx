@@ -58,6 +58,8 @@ const SpeakingListPage = lazy(() => import('./pages/speaking/SpeakingListPage'))
 const SpeakingPracticePage = lazy(() => import('./pages/speaking/SpeakingPracticePage'));
 const SpeakingResultPage = lazy(() => import('./pages/speaking/SpeakingResultPage'));
 const SpeakingHistoryPage = lazy(() => import('./pages/speaking/SpeakingHistoryPage'));
+const SpeakingConversationPage = lazy(() => import('./pages/speaking/SpeakingConversationPage'));
+const SpeakingConversationResultPage = lazy(() => import('./pages/speaking/SpeakingConversationResultPage'));
 const CustomSpeakingPage = lazy(() => import('./pages/speaking/CustomSpeakingPage'));
 const CustomSpeakingResultPage = lazy(() => import('./pages/speaking/CustomSpeakingResultPage'));
 const ProfilePage = lazy(() => import('./pages/account/ProfilePage'));
@@ -230,6 +232,19 @@ export default function App() {
                         element={
                             <RequireAuth>
                                 <SpeakingResultPage />
+                            </RequireAuth>
+                        }
+                    />
+
+                    {/* The conversation's RESULT is a shell screen: once the conversation is over, its
+                        exits are navigation rather than a decision to make under time. The dialogue
+                        itself lives outside the shell, in the ProviderLayout branch below — a chat
+                        that has to share the viewport with a rail and a tab bar cannot stretch. */}
+                    <Route
+                        path="/speaking/conversation/result/:conversationId"
+                        element={
+                            <RequireAuth>
+                                <SpeakingConversationResultPage />
                             </RequireAuth>
                         }
                     />
@@ -415,6 +430,18 @@ export default function App() {
                 <Route element={<ProviderLayout />}>
                     <Route path="/writing/task/:taskId" element={<WritingTakePage />} />
                     <Route path="/speaking/practice/:topicId" element={<SpeakingPracticePage />} />
+                    {/* THE CONVERSATION IS ONE OF THESE. Its mockup is full-bleed and exactly one
+                        viewport tall — the log stretches and the answer panel is docked to the
+                        bottom, which inside the shell is impossible: the rail, the shell header
+                        and the phone tab bar all eat the height the chat needs. It also reads the
+                        credit price before the first press, so it needs ProviderLayout for the
+                        same reason the line above does. The RESULT step (24c) stays inside the
+                        shell above: once the conversation is over, its exits are navigation. */}
+                    <Route
+                        path="/speaking/conversation/resume/:conversationId"
+                        element={<SpeakingConversationPage />}
+                    />
+                    <Route path="/speaking/conversation/:topicId" element={<SpeakingConversationPage />} />
                 </Route>
                 <Route element={<VocabularyCheckLayout />}>
                     <Route path="/vocabulary/check" element={<VocabularyCheckPage />} />

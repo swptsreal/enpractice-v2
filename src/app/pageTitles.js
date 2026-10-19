@@ -17,6 +17,7 @@ export const PAGE_TITLES = {
     '/ielts/history': 'ielts.history',
     '/writing': 'nav.writing',
     '/speaking': 'nav.speaking',
+    '/speaking/attempts': 'nav.speaking',
     '/custom-speaking': 'nav.customSpeaking',
     '/ai-chat': 'nav.aiChat',
     '/leaderboard': 'nav.leaderboard',

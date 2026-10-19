@@ -447,9 +447,30 @@ export const SHELL_CSS = `
 @media (max-width: 1023px) {
     .shell__rail { display: none; }
     .shell__main { margin-left: 0; padding-bottom: calc(var(--shell-tabbar) + env(safe-area-inset-bottom, 0px)); }
-    .shell__header { padding: 8px 14px; min-height: 60px; }
+    /* THE PHONE HEADER IS ONE STEP TIGHTER, not one component poorer. Every part stays —
+       title, subtitle, credit chip, bell, avatar — because removing one of them moves the
+       problem to whoever needs that control next. What is taken out is empty space: the
+       page title drops one step (h1 24px -> 20px), the gaps and padding close up, and the
+       subtitle ellipsises instead of wrapping to three lines beside a long dynamic title
+       ("Hội thoại — Do you enjoy meeting new people?" cannot fit at 390px at any size, so it
+       truncates by design and the subtitle keeps a full line). The two icon controls keep
+       their 44x44 target: DESIGN-V2 section 12 makes that floor non-negotiable, so the space
+       comes from padding and type, never from the tap targets. */
+    .shell__header { padding: 6px 10px; gap: 8px; min-height: 56px; }
+    .shell__header .t-h1 { font-size: 1.25rem; }
+    .shell__header .t-micro { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .shell__header .acct { gap: 6px; }
     .shell__content { padding: 14px; }
     .shell__content--full { padding: 0; }
+}
+
+@media (max-width: 359px) {
+    /* At the 320px floor the header's parts cannot share one line without pushing the account
+       block out of the viewport, which three frames did. Wrapping keeps every component and
+       scrolls nothing sideways: the title takes its own row, the trailing controls take the next
+       one, and an auto left margin keeps them right-aligned where they belong. */
+    .shell__header { flex-wrap: wrap; }
+    .shell__header > .acct, .shell__header > .btn { margin-left: auto; }
 }
 
 .lexi-fab {

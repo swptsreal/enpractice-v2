@@ -20,10 +20,10 @@ The screens are also openable individually (`mockup/18-ielts-take.html`).
 
 ## Rebuild the mockups
 
-They are compiled from data, so a design change is a token change plus a rebuild, not 41 hand-edits:
+They are compiled from data, so a design change is a token change plus a rebuild, not 44 hand-edits:
 
 ```powershell
-node _design/mockup/_src/build.mjs            # regenerate all 41 screens + the explorer registry
+node _design/mockup/_src/build.mjs            # regenerate all 44 frames + the explorer registry
 python _design/mockup/_src/verify.py          # structural gate
 python _design/mockup/_src/check_nested_cards.py  # depth gate
 python _design/mockup/_src/check_review_frames.py # the review flow's own decisions

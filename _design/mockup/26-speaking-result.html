@@ -10,9 +10,9 @@
 <style>
 .result-hero { display: flex; gap: 20px; align-items: center; }
 @media (max-width: 639px) { .result-hero { flex-direction: column; text-align: center; } }
-.spk-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.spk-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
 @media (max-width: 1023px) { .spk-cols { grid-template-columns: 1fr; } }
-.transcript p { font-size: .875rem; color: var(--ink-soft); margin-top: 8px; line-height: 1.6; }
+.transcript p { font-size: .875rem; color: var(--ink-soft); margin-top: 6px; line-height: 1.6; }
 .hl--bad { background: var(--wrong-soft); border-bottom: 2px solid var(--wrong); border-radius: 2px; }
 </style>
 </head>
@@ -124,7 +124,7 @@
 </div>
 </header>
 <main class="shell__content shell__content--wide" id="main">
-    <section class="card card--hero pad-x result-hero">
+    <section class="card card--hero pad result-hero">
         <div><img class="lexi lexi--lg " data-mood="happy"
         src="assets/lexi-yeah.webp" width="120" height="125"
         loading="lazy" decoding="async" role="img" aria-label="Lexi" /></div>
@@ -138,31 +138,31 @@
         </div>
     </section>
 
-    <div class="grid g-4" style="margin-top:16px">
+    <div class="grid g-4" style="margin-top:12px">
         
-            <article class="card card--edge pad-x">
-                <span class="t-label">Fluency</span>
+            <article class="card card--edge pad">
+                <span class="t-label">Độ trôi chảy (Fluency)</span>
                 <div class="row g8 baseline" style="margin-top:8px"><span class="stat__value">6.5</span><span class="t-micro muted">/ 9.0</span></div>
                 <div style="margin-top:10px"><div class="bar" role="progressbar" aria-valuenow="74" aria-valuemin="0" aria-valuemax="100">
         <div class="bar__fill " style="width:74%"></div>
     </div></div>
             </article>
-            <article class="card card--edge pad-x">
-                <span class="t-label">Lexical Resource</span>
+            <article class="card card--edge pad">
+                <span class="t-label">Vốn từ (Lexical Resource)</span>
                 <div class="row g8 baseline" style="margin-top:8px"><span class="stat__value">6.0</span><span class="t-micro muted">/ 9.0</span></div>
                 <div style="margin-top:10px"><div class="bar" role="progressbar" aria-valuenow="66" aria-valuemin="0" aria-valuemax="100">
         <div class="bar__fill " style="width:66%"></div>
     </div></div>
             </article>
-            <article class="card card--edge pad-x">
-                <span class="t-label">Grammar</span>
+            <article class="card card--edge pad">
+                <span class="t-label">Ngữ pháp (Grammar)</span>
                 <div class="row g8 baseline" style="margin-top:8px"><span class="stat__value">5.5</span><span class="t-micro muted">/ 9.0</span></div>
                 <div style="margin-top:10px"><div class="bar" role="progressbar" aria-valuenow="58" aria-valuemin="0" aria-valuemax="100">
         <div class="bar__fill " style="width:58%"></div>
     </div></div>
             </article>
-            <article class="card card--edge pad-x">
-                <span class="t-label">Pronunciation</span>
+            <article class="card card--edge pad">
+                <span class="t-label">Phát âm (Pronunciation)</span>
                 <div class="row g8 baseline" style="margin-top:8px"><span class="stat__value">6.0</span><span class="t-micro muted">/ 9.0</span></div>
                 <div style="margin-top:10px"><div class="bar" role="progressbar" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100">
         <div class="bar__fill " style="width:64%"></div>
@@ -171,39 +171,39 @@
     </div>
 
     <div class="spk-cols">
-        <section class="card card--edge pad-x">
-            <h2 class="t-h3">Phân tích giọng nói</h2>
+        <section class="card card--edge pad">
+            <h2 class="t-h3">Số đo khi nói</h2>
             <ul class="stack g12" style="margin-top:12px">
                 
-                    <li class="between wrap g12" style="padding:10px 0;border-bottom:2px solid var(--border)">
-                        <span class="t-micro soft">Tốc độ nói</span>
+                    <li class="between wrap g12" style="padding:8px 0;border-bottom:2px solid var(--border)">
+                        <span class="t-micro soft">Tốc độ nói (từ/phút)</span>
                         <span class="row g8"><span class="mono">142 từ/phút</span><span class="t-micro muted">Trong khoảng tự nhiên (120–160)</span></span>
                     </li>
-                    <li class="between wrap g12" style="padding:10px 0;border-bottom:2px solid var(--border)">
+                    <li class="between wrap g12" style="padding:8px 0;border-bottom:2px solid var(--border)">
                         <span class="t-micro soft">Thời gian im lặng</span>
                         <span class="row g8"><span class="mono">6.2 giây (5%)</span><span class="t-micro muted">Chủ yếu ở đầu bài</span></span>
                     </li>
-                    <li class="between wrap g12" style="padding:10px 0;border-bottom:2px solid var(--border)">
+                    <li class="between wrap g12" style="padding:8px 0;border-bottom:2px solid var(--border)">
                         <span class="t-micro soft">Từ đệm</span>
                         <span class="row g8"><span class="mono">4 lần "um"</span><span class="t-micro muted">Giảm bằng cách ngắt câu ngắn</span></span>
                     </li>
-                    <li class="between wrap g12" style="padding:10px 0;border-bottom:2px solid var(--border)">
+                    <li class="between wrap g12" style="padding:8px 0;border-bottom:2px solid var(--border)">
                         <span class="t-micro soft">Từ vựng lặp</span>
                         <span class="row g8"><span class="mono">3 lần "beautiful"</span><span class="t-micro muted">Thử: stunning, picturesque</span></span>
                     </li>
             </ul>
         </section>
 
-        <section class="card card--edge pad-x">
-            <h2 class="t-h3">Transcript</h2>
-            <p class="t-micro muted">Có thể có sai sót nhỏ do nhận dạng giọng nói</p>
-            <div class="transcript" style="margin-top:10px">
+        <section class="card card--edge pad">
+            <h2 class="t-h3">Nội dung đã chấm</h2>
+            <p class="t-micro muted">Phần nhận dạng giọng nói có thể nghe sai. Đây đúng là nội dung mà hệ thống đã dựa vào để chấm.</p>
+            <div class="transcript" style="margin-top:8px">
                 <p><span class="mono muted">00:00</span> Well, um, the place I would like to talk about is a small coastal town…</p>
                 <p><span class="mono muted">00:24</span> I usually go there maybe twice a year with my family, and we always…</p>
                 <p><span class="mono muted">00:52</span> The most <span class="hl hl--bad">beautiful</span> thing is the sunset over the harbour…</p>
                 <p class="muted">…</p>
             </div>
-            <a class="btn btn--primary btn--sm btn--block" style="margin-top:12px" href="25-speaking-take.html">Nói lại chủ đề này</a>
+            <a class="btn btn--primary btn--sm btn--block" style="margin-top:10px" href="25-speaking-take.html">Luyện lại chủ đề này</a>
         </section>
     </div>
 </main>

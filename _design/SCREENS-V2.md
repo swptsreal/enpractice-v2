@@ -6,8 +6,17 @@ Every screen below has a working mockup in `mockup/` — open `mockup/index.html
 ## How to read this
 **Coverage.** 53 routes in `../en-practice/src/AppShell.jsx` map to **36 mockups**; several routes share a page component (e.g. `/speaking/conversation/:topicId` and `/speaking/conversation/resume/:conversationId` both render `SpeakingConversationPage`). Three routes are pure redirects (`/`, `/speaking/conversation/history`, `/vocabulary/test/:testId`) and get no mockup.
 
+**Three screens were added to the speaking module.** `24b` (`/speaking/conversation/:topicId` and its
+resume route), `24c` (`/speaking/conversation/result/:conversationId`) and `24d`
+(`/speaking/attempts`) are the topic conversation and its history — v1 shipped them and v2 had ported
+only as far as `speakingApi`, `useConversationStomp` and the `speaking.conversation.*` locale keys,
+i.e. endpoints and a hook with no screen. They are numbered under the screen they branch from, exactly
+like 15b and 15c, and screen **24 was rewritten in the same pass** because the mode it drew was not the
+mode the backend offers.
+
 **One screen has two frames.** `07b-vocabulary-check-guest.html` is the guest chrome of screen 07 —
-same screen number, different shell — so the folder holds 37 frames for 36 screens. It exists because
+same screen number, different shell — so the 36 numbered screens draw 37 frames, before the two variant
+frames (`33b-account-menu`, `36b-lexi-panel`) and the three speaking frames added above. It exists because
 `/vocabulary/check` is reachable both signed in and signed out, and those two states must not show the
 same page furniture. Every other screen draws one frame.
 
@@ -416,8 +425,136 @@ way back into the app. The fix is the split above.
 - **A "Sửa lỗi cụ thể" column** converts each mark into an instruction with a before/after ("Câu 3 dài 38 từ → tách thành 2 câu"), and the primary action is "Viết lại bài này".
 
 ### 24 · Speaking topics — `/speaking` `[code-verified]`
-- **Layout:** List with a mode pill row (Theo chủ đề / Hội thoại AI / Đề ngẫu nhiên).
-- **A microphone permission notice sits above the list**, not inside a modal at the moment of recording. The product requires `getUserMedia` over HTTPS, and telling the user after they press record is where v1 loses them to a permission dialog with no context.
+- **Layout:** List with a part filter (`Tất cả / Part 1 / Part 2 / Part 3`, which maps to
+  `GET /speaking/topics?part=`) and a notice above the list that carries both things a learner must know
+  before the first press: the microphone needs HTTPS, and when credit is taken in each mode.
+- **The notice sits above the list, not in a modal at the moment of recording.** v1 told the learner about
+  the permission dialog only after they pressed record, by which point they were staring at a browser
+  prompt with no context and often on plain HTTP where `getUserMedia` does not exist at all.
+- **Each card offers the modes that exist, and Part 2 offers one.** "Bắt đầu nói" records a single answer;
+  "Hội thoại" starts the AI-led dialogue from that topic. A cue-card topic has no follow-up questions, so
+  `totalExpectedQuestions` is 1, v1's own list gates the button on `topic.part !== 'PART_2'`, and the frame
+  draws the missing button rather than hiding the rule.
+- **The mode pills are gone.** v1's row read "Theo chủ đề / Hội thoại AI / Đề ngẫu nhiên" and two of its
+  three pills could not exist in v2: there is no random-topic endpoint, and "Hội thoại AI" opened
+  `/custom-speaking`, which is free-form conversation *without* a topic (screen 27). Conversation over a
+  topic starts from the topic (`POST /speaking/conversations/start?topicId=`), so the mode is a property of
+  the card it starts from, not of the page.
+- **The credit claim sits where the charge happens.** Conversation charges at conversation start, so that
+  button carries the cost; practice charges at submit — a control on screen 25 — so the practice button
+  claims nothing it is not about to take. The charge is idempotent per `userId + mode + topicId`, so a
+  topic that has already paid for a conversation shows conversation with no cost chip, and a conversation
+  still in progress offers "Tiếp tục hội thoại" instead of opening a second charge.
+- **The card states which mode its band came from** with a source chip ("Hội thoại"), because the same
+  6.0 appears on screen 26 for a practice attempt and "Xem kết quả" must not be ambiguous about where it
+  leads. The chip carries NO numbers: `POST /speaking/topics/highest-scores` returns the band, the source
+  and the date but no turn count and no duration, so the frame does not claim them — those live on 24c,
+  which reads the conversation itself.
+- **One entry point to history, and it lives in the page's own footer row** (Lexi + "Các lượt đã làm" →
+  24d + the typical length of a turn). The app's shell-header context carries exactly one thing — a
+  subtitle string — and its own note says expanding that for one screen would be the wrong trade, so the
+  link sits where the page can render it. It is drawn once; a second link in the header would be a second
+  thing to read, not a second way to get there.
+- **Every string on the frame is the locale's own Vietnamese**, so the frame and the app cannot drift:
+  `speaking.title`, `speaking.subtitle`, `speaking.filterLabel`, `speaking.start` ("Luyện nói"),
+  `speaking.practiceAgain` ("Luyện lại"), `speaking.viewStatus`, `speaking.historyLink`
+  ("Các lượt đã làm"), `speaking.actions.conversation` ("Hội thoại").
+- **The credit notice is drawn only when a cost is configured.** The backend's cost table can answer
+  `mode: DISABLED` with a cost of 0 for every action — which is what this machine's backend currently
+  answers — and nothing is charged in that configuration, so a rule line would be a claim about money
+  that never moves. The chip on the conversation button is gated the same way.
+
+### 24b · Speaking conversation — `/speaking/conversation/:topicId` and `/speaking/conversation/resume/:conversationId` `[code-verified]`
+- **Layout:** Take, SHAPED LIKE A CHAT — full-bleed (no rail, no tab bar, no floating Lexi) and exactly one
+  viewport tall. The log takes every pixel between the bar and the answer panel, scrolls **inside itself**,
+  and the panel is pinned at the bottom, like screen 27. The page itself never scrolls, so a long
+  conversation cannot push the controls off screen, and the log follows the newest turn. It is a focused
+  surface for the same reason the practice take is: nothing here should invite the learner to wander off
+  mid-answer.
+- **Anatomy:** sticky bar (exit, topic and part, question counter, balance) → scrolling log → pinned answer
+  panel → cost line for this conversation.
+- **The bar carries no "Đã kết nối" chip, and that is a correction rather than an omission.** v1 ran
+  this screen over STOMP and could honestly report a socket's state; v2 runs it over the same REST pair
+  as `/custom-speaking` (`POST /speaking/conversations/start` and
+  `POST /speaking/conversations/{id}/turn`), so there is no socket to report on and a "connected" chip
+  would describe something that does not exist. Progress is shown instead as the question counter in
+  the bar, and the in-flight state as a waiting bubble in the log with the send control disabled for
+  the same window.
+- **The screen is exactly one viewport tall and the page itself never scrolls** — the log is a scrollport
+  and the answer panel is docked. On a very short viewport with a long transcript the panel scrolls
+  *inside its own ceiling* rather than being clipped, because the send control is the one thing on this
+  screen that must stay reachable.
+- **A turn is a recorded answer, not a typed message.** The learner speaks, speech recognition returns the
+  transcript, and the panel shows that text for correction *before* sending, because the transcript is what
+  the grader reads. An empty transcript is refused with a warning rather than sent.
+- **The question is SPOKEN, not only printed.** This is a listening task as much as a speaking one, so the
+  partner's question is read aloud as soon as it appears: the first question when the conversation starts,
+  the next one (or a hint) when a turn comes back, and the pending question when a conversation is resumed.
+  v1 got its audio from the socket payload; v2 asks the TTS endpoint for the same sentence, which is why the
+  replay control makes a request rather than replaying a cached clip. **While it plays, the button reads
+  "Đang phát…" and is disabled** — that is the reason for the disabled state, stated on the control itself.
+  Pressing record stops the audio first, so the partner's voice is never captured in the learner's answer.
+  If a browser blocks playback, the question is still on screen in full and the button is the way to hear it.
+- **The measurements are per turn and honest.** Each answer carries its own word count and words per
+  minute — the two things the browser can actually measure. v1 also printed a word-confidence badge; v2
+  cannot measure confidence at all, so no confidence chip is drawn (`speechAnalytics` in
+  `src/features/speaking/useSpeaking.js`).
+- **A HINT turn is visibly a hint**, not another question: the backend returns `turnType: HINT` when the
+  model decides the learner is struggling, and the frame draws it in `--amber-soft` under a "Gợi ý" label.
+- **The recording state is screen 25's treatment unchanged** — red "Đang ghi âm" chip, `mono` clock, 48-bar
+  `aria-hidden` waveform — so the product has one recording language. On the last question the API's
+  `lastTurn` relabels the control "Trả lời câu cuối".
+- **The recording control never claims a cost**, because this conversation was charged when it started; the
+  line under the panel says exactly that ("trừ 1 credit ngay khi bắt đầu · còn 12 credit").
+- **States specified with the frame rather than drawn into one moment:** "Lexi đang phản hồi…" while a
+  turn is in flight, with the send control disabled for the same window; the empty-transcript warning;
+  and completion, which posts the message that grading has started and moves to 24c. The live contract
+  was exercised end to end: the last answer returns `conversationComplete: true`, the detail endpoint
+  then reports `COMPLETED` and, a few seconds later, `GRADED` with a band — so the wait state is a real
+  state, not a hypothetical one.
+
+### 24c · Conversation result — `/speaking/conversation/result/:conversationId` `[code-verified]`
+- **Layout:** Focus, one column, inside the app shell.
+- **Hero:** band, turn count and elapsed time, Lexi. **No delta chip**, because the highest-scores endpoint
+  returns one band per topic and "hơn lần trước" is not a claim this screen can support.
+- **Four criteria** as on screen 26 — Độ trôi chảy (Fluency), Vốn từ (Lexical Resource), Ngữ pháp
+  (Grammar), Phát âm (Pronunciation), the locale's own labels — graded over the whole conversation
+  instead of one answer.
+- **The AI feedback is drawn as it arrives**, not condensed into a one-line diagnosis.
+- **The transcript is a dialogue and it is the substance of the screen:** each turn pairs the question with
+  the answer and carries that answer's own word count and WPM. A repeated word is highlighted in the answer
+  that repeats it, and the card says speech recognition can err.
+- **Grading is asynchronous** (COMPLETED → GRADING → GRADED, ~9 s, the same shape as 23 and 26), so the wait
+  is designed: a "Đang chấm" header chip and a skeleton where the band will be, and the criteria, feedback
+  and transcript are absent rather than empty. FAILED replaces the hero with the reason and one retry;
+  IN_PROGRESS sends the learner back to 24b rather than drawing a result that does not exist.
+- **Restarting costs nothing and the frame does not pretend otherwise:** this topic already paid for a
+  conversation, so "Hội thoại lại chủ đề này" carries no cost chip.
+
+### 24d · Speaking history — `/speaking/attempts` (and `?tab=conversation`) `[code-verified]`
+- **Layout:** Focus, one column, inside the app shell. **Two tabs — Luyện tập / Hội thoại** — because they
+  are two lists, not two views of one: `GET /speaking/attempts` returns recorded attempts and
+  `GET /speaking/conversations` returns conversations, which carry fields an attempt does not have
+  (`totalTurns`, and a status set that includes `IN_PROGRESS`, which an attempt cannot be).
+- **The tab is addressable** (`?tab=conversation`), so a finished conversation can link straight into its own
+  tab — which is exactly what v1 did with `/speaking/history?tab=conversation`, and the reason
+  `/speaking/conversation/history` gets no frame of its own.
+- **Cards, not a table**, matching the rest of v2's histories: a table whose columns hide on a phone is still
+  a table to a screen reader, and v1's `scroll={{x}}` history had no mobile fallback at all. Each row is one
+  target, with the topic, the part and the time spent on the left and the band or the status chip on the right.
+- **An unfinished conversation opens the conversation, not its result.** `IN_PROGRESS` has no band, and 24c
+  sends the learner back to 24b anyway, so the row's destination is the truth about it and its label says so
+  ("Tiếp tục").
+- **Three stat tiles per tab** (count · average band · best band), from the two endpoints' own numbers. On a
+  phone they stay **one row** rather than the shared grid's single column: the summary is three numbers, not
+  three sections, and stacking them pushes the first real row below the fold. The tiles appear once there is
+  more than one graded item — a single sample has no average worth stating, and "0.0" would read as a score.
+- **Each tab has its own empty and error state.** Practice: "Chưa có lượt luyện nào" + the action back to the
+  topic list. Conversation: the same shape with a conversation-specific line, because a learner who has never
+  started one must not be told they have no attempts. The retry reloads the tab that failed.
+- **The frame draws no load-more control**, although both endpoints are paged — see open question 6. Whoever
+  builds the screen either adds it or caps the list out loud; a silently truncated history is the one kind of
+  loss a learner cannot notice.
 
 ### 25 · Speaking practice — `/speaking/practice/:id` `[code-verified]`
 - **Layout:** Take.
@@ -429,9 +566,14 @@ way back into the app. The fix is the split above.
 ### 26 · Speaking result — `/speaking/result/:id` `[code-verified]`
 - **Layout:** Focus with a two-column body.
 - **Hero:** band, delta, one-line diagnosis, Lexi.
-- **Four criteria** as in Writing, using the Speaking criteria (Fluency, Lexical Resource, Grammar, Pronunciation).
-- **The voice analytics are presented as measurements with context**, not scores: speech rate with its natural range ("142 từ/phút — trong khoảng tự nhiên 120–160"), silence ratio with where it occurred, filler count, and repeated words with alternatives. Each metric states what it means; none is dressed up as a grade.
-- The transcript carries the caveat that speech recognition can err, and repeated words are highlighted in the transcript itself.
+- **Four criteria** as in Writing, using the Speaking criteria as the locale names them — Độ trôi chảy
+  (Fluency), Vốn từ (Lexical Resource), Ngữ pháp (Grammar), Phát âm (Pronunciation). The frame draws the
+  app's own strings, so the row cannot read one way in the mockup and another in production.
+- **The voice analytics are presented as measurements with context**, not scores: speech rate with its
+  natural range ("142 từ/phút — trong khoảng tự nhiên 120–160"), silence ratio with where it occurred, filler
+  count, and repeated words with alternatives. Each metric states what it means; none is dressed up as a grade.
+- **The transcript card is headed with the locale's own label** ("Nội dung đã chấm") and carries the caveat
+  that speech recognition can err, with repeated words highlighted in the transcript itself.
 
 ### 27 · Custom speaking conversation — `/custom-speaking` `[code-verified]`
 - **Layout:** Chat, 780px max, kéo dài toàn bộ chiều dọc (`flex-1 min-h-0`). Chat log giãn trọn chiều dọc, cụm gợi ý xếp trên 1 hàng ngang cuộn mượt (`.chat__suggest`), composer ghim sát đáy.
@@ -560,3 +702,7 @@ These apply to every screen above and are specified in DESIGN-V2.md; they are re
 3. **Onboarding is new** (screen 03). It changes the first-run route, which touches SEO and analytics. Confirm the intent before implementation.
 4. **Speaking voice analytics** (screen 26) assumes speech-analytics data that `speakingApi` returns; I did not read the response shape. Verify before designing the empty and partial states.
 5. **Screen 22's writing editor** is a plain `<textarea>` in the mockup. Confirm whether v2 needs a rich editor (word-count anchoring, autosave-on-blur, paste detection) before the component is built.
+6. **The speaking history draws no load-more control** (screen 24d). Both `/speaking/attempts` and `/speaking/conversations` are paged, and the frame shows a finite list without saying where it ends. Decide whether the screen gets a "Tải thêm" control — the honest option — or a size cap stated on screen.
+7. **The v1 result keys are still in the locale, unused.** `speaking.resultPage.*` carries its own criteria labels ("Fluency & Coherence", "Lexical Resource", …) plus celebrate strings that no v2 page renders; the screens use `speaking.criterion.*`, which is what screens 26 and 24c now draw. The four criteria labels are settled in favour of the locale's Vietnamese, so what remains is deciding whether the dead `resultPage` block is deleted or kept for the future result redesign.
+8. **Four frames still scroll sideways at 320px**, which DESIGN-V2 §12.9 forbids: `01-landing` (419px — a hero button), `02-login` (343px — the auth card), `19-ielts-result` (588px — the segmented switch and a result card) and `20-ielts-history` (326px — the chart columns). All four predate the speaking work — the same sweep on the previous revision found eleven, and the shell-header ones (14, 23, 26, 28, 29, 34) are fixed. These four are outside the speaking module, so they are reported rather than silently re-laid-out.
+9. **Every cost in the app renders as a NEGATIVE number** — "Nộp bài · -1 credit", "Hội thoại · -1 credit" — because `getCreditCostDisplay` returns `amountLabel: "-1"`, while every mockup draws "1 credit" (screens 22, 24 and the AI chat composer). The speaking module follows the existing convention rather than establishing a second one, so the frames and the app currently disagree in wording across the whole product. Decide which one is right and change it once: dropping the minus is a one-line change in `src/features/credits/creditPolicy.js` plus the note in `src/app/LexiPanel.test.jsx`.

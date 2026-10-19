@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { Clock, Loader2, TrendingUp, AlertTriangle } from "lucide-react";
+import { Clock, Loader2, TrendingUp, AlertTriangle, MessageSquare } from "lucide-react";
 import { Lexi } from "../../components/mascot/Lexi";
 import { Card } from "../../components/ui/Card";
 import { ButtonLink } from "../../components/ui/Button";
@@ -9,6 +9,9 @@ import { Chip, SkeletonCard } from "../../components/ui/Primitives";
 import { AsyncBoundary } from "../../components/ui/AsyncBoundary";
 import { MicrophoneNotice } from "../../components/speaking/RecordingControl";
 import { cn } from "../../lib/cn";
+import { useCredit } from "../../contexts/CreditContextCore";
+import { CREDIT_ACTIONS } from "../../features/credits/creditConstants";
+import { getCreditCostDisplay } from "../../features/credits/creditPolicy";
 import {
     PARTS,
     isGrading,
@@ -28,9 +31,20 @@ import {
  * three real cases — insecure context, unsupported browser, and available — and the
  * notice says which one applies before any button is pressed.
  *
- * The part filter is a segmented row (`PART_1/2/3`) rather than v1's mode pills with a
- * "random topic" entry, because there is no random-topic endpoint: inventing a mode
- * that silently picks for you would hide which part you are practising.
+ * TWO MODES PER TOPIC, AND PART 2 HAS ONE. A card offers the practice attempt and the AI
+ * conversation; a cue-card topic has no follow-up questions, so the backend's own
+ * `totalExpectedQuestions` is 1 and v1 gated the same button on `part !== 'PART_2'`.
+ *
+ * THE COST IS CLAIMED WHERE THE CHARGE HAPPENS. The conversation button carries it, because
+ * `POST /speaking/conversations/start` charges when it is pressed. The practice button does
+ * not, because practice charges at SUBMIT — a control that lives on screen 25 — so a cost chip
+ * here would be a claim about a moment that has not arrived. The charge is idempotent per
+ * `userId + mode + topicId`, so a topic that already paid for a conversation shows the button
+ * with no cost at all.
+ *
+ * THE PART FILTER IS A REAL QUERY PARAM (`GET /speaking/topics?part=`), not a client-side view,
+ * which is why it is a segmented row rather than v1's mode pills. v1's third pill ("Đề ngẫu
+ * nhiên") had no endpoint behind it at all.
  */
 /**
  * Static label tables, because `t()` keys must be literals.
@@ -57,6 +71,7 @@ const DIFFICULTY_LABEL_KEYS = {
 export default function SpeakingListPage() {
     const { t } = useTranslation();
     const [part, setPart] = useState(null);
+    const credit = useCredit();
 
     const micStatus = useMicrophoneStatus();
     const { items, loading, error, reload } = useSpeakingTopics({ part });
@@ -64,11 +79,20 @@ export default function SpeakingListPage() {
     const topicIds = useMemo(() => items.map((topic) => topic.id), [items]);
     const scores = useSpeakingHighestScores(topicIds);
 
+    const costEntry = credit.getCost(CREDIT_ACTIONS.SPEAKING_START);
+    const cost = getCreditCostDisplay(costEntry);
+
     return (
         <div className="flex flex-col gap-4">
             <p className="t-micro muted">{t("speaking.subtitle")}</p>
 
             <MicrophoneNotice status={micStatus} />
+            {/* THE CREDIT RULE IS STATED ONLY WHEN THERE IS ONE. The backend's cost table can
+                answer `mode: DISABLED` for every action, and in that configuration nothing is
+                charged at all — so printing "hội thoại trừ ngay khi bắt đầu" would be a claim
+                about money that never moves. Verified against the running backend, where the
+                whole table is currently DISABLED. */}
+            {cost ? <p className="t-micro muted px-1">{t("speaking.creditNotice")}</p> : null}
 
             <div
                 role="group"
@@ -120,11 +144,30 @@ export default function SpeakingListPage() {
                             score?.attempted && isGradingFailed(score.status);
                         const band = score?.highestBandScore;
 
+                        /* Which mode the band belongs to. The endpoint returns `sourceType`
+                           directly and falls back to the ids it also returns, so a payload that
+                           lacks the field still says something true. */
+                        const sourceType =
+                            score?.sourceType ??
+                            (score?.conversationId
+                                ? "CONVERSATION"
+                                : score?.attemptId
+                                  ? "PRACTICE"
+                                  : null);
+                        const fromConversation = sourceType === "CONVERSATION";
+
+                        /* Resume: an in-progress conversation is unfinished work, and the row's
+                           primary action is the one that continues it. */
+                        const conversationInProgress =
+                            Boolean(score?.conversationId) &&
+                            score?.status === "IN_PROGRESS";
+                        const canConverse = topic.part !== "PART_2";
+
                         return (
                             <li key={topic.id}>
                                 <Card
                                     level="edge"
-                                    padding="xl"
+                                    padding="md"
                                     className="flex h-full flex-col"
                                 >
                                     <div className="flex flex-wrap items-center gap-2">
@@ -156,9 +199,21 @@ export default function SpeakingListPage() {
                                                 {t("speaking.statusFailed")}
                                             </Chip>
                                         ) : band != null ? (
-                                            <Chip tone="teal" icon={TrendingUp}>
-                                                {Number(band).toFixed(1)}
-                                            </Chip>
+                                            <>
+                                                <Chip tone="teal" icon={TrendingUp}>
+                                                    {Number(band).toFixed(1)}
+                                                </Chip>
+                                                {fromConversation ? (
+                                                    <Chip
+                                                        tone="teal"
+                                                        icon={MessageSquare}
+                                                    >
+                                                        {t(
+                                                            "speaking.card.conversationSource",
+                                                        )}
+                                                    </Chip>
+                                                ) : null}
+                                            </>
                                         ) : null}
                                     </div>
 
@@ -187,7 +242,55 @@ export default function SpeakingListPage() {
                                                       )
                                                     : t("speaking.start")}
                                         </ButtonLink>
-                                        {band != null && score?.attemptId ? (
+
+                                        {canConverse ? (
+                                            <ButtonLink
+                                                to={
+                                                    conversationInProgress
+                                                        ? `/speaking/conversation/resume/${score.conversationId}`
+                                                        : `/speaking/conversation/${topic.id}`
+                                                }
+                                                variant={
+                                                    conversationInProgress
+                                                        ? "primary"
+                                                        : "ghost"
+                                                }
+                                                size="sm"
+                                                block
+                                            >
+                                                <MessageSquare
+                                                    size={15}
+                                                    aria-hidden="true"
+                                                />
+                                                {conversationInProgress
+                                                    ? t(
+                                                          "speaking.resumeConversation",
+                                                      )
+                                                    : score?.conversationId
+                                                      ? t(
+                                                            "speaking.actions.conversation",
+                                                        )
+                                                      : cost
+                                                        ? t(
+                                                              "speaking.conversationWithCost",
+                                                              {
+                                                                  amount: cost.amountLabel,
+                                                              },
+                                                          )
+                                                        : t(
+                                                              "speaking.actions.conversation",
+                                                          )}
+                                            </ButtonLink>
+                                        ) : null}
+
+                                        {band != null && fromConversation ? (
+                                            <Link
+                                                to={`/speaking/conversation/result/${score.conversationId}`}
+                                                className="t-micro text-center text-[var(--teal)]"
+                                            >
+                                                {t("speaking.viewResult")}
+                                            </Link>
+                                        ) : band != null && score?.attemptId ? (
                                             <Link
                                                 to={`/speaking/result/${score.attemptId}`}
                                                 className="t-micro text-center text-[var(--teal)]"

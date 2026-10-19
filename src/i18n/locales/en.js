@@ -2478,7 +2478,55 @@ export default {
         practiceAgainHint: 'Practising the same prompt again is the fastest way to see where you improved.',
         allTopics: 'All topics',
         historyEmptyTitle: 'No attempts yet',
-        historyEmptyBody: 'Your results appear here after you get marked.'
+        historyEmptyBody: 'Your results appear here after you get marked.',
+
+        /* --- Topic conversation (screens 24/24b/24c/24d) -----------------------------------
+           One set of keys for the conversation and its history. THE LABELS ARE SHARED with the
+           practice result — `speaking.criterion.*`, `speaking.feedbackTitle`,
+           `speaking.transcriptTitle` — so the two result screens cannot drift apart in wording.
+           These sit flat because the `speaking` block already has `card`/`actions`/`history`
+           groups above, and reopening one here would duplicate keys in the same object literal. */
+        creditNotice:
+            'Practising alone charges credit when you submit the recording; a conversation charges as soon as it starts. Each topic is charged once per mode.',
+        resumeConversation: 'Continue conversation',
+        conversationWithCost: 'Conversation · {{amount}} credit',
+        conversationAnswerLabel: 'Your answer',
+        conversationTurnCounter: 'Question {{current}} / {{total}}',
+        conversationLastTurn: 'final question',
+        conversationReplay: 'Replay the question',
+        conversationPlaying: 'Playing…',
+        conversationTranscriptHint:
+            'After you speak, the transcript appears so you can correct it before sending. The transcript is what the AI marks.',
+        conversationAnswerLength: '30–60 seconds',
+        conversationCostLine: 'A conversation charges {{amount}} credit as soon as it starts · {{balance}} credit left',
+        conversationResumeLine: 'You are continuing a conversation that already started — no extra credit.',
+        conversationStartError: 'The conversation could not start. Please try again.',
+        conversationWpmChip: '{{count}} wpm',
+        conversationResultTurns: '{{turns}} turns · {{time}}',
+        conversationResultBandLabel: 'Conversation band',
+        conversationResultGradingTitle: 'Lexi is marking the conversation',
+        conversationResultGradingBody:
+            'All four criteria are being scored across the whole conversation. The result appears right here.',
+        conversationResultFailedTitle: 'This conversation could not be marked',
+        conversationResultTurnLabel: 'Turn {{index}}',
+        conversationResultAnswerLabel: 'You answered',
+        conversationResultRestart: 'Do this conversation again',
+        conversationResultNoTranscript: 'This conversation has no transcript.',
+        conversationResultAllTopics: 'Back to topics',
+        historySubtitle: 'Review your speaking turns and conversations, and continue any you have not finished',
+        historyTabsLabel: 'Type of turn',
+        historyStatAttempts: 'Turns done',
+        historyStatConversations: 'Conversations',
+        historyStatAverage: 'Average band',
+        historyStatBest: 'Best band',
+        historyEmptyConversationTitle: 'No conversations yet',
+        historyEmptyConversationBody: 'Open a topic and press "Conversation" to start your first one.',
+        historyResume: 'Continue',
+        historyStatusInProgress: 'In progress',
+        historyTurnsChip: '{{count}} turns',
+        durationMinutesSeconds: '{{minutes}} min {{seconds}} sec',
+        durationSeconds: '{{seconds}} sec',
+        conversationResultRepeatedWord: 'This word repeats in the conversation'
     },
     writingPractice: {
         filters: {

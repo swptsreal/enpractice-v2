@@ -7,7 +7,8 @@
 <link rel="stylesheet" href="assets/tokens.css" />
 <link rel="stylesheet" href="assets/shell.css" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" />
-<style></style>
+<style>
+</style>
 </head>
 <body>
 <a class="sr-only" href="#main">Bỏ qua tới nội dung</a>
@@ -95,10 +96,7 @@
 </aside><div class="shell__main">
 <header class="shell__header">
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Luyện Speaking</h1>
-    <p class="t-micro muted">Ghi âm và phân tích phát âm, độ trôi chảy</p></div>
-    <a class="btn btn--ghost btn--sm" href="26-speaking-result.html"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg> Bài đã làm</a>
+    <p class="t-micro muted">Nói theo đề và nhận chấm theo bốn tiêu chí IELTS</p></div>
     
 <div class="acct">
     <a class="chip chip--teal only-mobile" href="32-credits.html" aria-label="Ví credit" style="text-decoration:none"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -114,100 +112,172 @@
 </div>
 </header>
 <main class="shell__content shell__content--wide" id="main">
+    <!-- The notice carries both things a learner must know BEFORE the first press: the microphone
+         needs HTTPS, and credit is taken at a different moment in each of the two modes. v1 told
+         them about the permission dialog only after they pressed record, and showed the cost
+         only inside one of the two modes' buttons. -->
     <div class="card card--flat pad row g12" style="margin-bottom:16px">
         <span style="color:var(--teal)"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></span>
-        <p class="t-micro soft grow">Speaking cần quyền truy cập micro và kết nối bảo mật (HTTPS). Trình duyệt sẽ hỏi bạn ở lần ghi đầu tiên.</p>
+        <div class="grow">
+            <p class="t-micro soft">Speaking cần quyền truy cập micro và kết nối bảo mật (HTTPS). Trình duyệt sẽ hỏi bạn ở lần ghi đầu tiên.</p>
+            <p class="t-micro muted" style="margin-top:4px">Nói một mình trừ credit khi bạn nộp bản ghi âm; hội thoại trừ ngay khi bắt đầu. Mỗi chủ đề chỉ trừ một lần cho mỗi chế độ.</p>
+        </div>
     </div>
 
-    <div class="pills" style="margin-bottom:16px">
-        <a class="pill" href="24-speaking-list.html" aria-current="page"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/></svg> Theo chủ đề</a>
-        <a class="pill" href="27-custom-speaking.html"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><path d="M20 15a3 3 0 0 1-3 3H8l-4 3V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3z"/><path d="M8.5 10h7"/><path d="M8.5 13.5h4"/></svg> Hội thoại AI</a>
-        <a class="pill" href="25-speaking-take.html"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true"><path d="M7 4.5 19 12 7 19.5z"/></svg> Đề ngẫu nhiên</a>
-    </div>
-
-    <h2 class="t-h3" style="margin-bottom:12px">Part 2 — Cue card</h2>
-    <div class="grid g-3">
+    <!-- THE MODE IS A PROPERTY OF A CARD, NOT A PAGE-LEVEL PILL. The previous draft copied v1's
+         pill row ("Theo chủ đề / Hội thoại AI / Đề ngẫu nhiên") and two of its three pills could
+         not exist: there is no random-topic endpoint, and "Hội thoại AI" opened /custom-speaking,
+         which is a different feature — free-form conversation with no topic. A conversation here
+         starts from a topic (POST /speaking/conversations/start?topicId=), so it belongs on that
+         topic's own card. This row filters by part, which GET /speaking/topics?part= supports. -->
+    <div class="pills" data-group role="group" aria-label="Lọc theo phần thi" style="margin-bottom:16px">
         
-            <article class="card card--edge pad-x">
-                <div class="between">
-                    <span class="chip chip--outline">Cue card</span>
+            <button class="pill" type="button" data-select aria-pressed="true">Tất cả</button>
+            <button class="pill" type="button" data-select aria-pressed="false">Part 1</button>
+            <button class="pill" type="button" data-select aria-pressed="false">Part 2</button>
+            <button class="pill" type="button" data-select aria-pressed="false">Part 3</button>
+    </div>
+
+    <ul class="grid g-3">
+        
+            <li class="card card--edge pad">
+                <div class="between wrap g8">
+                    <span class="row g8 wrap">
+                        <span class="chip chip--outline">Part 1</span>
+                        <span class="chip chip--amber">Trung bình</span>
+                    </span>
                     
                 </div>
-                <h3 class="t-h3" style="margin-top:12px">Describe a place you like to visit</h3>
-                <p class="t-micro muted">Part 2 · 2 phút nói</p>
-                
-                <a class="btn btn--primary btn--sm btn--block" style="margin-top:14px"
-                   href="25-speaking-take.html">Bắt đầu nói</a>
-            </article>
-            <article class="card card--edge pad-x">
-                <div class="between">
-                    <span class="chip chip--outline">Cue card</span>
-                    <span class="band">6</span>
+                <h3 class="t-h3" style="margin-top:10px">Do you enjoy meeting new people?</h3>
+                <p class="t-micro muted">3 câu hỏi · khoảng 3 phút</p>
+                <div class="stack g8" style="margin-top:12px">
+                    <a class="btn btn--primary btn--sm btn--block" href="25-speaking-take.html"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M7 4.5 19 12 7 19.5z"/></svg> Luyện nói</a>
+                    <a class="btn btn--ghost btn--sm btn--block" href="24b-speaking-conversation.html"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M20 15a3 3 0 0 1-3 3H8l-4 3V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3z"/><path d="M8.5 10h7"/><path d="M8.5 13.5h4"/></svg> Hội thoại · 1 credit</a>
                 </div>
-                <h3 class="t-h3" style="margin-top:12px">Describe a person who influenced you</h3>
-                <p class="t-micro muted">Part 2 · 2 phút nói</p>
-                <div style="margin-top:10px"><div class="bar" role="progressbar" aria-valuenow="78" aria-valuemin="0" aria-valuemax="100">
-        <div class="bar__fill " style="width:78%"></div>
-    </div></div>
-                <a class="btn btn--ghost btn--sm btn--block" style="margin-top:14px"
-                   href="26-speaking-result.html">Xem kết quả</a>
-            </article>
-            <article class="card card--edge pad-x">
-                <div class="between">
-                    <span class="chip chip--outline">Cue card</span>
+                
+            </li>
+            <li class="card card--edge pad">
+                <div class="between wrap g8">
+                    <span class="row g8 wrap">
+                        <span class="chip chip--outline">Part 2</span>
+                        <span class="chip chip--amber">Khó</span>
+                    </span>
                     
                 </div>
-                <h3 class="t-h3" style="margin-top:12px">Describe a skill you want to learn</h3>
-                <p class="t-micro muted">Part 2 · 2 phút nói</p>
-                
-                <a class="btn btn--primary btn--sm btn--block" style="margin-top:14px"
-                   href="25-speaking-take.html">Bắt đầu nói</a>
-            </article>
-            <article class="card card--edge pad-x">
-                <div class="between">
-                    <span class="chip chip--outline">Cue card</span>
-                    <span class="band">6.5</span>
-                </div>
-                <h3 class="t-h3" style="margin-top:12px">Describe an important decision</h3>
-                <p class="t-micro muted">Part 2 · 2 phút nói</p>
-                <div style="margin-top:10px"><div class="bar" role="progressbar" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">
-        <div class="bar__fill " style="width:85%"></div>
-    </div></div>
-                <a class="btn btn--ghost btn--sm btn--block" style="margin-top:14px"
-                   href="26-speaking-result.html">Xem kết quả</a>
-            </article>
-            <article class="card card--edge pad-x">
-                <div class="between">
-                    <span class="chip chip--outline">Cue card</span>
+                <h3 class="t-h3" style="margin-top:10px">Describe a book you enjoyed.</h3>
+                <p class="t-micro muted">1 phút chuẩn bị · 2 phút nói</p>
+                <div class="stack g8" style="margin-top:12px">
+                    <a class="btn btn--primary btn--sm btn--block" href="25-speaking-take.html"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M7 4.5 19 12 7 19.5z"/></svg> Luyện nói</a>
                     
                 </div>
-                <h3 class="t-h3" style="margin-top:12px">Describe a book you enjoyed</h3>
-                <p class="t-micro muted">Part 2 · 2 phút nói</p>
                 
-                <a class="btn btn--primary btn--sm btn--block" style="margin-top:14px"
-                   href="25-speaking-take.html">Bắt đầu nói</a>
-            </article>
-            <article class="card card--edge pad-x">
-                <div class="between">
-                    <span class="chip chip--outline">Cue card</span>
-                    <span class="band">5.5</span>
+            </li>
+            <li class="card card--edge pad">
+                <div class="between wrap g8">
+                    <span class="row g8 wrap">
+                        <span class="chip chip--outline">Part 3</span>
+                        <span class="chip chip--amber">Khó</span>
+                    </span>
+                    <span class="chip chip--teal"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M20 15a3 3 0 0 1-3 3H8l-4 3V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3z"/><path d="M8.5 10h7"/><path d="M8.5 13.5h4"/></svg> Hội thoại</span><span class="band"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg> 6.0</span>
                 </div>
-                <h3 class="t-h3" style="margin-top:12px">Describe a time you helped someone</h3>
-                <p class="t-micro muted">Part 2 · 2 phút nói</p>
-                <div style="margin-top:10px"><div class="bar" role="progressbar" aria-valuenow="68" aria-valuemin="0" aria-valuemax="100">
-        <div class="bar__fill " style="width:68%"></div>
-    </div></div>
-                <a class="btn btn--ghost btn--sm btn--block" style="margin-top:14px"
-                   href="26-speaking-result.html">Xem kết quả</a>
-            </article>
+                <h3 class="t-h3" style="margin-top:10px">Why do people value free time more today?</h3>
+                <p class="t-micro muted">4 câu hỏi · khoảng 4 phút</p>
+                <div class="stack g8" style="margin-top:12px">
+                    <a class="btn btn--ghost btn--sm btn--block" href="25-speaking-take.html"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M7 4.5 19 12 7 19.5z"/></svg> Luyện lại</a>
+                    <a class="btn btn--ghost btn--sm btn--block" href="24b-speaking-conversation.html"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M20 15a3 3 0 0 1-3 3H8l-4 3V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3z"/><path d="M8.5 10h7"/><path d="M8.5 13.5h4"/></svg> Hội thoại</a>
+                </div>
+                <a class="t-micro" style="display:block;text-align:center;margin-top:8px" href="24c-speaking-conversation-result.html">Xem kết quả</a>
+            </li>
+            <li class="card card--edge pad">
+                <div class="between wrap g8">
+                    <span class="row g8 wrap">
+                        <span class="chip chip--outline">Part 1</span>
+                        <span class="chip chip--amber">Dễ</span>
+                    </span>
+                    <span class="chip chip--teal"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M20 15a3 3 0 0 1-3 3H8l-4 3V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3z"/><path d="M8.5 10h7"/><path d="M8.5 13.5h4"/></svg> Đang hội thoại</span>
+                </div>
+                <h3 class="t-h3" style="margin-top:10px">What do you usually do at the weekend?</h3>
+                <p class="t-micro muted">3 câu hỏi · khoảng 2 phút</p>
+                <div class="stack g8" style="margin-top:12px">
+                    <a class="btn btn--ghost btn--sm btn--block" href="25-speaking-take.html"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M7 4.5 19 12 7 19.5z"/></svg> Luyện nói</a>
+                    <a class="btn btn--primary btn--sm btn--block" href="24b-speaking-conversation.html"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M20 15a3 3 0 0 1-3 3H8l-4 3V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3z"/><path d="M8.5 10h7"/><path d="M8.5 13.5h4"/></svg> Tiếp tục hội thoại</a>
+                </div>
+                
+            </li>
+            <li class="card card--edge pad">
+                <div class="between wrap g8">
+                    <span class="row g8 wrap">
+                        <span class="chip chip--outline">Part 2</span>
+                        <span class="chip chip--amber">Trung bình</span>
+                    </span>
+                    <span class="chip chip--amber"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg> Đang chấm</span>
+                </div>
+                <h3 class="t-h3" style="margin-top:10px">Describe a skill you want to learn.</h3>
+                <p class="t-micro muted">1 phút chuẩn bị · 2 phút nói</p>
+                <div class="stack g8" style="margin-top:12px">
+                    <a class="btn btn--ghost btn--sm btn--block" href="26-speaking-result.html"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M7 4.5 19 12 7 19.5z"/></svg> Xem trạng thái</a>
+                    
+                </div>
+                
+            </li>
+    </ul>
+
+    <!-- PART 2 DRAWS ITS MISSING BUTTON rather than hiding the rule. A cue-card topic has no
+         follow-up questions, so totalExpectedQuestions is 1 and a "conversation" would be one
+         question long; v1's list gates the same button on topic.part !== 'PART_2'.
+
+         THE CREDIT CLAIM LIVES WHERE THE CHARGE HAPPENS. Conversation charges at
+         POST /speaking/conversations/start, so its button carries the cost. Practice charges at
+         submit — a control that lives on screen 25 — so the practice button claims no cost it is
+         not about to take. The charge is idempotent per userId + mode + topicId, which is why
+         the graded card and the in-progress card show conversation with NO cost chip: that topic
+         has already paid for a conversation once.
+
+         Resume is not a new route in the product's head, it is the same screen: the frame for it
+         is 24b, opened with the conversation in progress. "Xem kết quả" therefore leads on to 24c
+         and says which mode the band came from, because the same number appears on screen 26 for
+         a practice attempt.
+
+         ONE ENTRY POINT TO HISTORY, and it lives in the page's own footer row (24d), not in the
+         shell header. The app's header context carries exactly one thing — a subtitle string —
+         and its own note says expanding that for a single screen would be the wrong trade, so the
+         frame puts the link where the page can actually render it: next to Lexi, with the typical
+         length of a turn. It is drawn once on the screen; a second link to the same place in the
+         header would be a second thing to read, not a second way to get there. -->
+    <div class="row g8 wrap" style="justify-content:center;margin-top:4px">
+        <span><img class="lexi lexi--xs " data-mood="happy"
+        src="assets/lexi-yeah.webp" width="40" height="42"
+        loading="lazy" decoding="async" aria-hidden="true" /></span>
+        <a class="t-label" href="24d-speaking-history.html">Các lượt đã làm</a>
+        <span class="t-micro muted row g4"><svg class="" width="13" height="13" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg> Mỗi lượt khoảng 2 phút nói</span>
     </div>
 </main>
 <nav class="tabbar only-mobile" aria-label="Điều hướng chính">

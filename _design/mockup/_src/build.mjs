@@ -3,7 +3,7 @@
    Run:  node _design/mockup/_src/build.mjs
 
    The screens are authored as data (one place per screen) and compiled here,
-   so a design change is a token change plus a rebuild — not 41 hand-edits.
+   so a design change is a token change plus a rebuild — not 44 hand-edits.
    The mockups are mobile-first by construction: every layout is written for a
    390px column and widens, so reviewing one at phone width is reviewing it
    honestly rather than reviewing a shrunken desktop layout.

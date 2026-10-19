@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Lịch sử Speaking · EN Practice v2</title>
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/shell.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" />
+<style>
+/* Three stat tiles stay ONE ROW on a phone. The shared grid drops to a single column below 480px,
+   which turned the summary into three full-width cards and pushed the first real row off the
+   screen — the summary is three numbers, not three sections. Padding and the value step come down
+   with it so the row stays readable at 358px of content width. */
+@media (max-width: 479px) {
+    .grid.g-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .stat { padding: 10px 12px; }
+    .stat__value { font-size: 1.25rem; }
+    .stat__label { font-size: .75rem; }
+}
+
+/* A status chip is a one-line label, and a row that gives it a squeezed column used to fold it in
+   half inside its own fixed 30px height. The chip keeps its line and the row's flexible half —
+   the topic text — takes the extra line instead. Scoped to this frame rather than added to
+   .chip globally: at 320px the global version pushed two other screens into overflow. */
+.rowbox .chip, .rowbox .band, .rowbox .t-label { white-space: nowrap; }
+</style>
+</head>
+<body>
+<a class="sr-only" href="#main">Bỏ qua tới nội dung</a>
+<div class="shell">
+<aside class="shell__rail">
+    <a class="shell__brand" href="04-home.html"><span><img class="lexi lexi--xs " data-mood="idle"
+        src="assets/lexi-yes.webp" width="40" height="42"
+        loading="lazy" decoding="async" aria-hidden="true" /></span>
+        <span class="grow"><span class="t-h3" style="display:block">EN Practice</span><span class="t-micro muted">Mỗi ngày một bước</span></span></a>
+    <nav class="shell__nav" aria-label="Điều hướng chính">
+        <div class="nav">
+            <a class="nav__item" href="04-home.html" ><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5.5h5V20"/></svg><span>Trang chủ</span></a>
+            <a class="nav__item" href="36-ai-chat.html" ><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M12 3.5 13.8 9l5.7 1.8-5.7 1.8L12 18.2 10.2 12.6 4.5 10.8 10.2 9z"/><path d="M18.5 3.5v3M20 5h-3"/></svg><span>AI Coach</span></a>
+            <a class="nav__item" href="16-ielts-list.html" aria-current="page"><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/></svg><span>Luyện tập</span></a>
+            <a class="nav__item" href="29-weekly-report.html" ><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg><span>Tiến độ</span></a>
+            <a class="nav__item" href="33-profile.html" ><svg class="" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg><span>Cá nhân</span></a>
+        </div>
+        <div class="nav__group">IELTS</div>
+        <div class="nav">
+            <a class="nav__item" href="16-ielts-list.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 15v-2a7.5 7.5 0 0 1 15 0v2"/><rect x="3" y="14" width="4" height="6" rx="2"/><rect x="17" y="14" width="4" height="6" rx="2"/></svg><span>Kho đề</span></a>
+            <a class="nav__item" href="21-writing-list.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 20l3.5-.8L20 6.7a2 2 0 0 0-2.8-2.8L4.8 16.5z"/><path d="M15.5 5.5 18.5 8.5"/></svg><span>Writing</span></a>
+            <a class="nav__item" href="24-speaking-list.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg><span>Speaking</span></a>
+            <a class="nav__item" href="27-custom-speaking.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M20 15a3 3 0 0 1-3 3H8l-4 3V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3z"/><path d="M8.5 10h7"/><path d="M8.5 13.5h4"/></svg><span>Hội thoại tự chọn</span></a>
+        </div>
+        <div class="nav__group">Khác</div>
+        <div class="nav">
+            <a class="nav__item" href="06-path.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/></svg><span>Lộ trình</span></a>
+            <a class="nav__item" href="12-dictionary.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Sổ tay</span></a>
+                <a class="nav__item" href="07-vocabulary-check.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><span>Tra từ &amp; hỏi AI</span></a>
+                <a class="nav__item" href="15-review.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span>Ôn tập từ vựng</span></a>
+            <a class="nav__item" href="08-vocabulary-list.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 4.5h5.5A3.5 3.5 0 0 1 13 8v12a3 3 0 0 0-3-3H4z"/><path d="M20 4.5h-5.5A3.5 3.5 0 0 0 11 8v12a3 3 0 0 1 3-3h6z"/></svg><span>Từ vựng</span></a>
+            <a class="nav__item" href="28-leaderboard.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4.5v1.5A3.5 3.5 0 0 0 8 11"/><path d="M17 6h2.5v1.5A3.5 3.5 0 0 1 16 11"/><path d="M12 14v4"/><path d="M8.5 21h7"/></svg><span>Xếp hạng</span></a>
+            <a class="nav__item" href="31-rewards.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="2"/><path d="M3 13.5h18"/><path d="M12 9v12"/><path d="M12 9S9.5 3.5 7 5.2 9 9 12 9s4.5-2.2 5-3.8C16.5 3.5 12 9 12 9z"/></svg><span>Phần thưởng</span></a>
+            <a class="nav__item" href="32-credits.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg><span>Ví credit</span></a>
+            <a class="nav__item" href="34-notifications.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M6.5 17V11a5.5 5.5 0 0 1 11 0v6"/><path d="M4.5 17h15"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span>Thông báo</span></a>
+            <a class="nav__item" href="35-settings.html"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.6M12 18.6v2.6M4.5 7.5l2.2 1.3M17.3 15.2l2.2 1.3M4.5 16.5l2.2-1.3M17.3 8.8l2.2-1.3"/></svg><span>Cài đặt</span></a>
+        </div>
+    </nav>
+    <div class="shell__foot"><div class="row g8" style="padding:0 4px">
+        <span class="chip chip--amber"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M12 3c3 4 6 5.5 6 9.5A6 6 0 0 1 6 12.5C6 8.5 9 7 12 3z"/><path d="M12 20a3 3 0 0 1-3-3c0-1.6 1.2-2.6 3-4.5 1.8 1.9 3 2.9 3 4.5a3 3 0 0 1-3 3z"/></svg> 12 ngày</span>
+        <span class="chip chip--teal"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg> 240</span>
+    </div></div>
+</aside><div class="shell__main">
+<header class="shell__header">
+    <a class="btn btn--ghost btn--icon btn--sm" href="24-speaking-list.html" aria-label="Quay lại"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M19.5 12h-15"/><path d="M10.5 6l-6 6 6 6"/></svg></a>
+    <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Lịch sử Speaking</h1>
+    <p class="t-micro muted">Xem lại các lượt nói và hội thoại, tiếp tục nếu bạn chưa xong</p></div>
+    
+<div class="acct">
+    <a class="chip chip--teal only-mobile" href="32-credits.html" aria-label="Ví credit" style="text-decoration:none"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14 9.2c-.5-.9-1.4-1.4-2.6-1.4-1.7 0-2.7 1-2.7 2 0 1.2 1.3 1.6 2.7 1.9 1.6.3 2.9.7 2.9 2 0 1.1-1.1 2-2.9 2-1.3 0-2.3-.6-2.8-1.5"/><path d="M12 6.4v11.2"/></svg> 240</a>
+    <button class="acct__icon" type="button" aria-label="Thông báo"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M6.5 17V11a5.5 5.5 0 0 1 11 0v6"/><path d="M4.5 17h15"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="acct__dot">3</span></button>
+    <span class="chip chip--teal only-lg">Premium</span>
+    <button class="acct__avatar" type="button" aria-haspopup="true" aria-expanded="false"
+            aria-controls="account-panel" aria-label="Menu tài khoản">M</button>
+    
+</div>
+</header>
+<main class="shell__content shell__content--focus" id="main" data-tabs="sp">
+    <!-- TWO TABS BECAUSE THEY ARE TWO LISTS, not two views of one. GET /speaking/attempts returns
+         recorded attempts; GET /speaking/conversations returns conversations, which carry fields an
+         attempt does not have (totalTurns, and their own status set — a conversation can be
+         IN_PROGRESS while an attempt cannot). The tab is addressable (?tab=conversation) so a
+         finished conversation can link straight into its own tab, which is what v1 did with
+         /speaking/history?tab=conversation.
+
+         CARDS, NOT A TABLE, matching the rest of v2's histories: a table whose columns hide on a
+         phone is still a table to a screen reader, and v1's scroll-x history had no mobile
+         fallback at all.
+
+         NO "TẢI THÊM" IN THIS FRAME. Both endpoints are paged and the honest control is a load-more
+         button at the end of the list — it is simply not drawn here. Whoever builds the screen
+         must either add it or cap the list out loud; a silently truncated history is the one kind
+         of loss the learner cannot notice. Recorded as open question 6. -->
+    <div class="segmented" role="tablist" aria-label="Loại lượt đã làm" style="margin-bottom:14px">
+        <button role="tab" id="sp-practice-tab" aria-controls="sp-practice" aria-selected="true" data-tab="sp-practice">Luyện tập</button>
+        <button role="tab" id="sp-conv-tab" aria-controls="sp-conv" aria-selected="false" data-tab="sp-conv">Hội thoại</button>
+    </div>
+
+    <div data-panel="sp-practice" role="tabpanel" aria-labelledby="sp-practice-tab">
+        <div class="grid g-3" style="margin-bottom:12px">
+            <div class="stat stat--teal">
+        <span class="stat__row"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg><span class="t-micro">Lượt đã làm</span></span>
+        <span class="stat__value">9</span>
+    </div>
+            <div class="stat ">
+        <span class="stat__row"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg><span class="t-micro">Band trung bình</span></span>
+        <span class="stat__value">6.1</span>
+    </div>
+            <div class="stat stat--amber">
+        <span class="stat__row"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4.5v1.5A3.5 3.5 0 0 0 8 11"/><path d="M17 6h2.5v1.5A3.5 3.5 0 0 1 16 11"/><path d="M12 14v4"/><path d="M8.5 21h7"/></svg><span class="t-micro">Band cao nhất</span></span>
+        <span class="stat__value">6.5</span>
+    </div>
+        </div>
+
+        <ul class="stack g8">
+            
+                <li>
+                    <a class="rowbox rowbox--between" href="26-speaking-result.html" style="text-decoration:none;color:inherit">
+                        <span class="grow">
+                            <strong class="t-label" style="display:block">Describe a person who influenced you</strong>
+                            <span class="t-micro muted" style="display:block;margin-top:2px">Part 2 · 2 phút · 12/10</span>
+                        </span>
+                        <span class="row g8"><span class="t-mono" style="color:var(--teal)">6.0</span><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12h15"/><path d="M13.5 6l6 6-6 6"/></svg></span>
+                    </a>
+                </li>
+                <li>
+                    <a class="rowbox rowbox--between" href="26-speaking-result.html" style="text-decoration:none;color:inherit">
+                        <span class="grow">
+                            <strong class="t-label" style="display:block">Do you enjoy meeting new people?</strong>
+                            <span class="t-micro muted" style="display:block;margin-top:2px">Part 1 · 1 phút · 12/10</span>
+                        </span>
+                        <span class="row g8"><span class="chip chip--amber"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg> Đang chấm</span><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12h15"/><path d="M13.5 6l6 6-6 6"/></svg></span>
+                    </a>
+                </li>
+                <li>
+                    <a class="rowbox rowbox--between" href="26-speaking-result.html" style="text-decoration:none;color:inherit">
+                        <span class="grow">
+                            <strong class="t-label" style="display:block">Describe a skill you want to learn.</strong>
+                            <span class="t-micro muted" style="display:block;margin-top:2px">Part 2 · 2 phút · 09/10</span>
+                        </span>
+                        <span class="row g8"><span class="chip chip--wrong"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg> Chấm lỗi</span><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12h15"/><path d="M13.5 6l6 6-6 6"/></svg></span>
+                    </a>
+                </li>
+                <li>
+                    <a class="rowbox rowbox--between" href="26-speaking-result.html" style="text-decoration:none;color:inherit">
+                        <span class="grow">
+                            <strong class="t-label" style="display:block">Why do people value free time more today?</strong>
+                            <span class="t-micro muted" style="display:block;margin-top:2px">Part 3 · 2 phút · 05/10</span>
+                        </span>
+                        <span class="row g8"><span class="t-mono" style="color:var(--teal)">5.5</span><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12h15"/><path d="M13.5 6l6 6-6 6"/></svg></span>
+                    </a>
+                </li>
+        </ul>
+    </div>
+
+    <div data-panel="sp-conv" role="tabpanel" aria-labelledby="sp-conv-tab" hidden>
+        <div class="grid g-3" style="margin-bottom:12px">
+            <div class="stat stat--teal">
+        <span class="stat__row"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M20 15a3 3 0 0 1-3 3H8l-4 3V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3z"/><path d="M8.5 10h7"/><path d="M8.5 13.5h4"/></svg><span class="t-micro">Cuộc hội thoại</span></span>
+        <span class="stat__value">4</span>
+    </div>
+            <div class="stat ">
+        <span class="stat__row"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg><span class="t-micro">Band trung bình</span></span>
+        <span class="stat__value">5.8</span>
+    </div>
+            <div class="stat stat--amber">
+        <span class="stat__row"><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4.5v1.5A3.5 3.5 0 0 0 8 11"/><path d="M17 6h2.5v1.5A3.5 3.5 0 0 1 16 11"/><path d="M12 14v4"/><path d="M8.5 21h7"/></svg><span class="t-micro">Band cao nhất</span></span>
+        <span class="stat__value">6.0</span>
+    </div>
+        </div>
+
+        <!-- An unfinished conversation opens the CONVERSATION, not its result: IN_PROGRESS has no
+             band, and screen 24c sends the learner back to 24b anyway. So the row's own target is
+             the truth about where it can go, and the label says so ("Tiếp tục"). -->
+        <ul class="stack g8">
+            
+                <li>
+                    <a class="rowbox rowbox--between" href="24c-speaking-conversation-result.html" style="text-decoration:none;color:inherit">
+                        <span class="grow">
+                            <strong class="t-label" style="display:block">Do you enjoy meeting new people?</strong>
+                            <span class="t-micro muted" style="display:block;margin-top:2px">Part 1 · 3 lượt · 3 phút 12 giây · 12/10</span>
+                        </span>
+                        <span class="row g8"><span class="t-mono" style="color:var(--teal)">6.0</span><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12h15"/><path d="M13.5 6l6 6-6 6"/></svg></span>
+                    </a>
+                </li>
+                <li>
+                    <a class="rowbox rowbox--between" href="24b-speaking-conversation.html" style="text-decoration:none;color:inherit">
+                        <span class="grow">
+                            <strong class="t-label" style="display:block">What do you usually do at the weekend?</strong>
+                            <span class="t-micro muted" style="display:block;margin-top:2px">Part 1 · 2 lượt · hôm nay</span>
+                        </span>
+                        <span class="row g8"><span class="chip chip--teal"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M20 15a3 3 0 0 1-3 3H8l-4 3V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3z"/><path d="M8.5 10h7"/><path d="M8.5 13.5h4"/></svg> Đang hội thoại</span><span class="t-label" style="color:var(--teal);white-space:nowrap">Tiếp tục</span><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12h15"/><path d="M13.5 6l6 6-6 6"/></svg></span>
+                    </a>
+                </li>
+                <li>
+                    <a class="rowbox rowbox--between" href="24c-speaking-conversation-result.html" style="text-decoration:none;color:inherit">
+                        <span class="grow">
+                            <strong class="t-label" style="display:block">Why do people value free time more today?</strong>
+                            <span class="t-micro muted" style="display:block;margin-top:2px">Part 3 · 4 lượt · 11/10</span>
+                        </span>
+                        <span class="row g8"><span class="chip chip--amber"><svg class="" width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg> Đang chấm</span><svg class="" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4.5 12h15"/><path d="M13.5 6l6 6-6 6"/></svg></span>
+                    </a>
+                </li>
+        </ul>
+    </div>
+
+    <!-- THE EMPTY STATE IS PER TAB, and neither is a blank list. Practice: "Chưa có lượt luyện nào"
+         + the action back to the topic list (v1's historyEmptyTitle / historyEmptyBody in the
+         locale). Hội thoại: the same shape with a conversation-specific line, because a learner
+         who has never started one must not be told they have no attempts. Each tab also needs its
+         own error state; the retry reloads the tab that failed. -->
+</main>
+<nav class="tabbar only-mobile" aria-label="Điều hướng chính">
+    <a class="tabbar__item" href="04-home.html" ><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5.5h5V20"/></svg><span>Trang chủ</span></a>
+    <a class="tabbar__item" href="36-ai-chat.html" ><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M12 3.5 13.8 9l5.7 1.8-5.7 1.8L12 18.2 10.2 12.6 4.5 10.8 10.2 9z"/><path d="M18.5 3.5v3M20 5h-3"/></svg><span>AI Coach</span></a>
+    <a class="tabbar__item" href="16-ielts-list.html" aria-current="page"><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/></svg><span>Luyện tập</span></a>
+    <a class="tabbar__item" href="29-weekly-report.html" ><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg><span>Tiến độ</span></a>
+    <a class="tabbar__item" href="33b-account-menu.html" ><svg class="" width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg><span>Thêm</span></a>
+</nav></div>
+<button class="lexi-fab" type="button" aria-haspopup="dialog" aria-expanded="false"
+        aria-controls="lexi-panel" aria-label="Hỏi Lexi">
+    <img class="lexi lexi--sm " data-mood="idle"
+        src="assets/lexi-yes.webp" width="56" height="59"
+        loading="lazy" decoding="async" aria-hidden="true" />
+</button></div>
+<div id="live" class="sr-only" role="status" aria-atomic="true"></div>
+<script>
+/* A mockup that cannot be pressed cannot be judged, so the interactions that
+   carry the design — tab switching, answer selection, switch toggles, revealing
+   a verdict — are live. Tab panels are keyed off data-panel, which is also what
+   the aria-controls wiring documents, so the mockup and the accessibility tree
+   cannot disagree. Plain <script>, no module, so file:// works. */
+(function () {
+    var live = document.getElementById('live');
+    function announce(text) { if (live) live.textContent = text; }
+
+    document.addEventListener('click', function (e) {
+        var tab = e.target.closest('[data-tab]');
+        if (tab) {
+            var group = tab.closest('[data-tabs]');
+            group.querySelectorAll('[data-tab]').forEach(function (t) {
+                t.setAttribute('aria-selected', String(t === tab));
+            });
+            var scope = group.dataset.tabs;
+            document.querySelectorAll('[data-panel^="' + scope + '-"]').forEach(function (p) {
+                p.hidden = p.dataset.panel !== tab.dataset.tab;
+            });
+            return;
+        }
+        var sel = e.target.closest('[data-select]');
+        if (sel) {
+            var box = sel.closest('[data-group]');
+            if (box) box.querySelectorAll('[data-select]').forEach(function (s) {
+                s.setAttribute('aria-pressed', String(s === sel));
+            });
+            announce(sel.dataset.announce || 'Đã chọn');
+            return;
+        }
+        var tog = e.target.closest('[data-toggle]');
+        if (tog) {
+            var on = (tog.getAttribute('aria-checked') || tog.getAttribute('aria-pressed')) === 'true';
+            tog.setAttribute('aria-checked', String(!on));
+            tog.setAttribute('aria-pressed', String(!on));
+            return;
+        }
+        var reveal = e.target.closest('[data-reveal]');
+        if (reveal) {
+            var el = document.getElementById(reveal.dataset.reveal);
+            if (el) {
+                el.hidden = false;
+                el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                announce(reveal.dataset.announce || '');
+            }
+        }
+    });
+})();
+</script>
+</body>
+</html>

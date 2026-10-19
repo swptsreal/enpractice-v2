@@ -2480,7 +2480,55 @@ export default {
         practiceAgainHint: 'Luyện lại chính đề này là cách nhanh nhất để thấy mình tiến bộ ở đâu.',
         allTopics: 'Tất cả đề',
         historyEmptyTitle: 'Chưa có lượt luyện nào',
-        historyEmptyBody: 'Kết quả sẽ hiện ở đây sau khi bạn chấm bài.'
+        historyEmptyBody: 'Kết quả sẽ hiện ở đây sau khi bạn chấm bài.',
+
+        /* --- Hội thoại theo chủ đề (màn 24/24b/24c/24d) ------------------------------------
+           Một bộ khoá cho hội thoại và lịch sử của nó. CÁC NHÃN DÙNG CHUNG với màn kết quả luyện
+           tập — `speaking.criterion.*`, `speaking.feedbackTitle`, `speaking.transcriptTitle` —
+           để hai màn kết quả không lệch chữ. Khoá ở đây đặt phẳng vì khối `speaking` đã có sẵn
+           các nhóm `card`/`actions`/`history` phía trên, và mở lại một nhóm ở đây sẽ tạo khoá
+           trùng tên trong cùng một object literal. */
+        creditNotice:
+            'Nói một mình trừ credit khi bạn nộp bản ghi âm; hội thoại trừ ngay khi bắt đầu. Mỗi chủ đề chỉ trừ một lần cho mỗi chế độ.',
+        resumeConversation: 'Tiếp tục hội thoại',
+        conversationWithCost: 'Hội thoại · {{amount}} credit',
+        conversationAnswerLabel: 'Câu trả lời của bạn',
+        conversationTurnCounter: 'Câu {{current}} / {{total}}',
+        conversationLastTurn: 'lượt cuối',
+        conversationReplay: 'Nghe lại câu hỏi',
+        conversationPlaying: 'Đang phát…',
+        conversationTranscriptHint:
+            'Sau khi bạn nói, bản chữ hiện ra để bạn sửa lại trước khi gửi. Bản chữ là thứ AI chấm điểm.',
+        conversationAnswerLength: '30–60 giây',
+        conversationCostLine: 'Hội thoại trừ {{amount}} credit ngay khi bắt đầu · còn {{balance}} credit',
+        conversationResumeLine: 'Bạn đang tiếp tục một hội thoại đã bắt đầu — không trừ thêm credit.',
+        conversationStartError: 'Chưa bắt đầu được hội thoại. Thử lại nhé.',
+        conversationWpmChip: '{{count}} từ/phút',
+        conversationResultTurns: '{{turns}} lượt · {{time}}',
+        conversationResultBandLabel: 'Band hội thoại',
+        conversationResultGradingTitle: 'Lexi đang chấm hội thoại',
+        conversationResultGradingBody:
+            'Hệ thống đang chấm cả cuộc hội thoại theo bốn tiêu chí. Kết quả sẽ hiện ngay tại đây.',
+        conversationResultFailedTitle: 'Không chấm được hội thoại này',
+        conversationResultTurnLabel: 'Lượt {{index}}',
+        conversationResultAnswerLabel: 'Bạn trả lời',
+        conversationResultRestart: 'Hội thoại lại chủ đề này',
+        conversationResultNoTranscript: 'Hội thoại này không có bản chữ nào.',
+        conversationResultAllTopics: 'Về danh sách chủ đề',
+        historySubtitle: 'Xem lại các lượt nói và hội thoại, tiếp tục nếu bạn chưa xong',
+        historyTabsLabel: 'Loại lượt đã làm',
+        historyStatAttempts: 'Lượt đã làm',
+        historyStatConversations: 'Cuộc hội thoại',
+        historyStatAverage: 'Band trung bình',
+        historyStatBest: 'Band cao nhất',
+        historyEmptyConversationTitle: 'Chưa có cuộc hội thoại nào',
+        historyEmptyConversationBody: 'Mở một chủ đề rồi bấm "Hội thoại" để bắt đầu cuộc đầu tiên.',
+        historyResume: 'Tiếp tục',
+        historyStatusInProgress: 'Đang hội thoại',
+        historyTurnsChip: '{{count}} lượt',
+        durationMinutesSeconds: '{{minutes}} phút {{seconds}} giây',
+        durationSeconds: '{{seconds}} giây',
+        conversationResultRepeatedWord: 'Từ này được lặp lại trong hội thoại'
     },
     writingPractice: {
         filters: {

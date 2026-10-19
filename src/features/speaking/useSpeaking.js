@@ -118,8 +118,14 @@ export function useSpeakingTopics({ part = null, page = 0, size = 12 } = {}) {
 }
 
 export function useSpeakingTopic(topicId) {
-    const loader = useCallback(() => speakingApi.getTopicById(topicId).then(unwrapData), [topicId]);
-    const { data, loading, error, reload } = useAsyncData(loader, `speaking-topic-${topicId}`);
+    /* A page that resolves its topic id asynchronously (the conversation's resume route) renders
+       before the id exists. Without this guard the hook requests `/speaking/topics/undefined`,
+       which 404s and paints a broken-topic error over a screen that is simply still loading. */
+    const loader = useCallback(
+        () => (topicId ? speakingApi.getTopicById(topicId).then(unwrapData) : Promise.resolve(null)),
+        [topicId]
+    );
+    const { data, loading, error, reload } = useAsyncData(loader, `speaking-topic-${topicId ?? 'none'}`);
     return { topic: data ?? null, loading, error, reload };
 }
 

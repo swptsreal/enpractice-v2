@@ -29,6 +29,40 @@ const barHeight = (i) => {
     return 20 + Math.abs(wave) * 60;
 };
 
+/**
+ * The 48-bar strip, extracted so the recording language lives in ONE place: the practice
+ * screen and the topic conversation draw the same waveform, with the same `aria-hidden` and
+ * the same `motion-safe`-only pulse. Two hand-rolled copies would eventually disagree about
+ * how "recording" looks, which is the one thing this product cannot afford to be vague about.
+ */
+export function Waveform({ recording = false, paused = false, className }) {
+    return (
+        <div
+            aria-hidden="true"
+            className={cn(
+                'flex h-16 w-full max-w-[420px] items-center justify-center gap-[3px]',
+                className
+            )}
+        >
+            {Array.from({ length: BAR_COUNT }, (_, i) => (
+                <span
+                    key={i}
+                    className={cn(
+                        'w-[3px] rounded-full',
+                        recording && !paused ? 'bg-[var(--wrong)] motion-safe:animate-pulse' : 'bg-[var(--border-strong)]'
+                    )}
+                    style={{
+                        height: `${barHeight(i)}%`,
+                        /* Each bar pulses on its own offset so the strip reads as
+                           movement rather than a single blinking block. */
+                        animationDelay: `${(i % 12) * 90}ms`,
+                    }}
+                />
+            ))}
+        </div>
+    );
+}
+
 export function RecordingControl({
     recording,
     seconds,
@@ -63,26 +97,7 @@ export function RecordingControl({
 
             {/* Decorative waveform: motion-reduce cancels the pulse, and aria-hidden
                 keeps 48 meaningless bars out of the accessibility tree. */}
-            <div
-                aria-hidden="true"
-                className="flex h-16 w-full max-w-[420px] items-center justify-center gap-[3px]"
-            >
-                {Array.from({ length: BAR_COUNT }, (_, i) => (
-                    <span
-                        key={i}
-                        className={cn(
-                            'w-[3px] rounded-full',
-                            recording && !paused ? 'bg-[var(--wrong)] motion-safe:animate-pulse' : 'bg-[var(--border-strong)]'
-                        )}
-                        style={{
-                            height: `${barHeight(i)}%`,
-                            /* Each bar pulses on its own offset so the strip reads as
-                               movement rather than a single blinking block. */
-                            animationDelay: `${(i % 12) * 90}ms`,
-                        }}
-                    />
-                ))}
-            </div>
+            <Waveform recording={recording} paused={paused} />
 
             {remaining != null && recording ? (
                 <p className="t-micro muted">

@@ -48,6 +48,16 @@ export default defineConfig({
         trace: 'retain-on-failure',
         screenshot: 'only-on-failure',
         storageState: 'e2e/.auth/state.json',
+        /**
+         * A SYNTHETIC MICROPHONE. The speaking screens record real audio, and headless Chromium
+         * answers `getUserMedia` with NotSupportedError without a device — the conversation flow
+         * could not be driven past the record button. `--use-fake-ui-for-media-stream` also
+         * auto-accepts the permission prompt, so no test depends on a browser dialog. Both flags
+         * are inert for every other suite, which never asks for media.
+         */
+        launchOptions: {
+            args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
+        },
     },
     projects: [
         {

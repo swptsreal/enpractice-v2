@@ -643,49 +643,469 @@ On the one hand, supporters of road building point out that…</textarea>
 ` },
 
 /* ==================================================================== 24 */
-'24-speaking-list': { file: '24-speaking-list.html', title: 'Speaking — chủ đề', subtitle: 'Part 1/2/3 + conversation', group: 'IELTS',
-  note: 'Yêu cầu micro được nói rõ trước khi bắt đầu', body: wrap('practice', `
+'24-speaking-list': { file: '24-speaking-list.html', title: 'Speaking — chủ đề', subtitle: 'Nói một mình hoặc hội thoại AI', group: 'IELTS',
+  note: 'Hai lối vào mỗi chủ đề; Part 2 chỉ có một lối vì không có câu hỏi phụ', body: wrap('practice', `
 <header class="shell__header">
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Luyện Speaking</h1>
-    <p class="t-micro muted">Ghi âm và phân tích phát âm, độ trôi chảy</p></div>
-    <a class="btn btn--ghost btn--sm" href="26-speaking-result.html">${icon('clock', 16)} Bài đã làm</a>
+    <p class="t-micro muted">Nói theo đề và nhận chấm theo bốn tiêu chí IELTS</p></div>
     ${accountHeader()}
 </header>
 <main class="shell__content shell__content--wide" id="main">
+    <!-- The notice carries both things a learner must know BEFORE the first press: the microphone
+         needs HTTPS, and credit is taken at a different moment in each of the two modes. v1 told
+         them about the permission dialog only after they pressed record, and showed the cost
+         only inside one of the two modes' buttons. -->
     <div class="card card--flat pad row g12" style="margin-bottom:16px">
         <span style="color:var(--teal)">${icon('mic', 20)}</span>
-        <p class="t-micro soft grow">Speaking cần quyền truy cập micro và kết nối bảo mật (HTTPS). Trình duyệt sẽ hỏi bạn ở lần ghi đầu tiên.</p>
+        <div class="grow">
+            <p class="t-micro soft">Speaking cần quyền truy cập micro và kết nối bảo mật (HTTPS). Trình duyệt sẽ hỏi bạn ở lần ghi đầu tiên.</p>
+            <p class="t-micro muted" style="margin-top:4px">Nói một mình trừ credit khi bạn nộp bản ghi âm; hội thoại trừ ngay khi bắt đầu. Mỗi chủ đề chỉ trừ một lần cho mỗi chế độ.</p>
+        </div>
     </div>
 
-    <div class="pills" style="margin-bottom:16px">
-        <a class="pill" href="24-speaking-list.html" aria-current="page">${icon('target', 16)} Theo chủ đề</a>
-        <a class="pill" href="27-custom-speaking.html">${icon('chat', 16)} Hội thoại AI</a>
-        <a class="pill" href="25-speaking-take.html">${icon('play', 16)} Đề ngẫu nhiên</a>
+    <!-- THE MODE IS A PROPERTY OF A CARD, NOT A PAGE-LEVEL PILL. The previous draft copied v1's
+         pill row ("Theo chủ đề / Hội thoại AI / Đề ngẫu nhiên") and two of its three pills could
+         not exist: there is no random-topic endpoint, and "Hội thoại AI" opened /custom-speaking,
+         which is a different feature — free-form conversation with no topic. A conversation here
+         starts from a topic (POST /speaking/conversations/start?topicId=), so it belongs on that
+         topic's own card. This row filters by part, which GET /speaking/topics?part= supports. -->
+    <div class="pills" data-group role="group" aria-label="Lọc theo phần thi" style="margin-bottom:16px">
+        ${['Tất cả', 'Part 1', 'Part 2', 'Part 3'].map((label, i) => `
+            <button class="pill" type="button" data-select aria-pressed="${i === 0}">${label}</button>`).join('')}
     </div>
 
-    <h2 class="t-h3" style="margin-bottom:12px">Part 2 — Cue card</h2>
-    <div class="grid g-3">
+    <ul class="grid g-3">
         ${[
-            ['Describe a place you like to visit', 'Part 2 · 2 phút nói', 0, ''],
-            ['Describe a person who influenced you', 'Part 2 · 2 phút nói', 6.0, '78'],
-            ['Describe a skill you want to learn', 'Part 2 · 2 phút nói', 0, ''],
-            ['Describe an important decision', 'Part 2 · 2 phút nói', 6.5, '85'],
-            ['Describe a book you enjoyed', 'Part 2 · 2 phút nói', 0, ''],
-            ['Describe a time you helped someone', 'Part 2 · 2 phút nói', 5.5, '68'],
-        ].map(([t, meta, band, score]) => `
-            <article class="card card--edge pad-x">
-                <div class="between">
-                    <span class="chip chip--outline">Cue card</span>
-                    ${band ? `<span class="band">${band}</span>` : ''}
+            {
+                part: 'Part 1', diff: 'Trung bình',
+                q: 'Do you enjoy meeting new people?',
+                meta: '3 câu hỏi · khoảng 3 phút',
+                status: '',
+                practice: 'Luyện nói', practiceTone: 'primary', practiceHref: '25-speaking-take.html',
+                conversation: 'Hội thoại · 1 credit', convTone: 'ghost', convHref: '24b-speaking-conversation.html',
+                resultHref: '',
+            },
+            {
+                part: 'Part 2', diff: 'Khó',
+                q: 'Describe a book you enjoyed.',
+                meta: '1 phút chuẩn bị · 2 phút nói',
+                status: '',
+                practice: 'Luyện nói', practiceTone: 'primary', practiceHref: '25-speaking-take.html',
+                conversation: '', convTone: '', convHref: '',
+                resultHref: '',
+            },
+            {
+                part: 'Part 3', diff: 'Khó',
+                q: 'Why do people value free time more today?',
+                meta: '4 câu hỏi · khoảng 4 phút',
+                status: `<span class="chip chip--teal">${icon('chat', 14)} Hội thoại</span><span class="band">${icon('chart', 14)} 6.0</span>`,
+                practice: 'Luyện lại', practiceTone: 'ghost', practiceHref: '25-speaking-take.html',
+                conversation: 'Hội thoại', convTone: 'ghost', convHref: '24b-speaking-conversation.html',
+                resultHref: '24c-speaking-conversation-result.html',
+            },
+            {
+                part: 'Part 1', diff: 'Dễ',
+                q: 'What do you usually do at the weekend?',
+                meta: '3 câu hỏi · khoảng 2 phút',
+                status: `<span class="chip chip--teal">${icon('chat', 14)} Đang hội thoại</span>`,
+                practice: 'Luyện nói', practiceTone: 'ghost', practiceHref: '25-speaking-take.html',
+                conversation: 'Tiếp tục hội thoại', convTone: 'primary', convHref: '24b-speaking-conversation.html',
+                resultHref: '',
+            },
+            {
+                part: 'Part 2', diff: 'Trung bình',
+                q: 'Describe a skill you want to learn.',
+                meta: '1 phút chuẩn bị · 2 phút nói',
+                status: `<span class="chip chip--amber">${icon('clock', 14)} Đang chấm</span>`,
+                practice: 'Xem trạng thái', practiceTone: 'ghost', practiceHref: '26-speaking-result.html',
+                conversation: '', convTone: '', convHref: '',
+                resultHref: '',
+            },
+        ].map((c) => `
+            <li class="card card--edge pad">
+                <div class="between wrap g8">
+                    <span class="row g8 wrap">
+                        <span class="chip chip--outline">${c.part}</span>
+                        <span class="chip chip--amber">${c.diff}</span>
+                    </span>
+                    ${c.status}
                 </div>
-                <h3 class="t-h3" style="margin-top:12px">${t}</h3>
-                <p class="t-micro muted">${meta}</p>
-                ${score ? `<div style="margin-top:10px">${bar(score)}</div>` : ''}
-                <a class="btn btn--${band ? 'ghost' : 'primary'} btn--sm btn--block" style="margin-top:14px"
-                   href="${band ? '26-speaking-result.html' : '25-speaking-take.html'}">${band ? 'Xem kết quả' : 'Bắt đầu nói'}</a>
+                <h3 class="t-h3" style="margin-top:10px">${c.q}</h3>
+                <p class="t-micro muted">${c.meta}</p>
+                <div class="stack g8" style="margin-top:12px">
+                    <a class="btn btn--${c.practiceTone} btn--sm btn--block" href="${c.practiceHref}">${icon('play', 16)} ${c.practice}</a>
+                    ${c.conversation ? `<a class="btn btn--${c.convTone} btn--sm btn--block" href="${c.convHref}">${icon('chat', 16)} ${c.conversation}</a>` : ''}
+                </div>
+                ${c.resultHref ? `<a class="t-micro" style="display:block;text-align:center;margin-top:8px" href="${c.resultHref}">Xem kết quả</a>` : ''}
+            </li>`).join('')}
+    </ul>
+
+    <!-- PART 2 DRAWS ITS MISSING BUTTON rather than hiding the rule. A cue-card topic has no
+         follow-up questions, so totalExpectedQuestions is 1 and a "conversation" would be one
+         question long; v1's list gates the same button on topic.part !== 'PART_2'.
+
+         THE CREDIT CLAIM LIVES WHERE THE CHARGE HAPPENS. Conversation charges at
+         POST /speaking/conversations/start, so its button carries the cost. Practice charges at
+         submit — a control that lives on screen 25 — so the practice button claims no cost it is
+         not about to take. The charge is idempotent per userId + mode + topicId, which is why
+         the graded card and the in-progress card show conversation with NO cost chip: that topic
+         has already paid for a conversation once.
+
+         Resume is not a new route in the product's head, it is the same screen: the frame for it
+         is 24b, opened with the conversation in progress. "Xem kết quả" therefore leads on to 24c
+         and says which mode the band came from, because the same number appears on screen 26 for
+         a practice attempt.
+
+         ONE ENTRY POINT TO HISTORY, and it lives in the page's own footer row (24d), not in the
+         shell header. The app's header context carries exactly one thing — a subtitle string —
+         and its own note says expanding that for a single screen would be the wrong trade, so the
+         frame puts the link where the page can actually render it: next to Lexi, with the typical
+         length of a turn. It is drawn once on the screen; a second link to the same place in the
+         header would be a second thing to read, not a second way to get there. -->
+    <div class="row g8 wrap" style="justify-content:center;margin-top:4px">
+        <span data-lexi="happy" data-size="xs"></span>
+        <a class="t-label" href="24d-speaking-history.html">Các lượt đã làm</a>
+        <span class="t-micro muted row g4">${icon('clock', 13)} Mỗi lượt khoảng 2 phút nói</span>
+    </div>
+</main>`),
+  style: `
+` },
+
+/* =================================================================== 24b */
+'24b-speaking-conversation': { file: '24b-speaking-conversation.html', title: 'Speaking — hội thoại', subtitle: 'AI đọc câu hỏi · gợi ý · chấm band', group: 'IELTS',
+  note: 'Log giãn hết chiều cao, khung trả lời ghim đáy như màn chat; câu hỏi được đọc thành tiếng', shell: true, body: `
+<div class="conv">
+    <header class="exam__bar">
+        <a class="btn btn--ghost btn--icon btn--sm" href="24-speaking-list.html" aria-label="Thoát hội thoại">${icon('cross', 18)}</a>
+    <div class="grow" style="min-width:0"><h1 class="t-label truncate" style="display:block">Hội thoại — Do you enjoy meeting new people?</h1>
+        <span class="t-micro muted">Part 1 · câu 3 / 3 · lượt cuối</span></div>
+        <span class="chip chip--outline hide-lg">${icon('coin', 14)} 12 credit</span>
+    </header>
+
+    <main class="conv__body" id="main">
+        <!-- THE BAR CARRIES NO "Đã kết nối" CHIP, and that is a correction to v1 rather than an
+             omission. v1 ran this screen over STOMP and could honestly report a socket's state; v2
+             runs it over the same REST pair as /custom-speaking (POST .../conversations/start
+             and POST .../conversations/{id}/turn), so there is no socket to report on. A
+             "connected" chip here would describe something that does not exist. What the frame
+             shows instead is REST's own progress: the part and the question counter in the bar,
+             and the in-flight state as a waiting bubble in the log ("Lexi đang phản hồi…") with
+             the send control disabled for the same window.
+
+             Turn 2 in the live data proves how a turn is stored: the AI's line and the learner's
+             transcript live on the SAME turn row, which is why the log pairs them and why the
+             resume route can rebuild the whole conversation from GET /conversations/{id}.
+
+             THE QUESTION IS SPOKEN, NOT ONLY PRINTED. This screen is a listening task as much as
+             a speaking one: the partner asks out loud, so the question is read aloud as soon as it
+             appears — the first question when the conversation starts, the next one (or a hint)
+             when a turn comes back, and the pending question when a conversation is resumed. v1
+             got its audio from the socket payload; v2 asks the TTS endpoint for the same sentence,
+             which is why the button below repeats the request rather than replaying a cached clip.
+             WHILE IT PLAYS THE REPLAY BUTTON READS "Đang phát…" AND IS DISABLED — that is the
+             reason for the disabled state, not decoration — and pressing record stops the audio
+             first, so the partner's voice is never recorded into the learner's answer. If a browser
+             blocks playback, the question is still on screen in full and the button is the way to
+             hear it. -->
+        <!-- The log reads exactly like /custom-speaking (screen 27) — partner on the left, learner
+             on the right — because two chat screens must not look like two different products. What
+             differs is what a turn IS. Here the learner speaks, the transcript comes back from
+             speech recognition, and the ONLY per-turn measurements the browser can honestly make
+             are words and words per minute; v1 also printed word-confidence, which v2 cannot
+             measure at all (see speechAnalytics in features/speaking/useSpeaking.js), so no
+             confidence chip is drawn. A HINT turn is visibly a hint and not another question. -->
+        <div class="conv__log" aria-live="polite">
+            <div class="msg msg--ai">
+                <span data-lexi="idle" data-size="xs"></span>
+                <div class="bubble bubble--lexi bubble--left">
+                    <span class="t-micro muted" style="display:block">Câu 1 · Lexi</span>
+                    Do you enjoy meeting new people?
+                </div>
+            </div>
+            <div class="msg msg--me">
+                <div class="bubble bubble--user bubble--right">
+                    Yes, I do. I like meeting new people because they bring different ideas, and I usually learn something from them.
+                    <span class="row g8 wrap" style="margin-top:8px">
+                        <span class="chip chip--outline">22 từ</span><span class="chip chip--outline">142 từ/phút</span>
+                    </span>
+                </div>
+            </div>
+            <div class="msg msg--ai">
+                <span data-lexi="explain" data-size="xs"></span>
+                <div class="bubble bubble--lexi bubble--left conv__hint">
+                    <span class="t-label" style="color:var(--attention);display:block">${icon('sparkle', 14)} Gợi ý</span>
+                    Thử nói thêm về tần suất: <em>"I meet new people mostly at work…"</em>
+                </div>
+            </div>
+            <div class="msg msg--ai">
+                <span data-lexi="idle" data-size="xs"></span>
+                <div class="bubble bubble--lexi bubble--left">
+                    <span class="t-micro muted" style="display:block">Câu 2 · Lexi</span>
+                    How often do you meet someone new?
+                </div>
+            </div>
+            <div class="msg msg--me">
+                <div class="bubble bubble--user bubble--right">
+                    Maybe once a week. I meet new clients at work, and sometimes my friends introduce me to their friends.
+                    <span class="row g8 wrap" style="margin-top:8px">
+                        <span class="chip chip--outline">17 từ</span><span class="chip chip--outline">128 từ/phút</span>
+                    </span>
+                </div>
+            </div>
+            <div class="msg msg--ai">
+                <span data-lexi="explain" data-size="xs"></span>
+                <div class="bubble bubble--lexi bubble--left">
+                    <span class="t-micro muted" style="display:block">Câu 3 · Lexi</span>
+                    Who was the last person you met for the first time, and how did it go?
+                </div>
+            </div>
+        </div>
+
+        <!-- THE ANSWER IS RECORDED, NOT TYPED, but the transcript is shown and editable before it
+             is sent: speech recognition makes mistakes, and the text is what the graders read. So
+             the panel names the two things the learner does here — speak, then check the words —
+             and the recording state itself is screen 25's treatment, unchanged: a red "Đang ghi
+             âm" chip, a mono clock, a 48-bar waveform that is aria-hidden, and the control
+             that ends it. Empty transcript is refused with a warning rather than sent. -->
+        <section class="card card--edge pad conv__rec">
+            <div class="between wrap g12">
+                <span>
+                    <span class="t-micro muted" style="display:block">Câu trả lời của bạn</span>
+                    <strong class="t-h3">Câu 3 / 3 — lượt cuối</strong>
+                </span>
+                <span class="chip chip--outline">${icon('clock', 14)} 30–60 giây</span>
+            </div>
+
+            <div class="row g12 wrap" style="margin-top:14px">
+                <button class="btn btn--primary btn--lg" type="button">${icon('mic', 18)} Trả lời câu cuối</button>
+                <button class="btn btn--ghost" type="button">${icon('headphones', 18)} Nghe lại câu hỏi</button>
+            </div>
+
+            <p class="t-micro muted" style="margin-top:12px">Sau khi bạn nói, bản chữ hiện ra để bạn sửa lại trước khi gửi. Bản chữ là thứ AI chấm điểm.</p>
+            <p class="t-micro muted" style="text-align:center;margin-top:8px">Hội thoại trừ 1 credit ngay khi bắt đầu · còn 12 credit</p>
+        </section>
+    </main>
+</div>`,
+  style: `
+/* A CHAT SHAPE, NOT A PAGE. The log takes every pixel left between the bar and the answer
+   panel, scrolls INSIDE itself, and the panel is pinned at the bottom: exactly like screen 27.
+   The frame is drawn at 100vh so the stretched log and the bottom-docked controls are visible
+   in a screenshot — a page that grows with its content would hide that. */
+.conv { height: 100vh; display: flex; flex-direction: column; background: var(--canvas); overflow: hidden; }
+.conv__body { flex: 1; min-height: 0; width: 100%; max-width: 760px; margin-inline: auto; padding: 16px 16px 0; display: flex; flex-direction: column; gap: 12px; }
+.conv__log { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.conv__main .msg { display: flex; gap: 10px; align-items: flex-end; }
+.conv__body .msg { display: flex; gap: 10px; align-items: flex-end; }
+.conv__body .msg--me { justify-content: flex-end; }
+.conv__body .msg .bubble { max-width: min(78%, 520px); }
+.conv__hint { background: var(--amber-soft); border-color: var(--attention); }
+.conv__hint::after { background: var(--amber-soft); border-color: var(--attention); }
+.conv__rec { flex: 0 0 auto; margin-bottom: 16px; }
+.conv__rec .row .btn--lg { flex: 1 1 220px; }
+` },
+
+/* =================================================================== 24c */
+'24c-speaking-conversation-result': { file: '24c-speaking-conversation-result.html', title: 'Hội thoại — kết quả', subtitle: 'Band · 4 tiêu chí · bản chữ', group: 'IELTS',
+  note: 'Đang chấm là một trạng thái có thiết kế, không phải màn trắng', body: wrap('practice', `
+<header class="shell__header">
+    <a class="btn btn--ghost btn--icon btn--sm" href="24-speaking-list.html" aria-label="Quay lại">${icon('arrowLeft', 18)}</a>
+    <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Hội thoại — Do you enjoy meeting new people?</h1>
+    <p class="t-micro muted truncate">3 lượt · 3 phút 12 giây</p></div>
+    <span class="chip chip--teal" style="white-space:nowrap">${icon('check', 14)} Đã chấm</span>
+    ${accountHeader()}
+</header>
+<main class="shell__content shell__content--focus" id="main">
+    <section class="card card--hero pad result-hero">
+        <div data-lexi="celebrate" data-size="lg" data-label="Lexi"></div>
+        <div class="grow">
+            <span class="t-micro muted">Band hội thoại</span>
+            <div class="row g12 baseline"><span class="t-display" style="font-family:var(--font-mono);color:var(--teal)">6.0</span>
+                <span class="chip chip--teal">${icon('chat', 14)} 3 lượt · 3 phút 12 giây</span></div>
+            <p class="t-body soft" style="margin-top:6px">Cùng bốn tiêu chí như bài nói một mình, nhưng chấm trên cả cuộc hội thoại.</p>
+        </div>
+    </section>
+
+    <div class="grid g-4" style="margin-top:12px">
+        ${[['Độ trôi chảy (Fluency)', '6.5', 74], ['Vốn từ (Lexical Resource)', '6.0', 66], ['Ngữ pháp (Grammar)', '5.5', 58], ['Phát âm (Pronunciation)', '6.0', 64]].map(([k, b, pct]) => `
+            <article class="card card--edge pad">
+                <span class="t-label">${k}</span>
+                <div class="row g8 baseline" style="margin-top:8px"><span class="stat__value">${b}</span><span class="t-micro muted">/ 9.0</span></div>
+                <div style="margin-top:10px">${bar(pct)}</div>
             </article>`).join('')}
     </div>
-</main>`) },
+
+    <section class="card card--edge pad" style="margin-top:12px">
+        <div class="row g8">${icon('sparkle', 18)}<h2 class="t-h3">Nhận xét chi tiết</h2></div>
+        <p class="t-body soft" style="margin-top:10px">Bạn giữ được mạch nói và trả lời đúng trọng tâm từng câu hỏi. Hai chỗ nên sửa: đuôi từ ở danh từ số nhiều còn thiếu, và bạn dùng "very" bốn lần thay vì một tính từ mạnh hơn. Ở câu 3 bạn trả lời ngắn hơn hai câu trước — thử thêm một ví dụ cụ thể.</p>
+    </section>
+
+    <!-- THE TRANSCRIPT IS THE SUBSTANCE of this screen, and it is a DIALOGUE: each turn pairs the
+         question with the answer and carries the two measurements that belong to that answer.
+         Word confidence is deliberately absent — the browser cannot measure it (see
+         speechAnalytics), so it is not printed rather than filled with a plausible number. A
+         repeated word is highlighted in the answer it repeats in, as on screen 26. -->
+    <section class="card card--edge pad" style="margin-top:12px">
+        <h2 class="t-h3">Nội dung đã chấm</h2>
+        <p class="t-micro muted" style="margin-top:4px">Phần nhận dạng giọng nói có thể nghe sai. Đây đúng là nội dung mà hệ thống đã dựa vào để chấm.</p>
+        <div style="margin-top:12px">
+            ${[
+                ['Lexi', 'Do you enjoy meeting new people?', '22 từ', '142 từ/phút',
+                 'Yes, I do. I like meeting new people because they bring different ideas, and I usually learn something from them.'],
+                ['Lexi', 'How often do you meet someone new?', '17 từ', '128 từ/phút',
+                 'Maybe once a week. I meet new clients at work, and sometimes my friends introduce me to their friends.'],
+                ['Lexi', 'Who was the last person you met for the first time, and how did it go?', '14 từ', '96 từ/phút',
+                 'A very kind woman at a workshop. We talked about a very interesting project and she gave me her contact.'],
+            ].map(([who, question, words, wpm, answer], i) => `
+                <div class="turn">
+                    <span class="t-micro muted">Lượt ${i + 1} · ${who}</span>
+                    <p class="t-body" style="margin-top:2px">${question}</p>
+                    <div class="between wrap g8" style="margin-top:8px">
+                        <span class="t-micro muted">Bạn trả lời</span>
+                        <span class="row g8"><span class="chip chip--outline">${words}</span><span class="chip chip--outline">${wpm}</span></span>
+                    </div>
+                    <p class="t-body" style="margin-top:2px">${answer.replace(/very/g, '<span class="hl--bad" title="Lặp lại — thử: extremely, genuinely">very</span>')}</p>
+                </div>`).join('')}
+        </div>
+    </section>
+
+    <!-- COST IS NOT REPEATED HERE: a topic pays for a conversation once (see 24), so repeating the
+         charge would be a claim the backend does not make. -->
+    <div class="row g12 wrap" style="justify-content:center;margin-top:16px">
+        <a class="btn btn--primary" href="24b-speaking-conversation.html">${icon('chat', 18)} Hội thoại lại chủ đề này</a>
+        <a class="btn btn--ghost" href="24-speaking-list.html">Về danh sách chủ đề</a>
+    </div>
+
+    <!-- THE OTHER FOUR STATES OF THIS SCREEN, because a frame is one moment and grading is
+         asynchronous (submit → COMPLETED → GRADING → GRADED, measured ~9 s — same shape as
+         screens 23 and 26):
+
+           - GRADING / COMPLETED: the header chip reads "Đang chấm" (chip--amber, clock icon) and
+             the band block is replaced by a skeleton card inside the hero card plus the line
+             "AI đang chấm hội thoại này. Bạn có thể rời màn, kết quả vẫn được lưu." The criteria
+             grid, the feedback and the transcript are NOT drawn before they exist.
+           - FAILED: an amber card replaces the hero — "Chấm điểm thất bại" with the reason and the
+             one action that helps ("Thử chấm lại"), plus the exit.
+           - IN_PROGRESS (an old tab, a resumed link): the screen is not the result at all; it sends
+             the learner back to 24b. Nothing on this frame is drawn for it.
+           - No transcript: the transcript card is absent rather than empty — a submit with a
+             transcript but no audio is accepted, and the reverse cannot happen. -->
+</main>`),
+  style: `
+.result-hero { display: flex; gap: 20px; align-items: center; }
+@media (max-width: 639px) { .result-hero { flex-direction: column; text-align: center; } }
+.turn { padding: 12px 14px; border-radius: var(--r-control); background: var(--surface-alt); }
+.turn + .turn { margin-top: 12px; }
+.hl--bad { background: var(--wrong-soft); border-bottom: 2px solid var(--wrong); border-radius: 2px; }
+` },
+
+/* =================================================================== 24d */
+'24d-speaking-history': { file: '24d-speaking-history.html', title: 'Lịch sử Speaking', subtitle: 'Hai tab · lượt luyện và hội thoại', group: 'IELTS',
+  note: 'Hai tab là hai endpoint; hội thoại đang dở mở thẳng vào lượt nói dở', body: wrap('practice', `
+<header class="shell__header">
+    <a class="btn btn--ghost btn--icon btn--sm" href="24-speaking-list.html" aria-label="Quay lại">${icon('arrowLeft', 18)}</a>
+    <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Lịch sử Speaking</h1>
+    <p class="t-micro muted">Xem lại các lượt nói và hội thoại, tiếp tục nếu bạn chưa xong</p></div>
+    ${accountHeader()}
+</header>
+<main class="shell__content shell__content--focus" id="main" data-tabs="sp">
+    <!-- TWO TABS BECAUSE THEY ARE TWO LISTS, not two views of one. GET /speaking/attempts returns
+         recorded attempts; GET /speaking/conversations returns conversations, which carry fields an
+         attempt does not have (totalTurns, and their own status set — a conversation can be
+         IN_PROGRESS while an attempt cannot). The tab is addressable (?tab=conversation) so a
+         finished conversation can link straight into its own tab, which is what v1 did with
+         /speaking/history?tab=conversation.
+
+         CARDS, NOT A TABLE, matching the rest of v2's histories: a table whose columns hide on a
+         phone is still a table to a screen reader, and v1's scroll-x history had no mobile
+         fallback at all.
+
+         NO "TẢI THÊM" IN THIS FRAME. Both endpoints are paged and the honest control is a load-more
+         button at the end of the list — it is simply not drawn here. Whoever builds the screen
+         must either add it or cap the list out loud; a silently truncated history is the one kind
+         of loss the learner cannot notice. Recorded as open question 6. -->
+    <div class="segmented" role="tablist" aria-label="Loại lượt đã làm" style="margin-bottom:14px">
+        <button role="tab" id="sp-practice-tab" aria-controls="sp-practice" aria-selected="true" data-tab="sp-practice">Luyện tập</button>
+        <button role="tab" id="sp-conv-tab" aria-controls="sp-conv" aria-selected="false" data-tab="sp-conv">Hội thoại</button>
+    </div>
+
+    <div data-panel="sp-practice" role="tabpanel" aria-labelledby="sp-practice-tab">
+        <div class="grid g-3" style="margin-bottom:12px">
+            ${stat('9', 'Lượt đã làm', 'teal', 'mic')}
+            ${stat('6.1', 'Band trung bình', '', 'chart')}
+            ${stat('6.5', 'Band cao nhất', 'amber', 'trophy')}
+        </div>
+
+        <ul class="stack g8">
+            ${[
+                ['Describe a person who influenced you', 'Part 2 · 2 phút · 12/10', `<span class="t-mono" style="color:var(--teal)">6.0</span>`, '26-speaking-result.html'],
+                ['Do you enjoy meeting new people?', 'Part 1 · 1 phút · 12/10', `<span class="chip chip--amber">${icon('clock', 14)} Đang chấm</span>`, '26-speaking-result.html'],
+                ['Describe a skill you want to learn.', 'Part 2 · 2 phút · 09/10', `<span class="chip chip--wrong">${icon('cross', 14)} Chấm lỗi</span>`, '26-speaking-result.html'],
+                ['Why do people value free time more today?', 'Part 3 · 2 phút · 05/10', `<span class="t-mono" style="color:var(--teal)">5.5</span>`, '26-speaking-result.html'],
+            ].map(([q, meta, right, href]) => `
+                <li>
+                    <a class="rowbox rowbox--between" href="${href}" style="text-decoration:none;color:inherit">
+                        <span class="grow">
+                            <strong class="t-label" style="display:block">${q}</strong>
+                            <span class="t-micro muted" style="display:block;margin-top:2px">${meta}</span>
+                        </span>
+                        <span class="row g8">${right}${icon('arrowRight', 16)}</span>
+                    </a>
+                </li>`).join('')}
+        </ul>
+    </div>
+
+    <div data-panel="sp-conv" role="tabpanel" aria-labelledby="sp-conv-tab" hidden>
+        <div class="grid g-3" style="margin-bottom:12px">
+            ${stat('4', 'Cuộc hội thoại', 'teal', 'chat')}
+            ${stat('5.8', 'Band trung bình', '', 'chart')}
+            ${stat('6.0', 'Band cao nhất', 'amber', 'trophy')}
+        </div>
+
+        <!-- An unfinished conversation opens the CONVERSATION, not its result: IN_PROGRESS has no
+             band, and screen 24c sends the learner back to 24b anyway. So the row's own target is
+             the truth about where it can go, and the label says so ("Tiếp tục"). -->
+        <ul class="stack g8">
+            ${[
+                ['Do you enjoy meeting new people?', 'Part 1 · 3 lượt · 3 phút 12 giây · 12/10', `<span class="t-mono" style="color:var(--teal)">6.0</span>`, '24c-speaking-conversation-result.html', ''],
+                ['What do you usually do at the weekend?', 'Part 1 · 2 lượt · hôm nay', `<span class="chip chip--teal">${icon('chat', 14)} Đang hội thoại</span><span class="t-label" style="color:var(--teal);white-space:nowrap">Tiếp tục</span>`, '24b-speaking-conversation.html', ''],
+                ['Why do people value free time more today?', 'Part 3 · 4 lượt · 11/10', `<span class="chip chip--amber">${icon('clock', 14)} Đang chấm</span>`, '24c-speaking-conversation-result.html', ''],
+            ].map(([q, meta, right, href]) => `
+                <li>
+                    <a class="rowbox rowbox--between" href="${href}" style="text-decoration:none;color:inherit">
+                        <span class="grow">
+                            <strong class="t-label" style="display:block">${q}</strong>
+                            <span class="t-micro muted" style="display:block;margin-top:2px">${meta}</span>
+                        </span>
+                        <span class="row g8">${right}${icon('arrowRight', 16)}</span>
+                    </a>
+                </li>`).join('')}
+        </ul>
+    </div>
+
+    <!-- THE EMPTY STATE IS PER TAB, and neither is a blank list. Practice: "Chưa có lượt luyện nào"
+         + the action back to the topic list (v1's historyEmptyTitle / historyEmptyBody in the
+         locale). Hội thoại: the same shape with a conversation-specific line, because a learner
+         who has never started one must not be told they have no attempts. Each tab also needs its
+         own error state; the retry reloads the tab that failed. -->
+</main>`),
+  style: `
+/* Three stat tiles stay ONE ROW on a phone. The shared grid drops to a single column below 480px,
+   which turned the summary into three full-width cards and pushed the first real row off the
+   screen — the summary is three numbers, not three sections. Padding and the value step come down
+   with it so the row stays readable at 358px of content width. */
+@media (max-width: 479px) {
+    .grid.g-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .stat { padding: 10px 12px; }
+    .stat__value { font-size: 1.25rem; }
+    .stat__label { font-size: .75rem; }
+}
+
+/* A status chip is a one-line label, and a row that gives it a squeezed column used to fold it in
+   half inside its own fixed 30px height. The chip keeps its line and the row's flexible half —
+   the topic text — takes the extra line instead. Scoped to this frame rather than added to
+   .chip globally: at 320px the global version pushed two other screens into overflow. */
+.rowbox .chip, .rowbox .band, .rowbox .t-label { white-space: nowrap; }
+` },
 
 /* ==================================================================== 25 */
 '25-speaking-take': { file: '25-speaking-take.html', title: 'Speaking — ghi âm', subtitle: 'Sóng âm · đồng hồ', group: 'IELTS',
@@ -699,20 +1119,20 @@ On the one hand, supporters of road building point out that…</textarea>
     </header>
 
     <main class="spk__main" id="main">
-        <section class="card card--hero pad-x spk__cue">
+        <section class="card card--hero pad spk__cue">
             <span class="chip chip--outline">Cue card</span>
-            <h1 class="t-h2" style="margin-top:12px">Describe a place you like to visit.</h1>
+            <h1 class="t-h2" style="margin-top:10px">Describe a place you like to visit.</h1>
             <p class="t-body soft" style="margin-top:6px">You should say:</p>
             <ul class="stack g8" style="margin-top:8px">
                 ${['where it is', 'how often you go there', 'what you do there', 'and explain why you like it'].map((t) => `
                     <li class="row g8 t-body"><span style="color:var(--teal)">${icon('arrowRight', 14)}</span>${t}</li>`).join('')}
             </ul>
-            <div class="row g8" style="margin-top:14px">
+            <div class="row g8" style="margin-top:12px">
                 <span class="chip">1 phút chuẩn bị</span><span class="chip">2 phút nói</span>
             </div>
         </section>
 
-        <section class="card card--edge pad-x spk__rec" aria-live="polite">
+        <section class="card card--edge pad spk__rec" aria-live="polite">
             <div class="row g16">
                 <span data-lexi="thinking" data-size="md" data-label="Lexi đang lắng nghe"></span>
                 <div class="grow">
@@ -728,13 +1148,13 @@ On the one hand, supporters of road building point out that…</textarea>
                 </div>
             </div>
 
-            <div class="row g12" style="justify-content:center;margin-top:20px">
+            <div class="row g12 wrap" style="justify-content:center;margin-top:16px">
                 <button class="btn btn--ghost" type="button">${icon('pause', 18)} Tạm dừng</button>
                 <a class="btn btn--primary btn--lg" href="26-speaking-result.html">${icon('check', 18)} Dừng &amp; chấm điểm</a>
             </div>
         </section>
 
-        <div class="row g8" style="justify-content:center">
+        <div class="row g8 wrap" style="justify-content:center">
             <button class="btn btn--ghost btn--sm" type="button">Ghi lại từ đầu</button>
             <button class="btn btn--ghost btn--sm" type="button">Nghe lại đoạn vừa nói</button>
         </div>
@@ -742,10 +1162,10 @@ On the one hand, supporters of road building point out that…</textarea>
 </div>`,
   style: `
 .spk { min-height: 100vh; display: flex; flex-direction: column; background: var(--canvas); }
-.spk__main { flex: 1; width: 100%; max-width: 760px; margin-inline: auto; padding: 20px 16px 40px; display: flex; flex-direction: column; gap: 16px; }
+.spk__main { flex: 1; width: 100%; max-width: 760px; margin-inline: auto; padding: 16px 16px 32px; display: flex; flex-direction: column; gap: 12px; }
 .spk__cue { text-align: left; }
 .spk__rec { text-align: left; }
-.wave { display: flex; align-items: center; gap: 3px; height: 68px; margin-top: 14px; }
+.wave { display: flex; align-items: center; gap: 3px; height: 60px; margin-top: 12px; }
 .wave span { flex: 1; border-radius: 999px; background: var(--teal); min-height: 6px; }
 @media (prefers-reduced-motion: no-preference) {
     .wave span { animation: wv 1.4s ease-in-out infinite; }
@@ -767,7 +1187,7 @@ On the one hand, supporters of road building point out that…</textarea>
     ${accountHeader()}
 </header>
 <main class="shell__content shell__content--wide" id="main">
-    <section class="card card--hero pad-x result-hero">
+    <section class="card card--hero pad result-hero">
         <div data-lexi="happy" data-size="lg" data-label="Lexi"></div>
         <div class="grow">
             <span class="t-micro muted">Band ước tính</span>
@@ -777,9 +1197,9 @@ On the one hand, supporters of road building point out that…</textarea>
         </div>
     </section>
 
-    <div class="grid g-4" style="margin-top:16px">
-        ${[['Fluency', '6.5', 74], ['Lexical Resource', '6.0', 66], ['Grammar', '5.5', 58], ['Pronunciation', '6.0', 64]].map(([k, b, pct]) => `
-            <article class="card card--edge pad-x">
+    <div class="grid g-4" style="margin-top:12px">
+        ${[['Độ trôi chảy (Fluency)', '6.5', 74], ['Vốn từ (Lexical Resource)', '6.0', 66], ['Ngữ pháp (Grammar)', '5.5', 58], ['Phát âm (Pronunciation)', '6.0', 64]].map(([k, b, pct]) => `
+            <article class="card card--edge pad">
                 <span class="t-label">${k}</span>
                 <div class="row g8 baseline" style="margin-top:8px"><span class="stat__value">${b}</span><span class="t-micro muted">/ 9.0</span></div>
                 <div style="margin-top:10px">${bar(pct)}</div>
@@ -787,41 +1207,41 @@ On the one hand, supporters of road building point out that…</textarea>
     </div>
 
     <div class="spk-cols">
-        <section class="card card--edge pad-x">
-            <h2 class="t-h3">Phân tích giọng nói</h2>
+        <section class="card card--edge pad">
+            <h2 class="t-h3">Số đo khi nói</h2>
             <ul class="stack g12" style="margin-top:12px">
                 ${[
-                    ['Tốc độ nói', '142 từ/phút', 'Trong khoảng tự nhiên (120–160)'],
+                    ['Tốc độ nói (từ/phút)', '142 từ/phút', 'Trong khoảng tự nhiên (120–160)'],
                     ['Thời gian im lặng', '6.2 giây (5%)', 'Chủ yếu ở đầu bài'],
                     ['Từ đệm', '4 lần "um"', 'Giảm bằng cách ngắt câu ngắn'],
                     ['Từ vựng lặp', '3 lần "beautiful"', 'Thử: stunning, picturesque'],
                 ].map(([k, v, note]) => `
-                    <li class="between wrap g12" style="padding:10px 0;border-bottom:2px solid var(--border)">
+                    <li class="between wrap g12" style="padding:8px 0;border-bottom:2px solid var(--border)">
                         <span class="t-micro soft">${k}</span>
                         <span class="row g8"><span class="mono">${v}</span><span class="t-micro muted">${note}</span></span>
                     </li>`).join('')}
             </ul>
         </section>
 
-        <section class="card card--edge pad-x">
-            <h2 class="t-h3">Transcript</h2>
-            <p class="t-micro muted">Có thể có sai sót nhỏ do nhận dạng giọng nói</p>
-            <div class="transcript" style="margin-top:10px">
+        <section class="card card--edge pad">
+            <h2 class="t-h3">Nội dung đã chấm</h2>
+            <p class="t-micro muted">Phần nhận dạng giọng nói có thể nghe sai. Đây đúng là nội dung mà hệ thống đã dựa vào để chấm.</p>
+            <div class="transcript" style="margin-top:8px">
                 <p><span class="mono muted">00:00</span> Well, um, the place I would like to talk about is a small coastal town…</p>
                 <p><span class="mono muted">00:24</span> I usually go there maybe twice a year with my family, and we always…</p>
                 <p><span class="mono muted">00:52</span> The most <span class="hl hl--bad">beautiful</span> thing is the sunset over the harbour…</p>
                 <p class="muted">…</p>
             </div>
-            <a class="btn btn--primary btn--sm btn--block" style="margin-top:12px" href="25-speaking-take.html">Nói lại chủ đề này</a>
+            <a class="btn btn--primary btn--sm btn--block" style="margin-top:10px" href="25-speaking-take.html">Luyện lại chủ đề này</a>
         </section>
     </div>
 </main>`),
   style: `
 .result-hero { display: flex; gap: 20px; align-items: center; }
 @media (max-width: 639px) { .result-hero { flex-direction: column; text-align: center; } }
-.spk-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.spk-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
 @media (max-width: 1023px) { .spk-cols { grid-template-columns: 1fr; } }
-.transcript p { font-size: .875rem; color: var(--ink-soft); margin-top: 8px; line-height: 1.6; }
+.transcript p { font-size: .875rem; color: var(--ink-soft); margin-top: 6px; line-height: 1.6; }
 .hl--bad { background: var(--wrong-soft); border-bottom: 2px solid var(--wrong); border-radius: 2px; }
 ` },
 
