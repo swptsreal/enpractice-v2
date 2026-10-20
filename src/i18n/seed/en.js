@@ -864,6 +864,10 @@ export default {
         recordLabel: 'Record your question',
         recordStop: 'Stop recording',
         recording: 'Recording',
+        transcribing: 'Transcribing…',
+        transcribeFailed: 'Try voice again',
+        quotaExceeded: 'Voice limit reached',
+        micDenied: 'Microphone permission needed',
         sendFailed: 'This message could not be sent.',
         openingWithWeakness:
             'Hello. Looking at your recent practice, you are weakest at {{skills}}. Shall we start there, or is there something else on your mind?',

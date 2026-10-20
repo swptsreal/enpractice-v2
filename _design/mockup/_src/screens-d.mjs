@@ -2045,7 +2045,7 @@ On the one hand, supporters of road building point out that…</textarea>
  * it everywhere. `/ai-chat` (screen 36) remains the full-page version with history and context.
  */
 '36b-lexi-panel': { file: '36b-lexi-panel.html', title: 'Lexi — panel nổi', subtitle: 'Mở từ nút 56px · không rời màn đang xem', group: 'Tài khoản',
-  note: 'Dialog KHÔNG modal: trang phía sau vẫn đọc được · cùng nội dung với AI Coach', body: wrap('account', `
+  note: 'Dialog KHÔNG modal: trang phía sau vẫn đọc được · cùng nội dung với AI Coach · cùng trạng thái "Đang nhận diện…" và lỗi quota như màn 36', body: wrap('account', `
 <header class="shell__header">
     <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Panel của Lexi</h1>
     <p class="t-micro muted">Hỏi ngay tại chỗ, không mất màn đang làm</p></div>
@@ -2075,7 +2075,7 @@ On the one hand, supporters of road building point out that…</textarea>
 
 /* ==================================================================== 36 */
 '36-ai-chat': { file: '36-ai-chat.html', title: 'AI Coach', subtitle: 'Chat streaming · mic · nghe lại', group: 'Tài khoản',
-  note: 'Lexi đọc được từng câu trả lời; ô nhập có mic để hỏi bằng giọng nói', shell: true, body: `
+  note: 'Lexi đọc được từng câu trả lời; ô nhập có mic để hỏi bằng giọng nói. Sau khi dừng ghi âm, mic đổi thành chip "Đang nhận diện…" cho tới khi transcript vào ô nhập; lỗi quota hiện chip "Hết lượt giọng nói".', shell: true, body: `
 <div class="chat">
     <header class="exam__bar only-lg">
         <a class="btn btn--ghost btn--icon btn--sm" href="04-home.html" aria-label="Quay lại">${icon('arrowLeft', 18)}</a>
@@ -2104,9 +2104,11 @@ On the one hand, supporters of road building point out that…</textarea>
              checked. Starting a recording also stops any answer that is playing, so Lexi's voice is
              not recorded into the learner's question.
 
-             ON A BROWSER THAT CANNOT TRANSCRIBE the mic is ABSENT rather than disabled: a control
-             that cannot work and cannot be fixed from here is worse than no control, and the input
-             still does the whole job. -->
+             TRANSCRIPTION RUNS ON THE SERVER. The mic is shown whenever the browser can record
+             (getUserMedia), so Safari and Firefox get the same control as Chrome. After the
+             learner stops, the mic is replaced by the chip "Đang nhận diện…" until the transcript
+             lands in the input; a failed or over-quota request shows a short retry chip instead of
+             losing the question. The input still does the whole job when voice is unavailable. -->
         <div class="chat__log" aria-live="polite">
             <div class="msg msg--ai">
                 <span data-lexi="idle" data-size="xs"></span>

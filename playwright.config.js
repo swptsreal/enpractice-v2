@@ -79,5 +79,11 @@ export default defineConfig({
         timeout: 120_000,
         stdout: 'ignore',
         stderr: 'pipe',
+        /**
+         * The dev server is HTTPS, and an absolute `http://localhost:8082` in `.env` is blocked as
+         * mixed content. An empty value makes axios use the relative `/api` path, which Vite proxies
+         * to the backend. Without this every authenticated E2E screen falls back to /login.
+         */
+        env: { ...process.env, VITE_API_URL: '' },
     },
 });

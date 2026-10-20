@@ -1,4 +1,5 @@
 import axiosClient from '../api/axiosClient';
+import { speechApi } from '../api/speechApi';
 
 /**
  * Text-to-Speech utility
@@ -17,8 +18,47 @@ let currentAudio = null;
  */
 let settleCurrentPlayback = null;
 
+/**
+ * One streaming answer: the request, the AudioContext, and the sources already scheduled.
+ *
+ * Kept outside React because playback outlives one render and must be cancellable from the
+ * "Nghe" button, the next recording, or unmount.
+ */
+let streamPlayback = null;
+
+function closeAudioContext(context) {
+    try {
+        const result = context?.close?.();
+        if (result?.catch) result.catch(() => {});
+    } catch {
+        /* already closed */
+    }
+}
+
+function stopStreamPlayback() {
+    const state = streamPlayback;
+    if (!state) return;
+    streamPlayback = null;
+    try {
+        state.controller.abort();
+    } catch {
+        /* already aborted */
+    }
+    for (const source of state.sources) {
+        try {
+            source.stop();
+        } catch {
+            /* already ended */
+        }
+    }
+    state.sources.length = 0;
+    state.settle();
+    closeAudioContext(state.context);
+}
+
 /** Stop whatever is speaking: the server clip, and the browser's own utterance. */
 function cancelPlayback() {
+    stopStreamPlayback();
     window.speechSynthesis?.cancel();
     if (currentAudio) {
         currentAudio.pause();
@@ -31,18 +71,160 @@ function cancelPlayback() {
     }
 }
 
-export async function speakWithVoice(text, voiceName = 'US_NEURAL_J') {
+const speechCache = new Map();
+const MAX_CACHE_ENTRIES = 20;
+
+function detectSpeechLanguage(text) {
+    return /[ăâđêôơưĂÂĐÊÔƠƯ]|[\u00C0-\u1EF9]/.test(text) ? 'vi' : 'en';
+}
+
+function base64ToArrayBuffer(base64) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+/**
+ * Play a long answer as it is synthesised.
+ *
+ * The backend emits one NDJSON event per sentence-sized chunk. Each MP3 chunk is decoded and
+ * scheduled on one AudioContext, so there is no HTMLAudioElement gap between sentences. The
+ * first chunk starts playing as soon as it arrives; later chunks are scheduled behind it.
+ *
+ * Falls back to the one-shot endpoint on browsers without AudioContext/streaming fetch, or if the
+ * stream fails before any audio was scheduled.
+ */
+export async function speakStreaming(text, options = {}) {
     if (!text) return;
+
+    const { language = 'auto', voiceName } =
+        typeof options === 'string' ? { voiceName: options } : options;
+    const trimmed = text.trim();
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContextCtor || !window.fetch || !window.ReadableStream) {
+        return speakWithVoice(trimmed, { language, voiceName });
+    }
+
+    cancelPlayback();
+
+    const context = new AudioContextCtor();
+    try {
+        await context.resume();
+    } catch {
+        /* a suspended context still plays after the first user-gesture resume */
+    }
+
+    const controller = new AbortController();
+    const sources = [];
+    let nextStart = 0;
+    let pending = 0;
+    let done = false;
+    let started = false;
+    let settled = false;
+    let resolveFinished;
+    let rejectFinished;
+    const finished = new Promise((resolve, reject) => {
+        resolveFinished = resolve;
+        rejectFinished = reject;
+    });
+    const state = {
+        controller,
+        context,
+        sources,
+        settle: () => {
+            if (settled) return;
+            settled = true;
+            resolveFinished();
+        },
+        reject: (error) => {
+            if (settled) return;
+            settled = true;
+            rejectFinished(error);
+        },
+    };
+    streamPlayback = state;
+
+    const finishIfIdle = () => {
+        if (done && pending === 0) state.settle();
+    };
+
+    try {
+        for await (const event of speechApi.streamTts(trimmed, {
+            language,
+            voiceName,
+            signal: controller.signal,
+        })) {
+            if (event.type === 'error') {
+                throw new Error(event.message || event.code || 'TTS stream failed');
+            }
+            if (event.type !== 'chunk' || !event.audioBase64) continue;
+
+            const buffer = await context.decodeAudioData(base64ToArrayBuffer(event.audioBase64));
+            if (controller.signal.aborted) break;
+
+            const source = context.createBufferSource();
+            source.buffer = buffer;
+            source.connect(context.destination);
+            const startAt = Math.max(context.currentTime + 0.02, nextStart);
+            source.start(startAt);
+            nextStart = startAt + buffer.duration;
+            pending += 1;
+            started = true;
+            sources.push(source);
+            source.onended = () => {
+                pending -= 1;
+                finishIfIdle();
+            };
+        }
+
+        done = true;
+        finishIfIdle();
+        await finished;
+    } catch (error) {
+        if (!started && !controller.signal.aborted) {
+            streamPlayback = null;
+            closeAudioContext(context);
+            return speakWithVoice(trimmed, { language, voiceName });
+        }
+        throw error;
+    } finally {
+        if (streamPlayback === state) streamPlayback = null;
+        closeAudioContext(context);
+    }
+}
+
+export async function speakWithVoice(text, options = {}) {
+    if (!text) return;
+
+    const { language = 'auto', voiceName } =
+        typeof options === 'string' ? { voiceName: options } : options;
+    const trimmed = text.trim();
+    const cacheKey = `${language}:${voiceName || ''}:${trimmed}`;
 
     cancelPlayback();
 
     try {
-        const data = await axiosClient.post('/tts/synthesize', {
-            text: text.trim(),
-            voiceName,
-        });
+        const cached = speechCache.get(cacheKey);
+        if (cached) {
+            await playBase64Audio(cached);
+            return;
+        }
+
+        const data = await axiosClient.post(
+            '/tts/synthesize',
+            { text: trimmed, language, voiceName },
+            { timeout: 30000 }
+        );
 
         if (data?.audioBase64) {
+            if (speechCache.size >= MAX_CACHE_ENTRIES) {
+                speechCache.delete(speechCache.keys().next().value);
+            }
+            speechCache.set(cacheKey, data.audioBase64);
             await playBase64Audio(data.audioBase64);
             return;
         }
@@ -55,8 +237,9 @@ export async function speakWithVoice(text, voiceName = 'US_NEURAL_J') {
         }
     }
 
-    // Fallback to browser SpeechSynthesis
-    speakWithBrowser(text, 'en');
+    // Fallback to browser SpeechSynthesis, using the text language rather than
+    // always English: a Vietnamese answer read by an English voice is unusable.
+    speakWithBrowser(trimmed, detectSpeechLanguage(trimmed));
 }
 
 /**

@@ -23,16 +23,64 @@ import {
  */
 async function stubTts(page) {
     const spoken = [];
+    const bodies = [];
     await page.route('**/api/tts/**', async (route) => {
         const body = route.request().postDataJSON();
-        if (body?.text) spoken.push(body.text);
-        /* No audio payload: the helper then falls back to the browser's own synthesis, so nothing
-           in the test depends on decoding a clip. */
+        if (body?.text) {
+            spoken.push(body.text);
+            bodies.push(body);
+        }
+
+        if (route.request().url().endsWith('/tts/stream')) {
+            /* A valid NDJSON stream with no audio payload: the assertion is the request, and the
+               player resolves on `done` without needing to decode a clip. */
+            const events = [
+                { type: 'start', total: 1 },
+                { type: 'chunk', index: 0, total: 1, text: body.text, language: 'vi', audioBase64: '' },
+                { type: 'done' },
+            ];
+            return route.fulfill({
+                status: 200,
+                contentType: 'application/x-ndjson',
+                body: `${events.map((event) => JSON.stringify(event)).join('\n')}\n`,
+            });
+        }
+
         return route.fulfill({
             json: { success: true, message: 'OK', data: { audioBase64: null } },
         });
     });
-    return spoken;
+    return { spoken, bodies };
+}
+
+async function stubStt(page, { status = 200, text = 'Làm sao để cải thiện Matching Headings?' } = {}) {
+    await page.route('**/api/speech/transcriptions', async (route) => {
+        /* Delay just enough for the "Đang nhận diện…" state to be observable. */
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        if (status !== 200) {
+            return route.fulfill({
+                status,
+                json: {
+                    success: false,
+                    code: 'SPEECH_QUOTA_EXCEEDED',
+                    message: 'Bạn đã dùng hết lượt giọng nói hôm nay.',
+                },
+            });
+        }
+        return route.fulfill({
+            json: {
+                success: true,
+                message: 'OK',
+                data: {
+                    text,
+                    language: 'vi',
+                    provider: 'openai',
+                    model: 'gpt-4o-transcribe',
+                    durationMs: 3000,
+                },
+            },
+        });
+    });
 }
 
 test.describe('the AI coach takes voice and gives voice', () => {
@@ -40,7 +88,7 @@ test.describe('the AI coach takes voice and gives voice', () => {
         page,
     }) => {
         const problems = collectPageProblems(page);
-        const spoken = await stubTts(page);
+        const { spoken, bodies } = await stubTts(page);
 
         await gotoWithRetry(page, '/ai-chat');
 
@@ -49,6 +97,8 @@ test.describe('the AI coach takes voice and gives voice', () => {
         await listen.click();
 
         await expect.poll(() => spoken.length, { timeout: 20_000 }).toBeGreaterThan(0);
+        /* The request lets the server choose the Vietnamese/English voice from the text. */
+        expect(bodies[0].language).toBe('auto');
         /* A sentence, not a word: the control belongs to the answer above it. */
         expect(spoken[0].length).toBeGreaterThan(20);
         /* And no markdown reaches the synthesiser — "**bold**" read aloud is an asterisk. */
@@ -58,17 +108,12 @@ test.describe('the AI coach takes voice and gives voice', () => {
         expectNoProblems(problems);
     });
 
-    /**
-     * SKIPPED ON PURPOSE. Headless Chromium exposes `SpeechRecognition` but has no speech service
-     * behind it, so no transcript ever arrives, and on `/ai-chat` the floating panel is mounted
-     * (hidden) beside the page — which makes a DOM assertion about "the input" ambiguous. The
-     * behaviour is covered where it can be: the transcript→input hand-off, the append rule, the
-     * absent-mic case and the silence-before-record rule are unit tests in
-     * `src/pages/chat/AiChatPage.test.jsx`, and the recording UX itself is verified by hand.
-     */
-    test.skip('the composer records, says so, and gives the input back', async ({ page }) => {
+    test('the composer records, transcribes on the server, and gives the input back', async ({
+        page,
+    }) => {
         const problems = collectPageProblems(page);
         await stubTts(page);
+        await stubStt(page);
 
         await gotoWithRetry(page, '/ai-chat');
 
@@ -81,18 +126,51 @@ test.describe('the AI coach takes voice and gives voice', () => {
         await expect(page.getByText('Đang ghi âm')).toBeVisible();
         await expect(page.getByRole('timer')).toBeVisible();
         await expect(page.getByRole('button', { name: 'Dừng ghi âm' })).toBeVisible();
-        await expect(page.getByPlaceholderText(/Hỏi Lexi/)).toHaveCount(0);
+        await expect(page.getByPlaceholder(/Hỏi Lexi/)).toHaveCount(0);
+        /* Give MediaRecorder one dataavailable tick; stopping before it fires produces an empty
+           blob and no transcription request at all. */
+        await page.waitForTimeout(800);
 
         await page.getByRole('button', { name: 'Dừng ghi âm' }).click();
 
-        /* Back to the composer, and nothing was sent: with no transcript there is nothing to send,
-           and the draft is not invented. */
-        await expect(page.getByPlaceholderText(/Hỏi Lexi/)).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Ghi âm câu hỏi' })).toBeVisible();
-        await expect(page.getByRole('button', { name: /Gửi/ })).toBeDisabled();
+        /* The server transcription is in flight: the composer says so instead of going blank. */
+        await expect(page.getByText('Đang nhận diện…')).toBeVisible();
+
+        /* The transcript lands in the input for editing; nothing is sent automatically. */
+        await expect(page.getByPlaceholder(/Hỏi Lexi/)).toHaveValue(
+            'Làm sao để cải thiện Matching Headings?'
+        );
+        await expect(page.getByRole('button', { name: /Gửi/ })).toBeEnabled();
 
         await expectNoRawKeyOrCrash(page);
         expectNoProblems(problems);
+    });
+
+    test('a quota error leaves a short retry chip instead of losing the question', async ({
+        page,
+    }) => {
+        const problems = collectPageProblems(page);
+        await stubTts(page);
+        await stubStt(page, { status: 429 });
+
+        await gotoWithRetry(page, '/ai-chat');
+        await page.getByRole('button', { name: 'Ghi âm câu hỏi' }).click();
+        await expect(page.getByRole('button', { name: 'Dừng ghi âm' })).toBeVisible();
+        /* One dataavailable tick before stopping, or there is no audio to upload and therefore no
+           429 to exercise. */
+        await page.waitForTimeout(800);
+        await page.getByRole('button', { name: 'Dừng ghi âm' }).click();
+
+        await expect(page.getByText('Hết lượt giọng nói')).toBeVisible();
+        await expect(page.getByPlaceholder(/Hỏi Lexi/)).toBeVisible();
+
+        await expectNoRawKeyOrCrash(page);
+        /* The 429 is the scenario under test, and axiosClient logs it in dev. Nothing else is
+           allowed to fail: a real render/runtime error still fails this assertion. */
+        const unexpected = problems.filter(
+            (problem) => !/429|SPEECH_QUOTA_EXCEEDED/.test(problem)
+        );
+        expect(unexpected, unexpected.join('\n')).toEqual([]);
     });
 
     test('the floating panel offers the same pair, because it is the same conversation', async ({

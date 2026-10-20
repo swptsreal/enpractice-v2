@@ -4,8 +4,8 @@ import { Headphones, Mic, Square } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Chip } from '../../components/ui/Primitives';
 import { cn } from '../../lib/cn';
-import { useSpeechRecording } from '../../hooks/useSpeechRecording';
-import { speakWithVoice, stopSpeaking } from '../../utils/ttsHelper';
+import { useServerSpeechRecording } from '../../hooks/useServerSpeechRecording';
+import { speakStreaming, stopSpeaking } from '../../utils/ttsHelper';
 import { stripMarkdownForSpeech } from './chatSpeech';
 
 /**
@@ -22,9 +22,10 @@ import { stripMarkdownForSpeech } from './chatSpeech';
  *     because that question is one sentence the learner must answer. A coach answer is a page of
  *     explanation, and starting to talk while someone is reading — or in a library — is not a
  *     favour. The answer waits for a press, and the button says it is playing.
- *  2. **The mic is ABSENT on a browser that cannot transcribe**, not disabled. A control that
- *     cannot work and cannot be fixed from this screen is worse than no control, and the input
- *     still does the whole job.
+ *  2. **The mic is present whenever the browser can record.** Transcription runs on the server,
+ *     so Safari/Firefox get the same control as Chrome; a browser without `getUserMedia` gets no
+ *     mic, because a control that cannot work and cannot be fixed from this screen is worse than
+ *     no control. The input still does the whole job.
  */
 
 /** Turn `seconds` into the `mm:ss` the recording chip shows. */
@@ -58,7 +59,7 @@ export function SpeakButton({ text, className }) {
             onClick={async () => {
                 setPlaying(true);
                 try {
-                    await speakWithVoice(plain);
+                    await speakStreaming(plain);
                 } catch {
                     /* A blocked autoplay or a failed synthesis is not a broken screen: the answer
                        is on screen in full, and the button is the way to hear it. */
@@ -87,15 +88,33 @@ export function ChatComposerField({
     inputRef,
 }) {
     const { t } = useTranslation();
+    const [voiceError, setVoiceError] = useState(null);
+    const handleVoiceError = useCallback(
+        (code) => {
+            if (code === 'STT_QUOTA_EXCEEDED') {
+                setVoiceError(t('aiChat.quotaExceeded'));
+            } else if (
+                code === 'MIC_PERMISSION_DENIED' ||
+                code === 'MIC_NOT_FOUND' ||
+                code === 'MIC_UNAVAILABLE' ||
+                code === 'STT_UNSUPPORTED'
+            ) {
+                setVoiceError(t('aiChat.micDenied'));
+            } else {
+                setVoiceError(t('aiChat.transcribeFailed'));
+            }
+        },
+        [t]
+    );
     const {
         recording,
-        transcript,
+        transcribing,
         setTranscript,
         timer,
         sttSupported,
         startRecording,
         stopRecording,
-    } = useSpeechRecording({});
+    } = useServerSpeechRecording({ onError: handleVoiceError });
 
     /* A ref, not a dependency: `stopRecording` is a new function every render, and this effect must
        run exactly once, on unmount. Leaving the screen mid-recording would otherwise keep the
@@ -116,19 +135,19 @@ export function ChatComposerField({
         /* Lexi is silenced BEFORE the microphone opens, or her voice ends up inside the learner's
            question. */
         stopSpeaking();
+        setVoiceError(null);
         setTranscript('');
         startRecording();
     }, [setTranscript, startRecording]);
 
-    const stop = useCallback(() => {
-        const spoken = transcript.trim();
-        stopRecording();
+    const stop = useCallback(async () => {
+        const spoken = (await stopRecording()).trim();
         if (!spoken) return;
         /* THE TRANSCRIPT LANDS IN THE INPUT, it is not sent: speech recognition errs, and a
            question sent to a paid coach should not be something nobody checked. Appending rather
            than replacing keeps whatever the learner had already typed. */
         onChange(value?.trim() ? `${value.trim()} ${spoken}` : spoken);
-    }, [onChange, stopRecording, transcript, value]);
+    }, [onChange, stopRecording, value]);
 
     if (recording) {
         return (
@@ -154,7 +173,21 @@ export function ChatComposerField({
 
     return (
         <>
-            {sttSupported ? (
+            {transcribing ? (
+                <Chip tone="neutral" role="status">
+                    {t('aiChat.transcribing')}
+                </Chip>
+            ) : voiceError ? (
+                <Chip
+                    tone="wrong"
+                    onClick={() => {
+                        setVoiceError(null);
+                        start();
+                    }}
+                >
+                    {voiceError}
+                </Chip>
+            ) : sttSupported ? (
                 <Button
                     type="button"
                     variant="ghost"

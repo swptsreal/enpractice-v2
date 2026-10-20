@@ -51,6 +51,7 @@ export { creditApi } from './creditApi';
 export { vocabularyTestApi } from './vocabularyTestApi';
 export { default as dictionaryApi } from './dictionaryApi';
 export { speakingApi } from './speakingApi';
+export { speechApi } from './speechApi';
 export { default as weeklyReportApi } from './weeklyReportApi';
 export { aiChatApi } from './aiChatApi';
 export { mascotApi } from './mascotApi';

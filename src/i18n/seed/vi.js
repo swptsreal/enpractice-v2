@@ -868,6 +868,10 @@ export default {
         recordLabel: 'Ghi âm câu hỏi',
         recordStop: 'Dừng ghi âm',
         recording: 'Đang ghi âm',
+        transcribing: 'Đang nhận diện…',
+        transcribeFailed: 'Thử lại giọng nói',
+        quotaExceeded: 'Hết lượt giọng nói',
+        micDenied: 'Cần quyền micro',
         sendFailed: 'Không gửi được tin này.',
         openingWithWeakness:
             'Chào bạn. Nhìn dữ liệu luyện tập gần đây, bạn đang yếu ở {{skills}}. Bạn muốn bắt đầu từ đó, hay hỏi việc khác?',

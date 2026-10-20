@@ -58,10 +58,10 @@ vi.mock('../../contexts/AuthContext', () => ({
 }));
 
 /** The TTS helper is recorded, not simulated: the assertion is WHAT was asked to be spoken. */
-const speakWithVoice = vi.fn().mockResolvedValue(undefined);
+const speakStreaming = vi.fn().mockResolvedValue(undefined);
 const stopSpeaking = vi.fn();
 vi.mock('../../utils/ttsHelper', () => ({
-    speakWithVoice: (...a) => speakWithVoice(...a),
+    speakStreaming: (...a) => speakStreaming(...a),
     stopSpeaking: (...a) => stopSpeaking(...a),
     speak: vi.fn(),
     speakEnglish: vi.fn(),
@@ -76,11 +76,13 @@ const voiceSubscribers = new Set();
 const startRecording = vi.fn(() => {
     voiceState = { ...voiceState, recording: true, transcript: '', timer: 0 };
 });
-const stopRecording = vi.fn(() => {
+const stopRecording = vi.fn(async () => {
+    const text = voiceState.transcript;
     voiceState = { ...voiceState, recording: false };
+    return text;
 });
 
-vi.mock('../../hooks/useSpeechRecording', async () => {
+vi.mock('../../hooks/useServerSpeechRecording', async () => {
     const { useEffect, useState } = await import('react');
     return {
         __voice: {
@@ -93,7 +95,7 @@ vi.mock('../../hooks/useSpeechRecording', async () => {
                 for (const notify of voiceSubscribers) notify();
             },
         },
-        useSpeechRecording: () => {
+        useServerSpeechRecording: () => {
             const [, force] = useState(0);
             useEffect(() => {
                 const notify = () => force((n) => n + 1);
@@ -102,20 +104,21 @@ vi.mock('../../hooks/useSpeechRecording', async () => {
             }, []);
             return {
                 recording: voiceState.recording,
+                transcribing: false,
                 transcript: voiceState.transcript,
                 setTranscript: (value) => {
                     voiceState = { ...voiceState, transcript: value };
                 },
                 timer: voiceState.timer,
                 sttSupported: voiceState.sttSupported,
-                audioChunksRef: { current: [] },
                 startRecording: () => {
                     startRecording();
                     force((n) => n + 1);
                 },
-                stopRecording: () => {
-                    stopRecording();
+                stopRecording: async () => {
+                    const text = await stopRecording();
                     force((n) => n + 1);
+                    return text;
                 },
                 cancelRecording: () => {
                     voiceState = { ...voiceState, recording: false, transcript: '', timer: 0 };
@@ -128,7 +131,7 @@ vi.mock('../../hooks/useSpeechRecording', async () => {
 
 const { i18nReady } = await import('../../i18n');
 const { default: AiChatPage } = await import('./AiChatPage');
-const { __voice } = await import('../../hooks/useSpeechRecording');
+const { __voice } = await import('../../hooks/useServerSpeechRecording');
 
 beforeAll(async () => {
     await i18nReady;
@@ -268,7 +271,7 @@ describe('AiChatPage — suggestions', () => {
 describe('AiChatPage — the voice pair (listen + speak)', () => {
     beforeEach(() => {
         __voice.reset();
-        speakWithVoice.mockClear();
+        speakStreaming.mockClear();
         startRecording.mockClear();
         stopRecording.mockClear();
         stopSpeaking.mockClear();
@@ -277,7 +280,7 @@ describe('AiChatPage — the voice pair (listen + speak)', () => {
     it('asks the TTS endpoint for the ANSWER IT DRAWS, with the markdown stripped', async () => {
         getProfile.mockResolvedValue(profileWith(['Fluency']));
         const user = userEvent.setup();
-        speakWithVoice.mockClear();
+        speakStreaming.mockClear();
         renderPage();
 
         /* The opening line is a Lexi answer too, so it is speakable. There is exactly one
@@ -285,8 +288,8 @@ describe('AiChatPage — the voice pair (listen + speak)', () => {
         const openingButton = await screen.findByRole('button', { name: /^Nghe$/ });
         await user.click(openingButton);
 
-        await waitFor(() => expect(speakWithVoice).toHaveBeenCalledTimes(1));
-        const spoken = speakWithVoice.mock.calls[0][0];
+        await waitFor(() => expect(speakStreaming).toHaveBeenCalledTimes(1));
+        const spoken = speakStreaming.mock.calls[0][0];
         expect(spoken).toMatch(/Matching Headings|yếu ở/);
         /* No markdown punctuation survives into the spoken string. */
         expect(spoken).not.toMatch(/[*#`_]/);
