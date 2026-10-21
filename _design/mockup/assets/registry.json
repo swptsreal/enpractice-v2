@@ -193,9 +193,27 @@
   },
   {
     "f": "27-custom-speaking",
-    "t": "Hội thoại AI tự chọn chủ đề",
+    "t": "Hội thoại tự chọn — chủ đề & cấu hình",
     "g": "IELTS",
-    "n": "Credit hiển thị trước, không giật mình"
+    "n": "Template điền sẵn cấu hình; credit chỉ trừ ở nút bắt đầu"
+  },
+  {
+    "f": "27c-custom-speaking-chat",
+    "t": "Hội thoại tự chọn — đang nói",
+    "g": "IELTS",
+    "n": "Tải lại trang vẫn còn hội thoại: log dựng lại từ các lượt đã lưu"
+  },
+  {
+    "f": "27d-custom-speaking-history",
+    "t": "Hội thoại tự chọn — lịch sử",
+    "g": "IELTS",
+    "n": "Hội thoại dở mở đúng chỗ nó đang dừng; không mở bảng điểm rỗng"
+  },
+  {
+    "f": "27e-custom-speaking-result",
+    "t": "Hội thoại tự chọn — kết quả",
+    "g": "IELTS",
+    "n": "Kết quả đến sau khi chấm; chưa chấm xong thì không hiện điểm rỗng"
   },
   {
     "f": "28-leaderboard",

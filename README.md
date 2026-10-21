@@ -677,7 +677,18 @@ designed version can be built honestly.
   singular queries.
 - **`GET /custom-speaking-conversations/{id}` is the only place the exchange survives**: the
   step responses carry only the latest `aiMessage`, so a reopened conversation reads
-  `turns[]` from the detail endpoint.
+  `turns[]` from the detail endpoint. That is why the chat is its own route
+  (`/custom-speaking/conversation/:id`): a reload rebuilds the log, and "Tiếp tục" from
+  history takes the same path.
+- **The charge is `SPEAKING_START`, taken ONCE when the conversation starts.** Submitting a
+  turn charges nothing. The screen used to claim `AI_CHAT` per turn, which was the wrong
+  action and the wrong moment; the cost moved to the start button and the chat says the
+  conversation was already charged.
+- **A template is a stored configuration**, not a topic string: `custom_speaking_templates`
+  carries the six start fields plus a shelf and a level, with `owner_id IS NULL` for the
+  seeded rows and an owner for a learner's saved ones. The list sits beside the form on 27 and
+  "Dùng" fills the six fields; the start button remains the only paid control, so a template
+  cannot spend credit by being pressed.
 
 ### Known backend behaviour worth recording
 

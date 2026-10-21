@@ -1,13 +1,14 @@
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Loader2, RefreshCw, MessageSquare, Lock } from 'lucide-react';
+import { Link, useParams } from 'react-router-dom';
+import { AlertTriangle, ArrowLeft, Loader2, RefreshCw, MessageSquare, Lock } from 'lucide-react';
 import { Lexi } from '../../components/mascot/Lexi';
 import { Card, RowBox } from '../../components/ui/Card';
 import { Button, ButtonLink } from '../../components/ui/Button';
 import { Stat, SkeletonCard } from '../../components/ui/Primitives';
 import { AsyncBoundary } from '../../components/ui/AsyncBoundary';
 import { Markdown } from '../../components/ui/Markdown';
-import { formatDateTime } from '../../lib/datetime';
+import { formatDate } from '../../lib/datetime';
+import { useSetPageHeaderSubtitle } from '../../app/PageHeaderContextCore';
 import { useConversationDetail } from '../../features/speaking/useCustomConversation';
 
 /**
@@ -27,10 +28,11 @@ import { useConversationDetail } from '../../features/speaking/useCustomConversa
  */
 export default function CustomSpeakingResultPage() {
     const { t } = useTranslation();
-    const navigate = useNavigate();
     const { conversationId } = useParams();
 
-    const { conversation, loading, error, grading, reload } = useConversationDetail(conversationId);
+    const { conversation, loading, error, grading, failed, reload } = useConversationDetail(conversationId);
+
+    useSetPageHeaderSubtitle(t('customSpeaking.resultSubtitle'));
 
     if (!conversationId) {
         return (
@@ -49,9 +51,12 @@ export default function CustomSpeakingResultPage() {
 
     return (
         <div className="mx-auto flex w-full max-w-[820px] flex-col gap-4">
-            <Link to="/custom-speaking" className="t-label inline-flex items-center gap-2 text-[var(--teal)]">
+            <Link
+                to="/custom-speaking/history"
+                className="t-label inline-flex items-center gap-2 text-[var(--teal)]"
+            >
                 <ArrowLeft size={16} aria-hidden="true" />
-                {t('customSpeaking.title')}
+                {t('customSpeaking.resultHistoryLink')}
             </Link>
 
             <AsyncBoundary
@@ -86,7 +91,8 @@ export default function CustomSpeakingResultPage() {
                         <Lexi mood="celebrate" size="md" />
                         <div className="min-w-0 flex-1">
                             <span className="t-micro muted">{t('customSpeaking.conversationTitle')}</span>
-                            <h1 className="t-h2 mt-1">{conversation?.title ?? t('customSpeaking.title')}</h1>
+                            {/* `h2`: the shell header owns the h1 for this route. */}
+                            <h2 className="t-h2 mt-1">{conversation?.title ?? t('customSpeaking.title')}</h2>
                             <p className="t-micro muted mt-1">
                                 {conversation?.topic}
                                 {' · '}
@@ -96,7 +102,21 @@ export default function CustomSpeakingResultPage() {
                     </Card>
 
                     {/* --- the score, or an honest statement that there is none -- */}
-                    {conversation?.gradingEnabled === false ? (
+                    {failed ? (
+                        <Card level="flat" padding="lg" role="alert">
+                            <div className="flex items-start gap-3">
+                                <AlertTriangle
+                                    size={18}
+                                    className="mt-0.5 shrink-0 text-[var(--wrong)]"
+                                    aria-hidden="true"
+                                />
+                                <div className="min-w-0">
+                                    <strong className="t-label block">{t('customSpeaking.failedTitle')}</strong>
+                                    <p className="t-micro soft mt-1">{t('customSpeaking.failedBody')}</p>
+                                </div>
+                            </div>
+                        </Card>
+                    ) : conversation?.gradingEnabled === false ? (
                         <Card level="flat" padding="lg">
                             <div className="flex items-start gap-3">
                                 <Lock size={16} className="mt-0.5 shrink-0 text-[var(--ink-muted)]" aria-hidden="true" />
@@ -115,10 +135,10 @@ export default function CustomSpeakingResultPage() {
                                 <Stat value={fmt(conversation?.pronunciationScore)} label={t('speaking.criterion.pronunciation')} />
                                 <Stat
                                     value={conversation?.timeSpentSeconds ? Math.max(1, Math.round(conversation.timeSpentSeconds / 60)) : '—'}
-                                    label={t('ielts.timeSpent')}
+                                    label={t('customSpeaking.spokenTime')}
                                 />
                                 <Stat value={conversation?.totalTurns ?? 0} label={t('customSpeaking.totalTurns')} />
-                                <Stat value={formatDateTime(conversation?.completedAt) ?? '—'} label={t('customSpeaking.finishedAt')} />
+                                <Stat value={formatDate(conversation?.completedAt) ?? '—'} label={t('customSpeaking.finishedAt')} />
                             </div>
 
                             {conversation?.aiFeedback ? (

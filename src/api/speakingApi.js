@@ -104,4 +104,22 @@ export const speakingApi = {
     getCustomConversations(params = {}) {
         return axiosClient.get('/custom-speaking-conversations', { params });
     },
+
+    // === Custom conversation templates ===
+
+    getCustomSpeakingTemplates() {
+        return axiosClient.get('/custom-speaking-templates');
+    },
+
+    getCustomSpeakingTemplate(templateId) {
+        return axiosClient.get(`/custom-speaking-templates/${templateId}`);
+    },
+
+    createCustomSpeakingTemplate(payload) {
+        return axiosClient.post('/custom-speaking-templates', payload);
+    },
+
+    deleteCustomSpeakingTemplate(templateId) {
+        return axiosClient.delete(`/custom-speaking-templates/${templateId}`);
+    },
 };

@@ -61,6 +61,8 @@ const SpeakingHistoryPage = lazy(() => import('./pages/speaking/SpeakingHistoryP
 const SpeakingConversationPage = lazy(() => import('./pages/speaking/SpeakingConversationPage'));
 const SpeakingConversationResultPage = lazy(() => import('./pages/speaking/SpeakingConversationResultPage'));
 const CustomSpeakingPage = lazy(() => import('./pages/speaking/CustomSpeakingPage'));
+const CustomSpeakingConversationPage = lazy(() => import('./pages/speaking/CustomSpeakingConversationPage'));
+const CustomSpeakingHistoryPage = lazy(() => import('./pages/speaking/CustomSpeakingHistoryPage'));
 const CustomSpeakingResultPage = lazy(() => import('./pages/speaking/CustomSpeakingResultPage'));
 const ProfilePage = lazy(() => import('./pages/account/ProfilePage'));
 const SettingsPage = lazy(() => import('./pages/account/SettingsPage'));
@@ -227,6 +229,13 @@ export default function App() {
                             </RequireAuth>
                         }
                     />
+                    {/* v1's address for the conversation tab, still linked from old pages and
+                        bookmarks. SCREENS-V2.md 24d already describes it as a pure redirect; the
+                        app had no such route, so it fell through to /home. */}
+                    <Route
+                        path="/speaking/conversation/history"
+                        element={<Navigate to="/speaking/attempts?tab=conversation" replace />}
+                    />
                     <Route
                         path="/speaking/result/:attemptId"
                         element={
@@ -255,6 +264,18 @@ export default function App() {
                         element={
                             <RequireAuth>
                                 <CustomSpeakingPage />
+                            </RequireAuth>
+                        }
+                    />
+                    <Route
+                        path="/custom-speaking/custom"
+                        element={<Navigate to="/custom-speaking" replace />}
+                    />
+                    <Route
+                        path="/custom-speaking/history"
+                        element={
+                            <RequireAuth>
+                                <CustomSpeakingHistoryPage />
                             </RequireAuth>
                         }
                     />
@@ -442,6 +463,13 @@ export default function App() {
                         element={<SpeakingConversationPage />}
                     />
                     <Route path="/speaking/conversation/:topicId" element={<SpeakingConversationPage />} />
+                    {/* Custom speaking's chat, outside the shell for the same reason: it is one
+                        viewport tall, with its own scrollport and a docked composer. Its result
+                        (27e) stays inside the shell. */}
+                    <Route
+                        path="/custom-speaking/conversation/:conversationId"
+                        element={<CustomSpeakingConversationPage />}
+                    />
                 </Route>
                 <Route element={<VocabularyCheckLayout />}>
                     <Route path="/vocabulary/check" element={<VocabularyCheckPage />} />

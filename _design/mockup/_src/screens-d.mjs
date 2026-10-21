@@ -1246,17 +1246,210 @@ On the one hand, supporters of road building point out that…</textarea>
 ` },
 
 /* ==================================================================== 27 */
-'27-custom-speaking': { file: '27-custom-speaking.html', title: 'Hội thoại AI tự chọn chủ đề', subtitle: 'Chat · streaming', group: 'IELTS',
-  note: 'Credit hiển thị trước, không giật mình', shell: true, body: `
+'27-custom-speaking': { file: '27-custom-speaking.html', title: 'Hội thoại tự chọn — chủ đề & cấu hình', subtitle: 'Template bên cạnh · form tự cấu hình', group: 'IELTS',
+  note: 'Template điền sẵn cấu hình; credit chỉ trừ ở nút bắt đầu', body: wrap('practice', `
+<header class="shell__header">
+    <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Hội thoại tự chọn</h1>
+    <p class="t-micro muted">Chủ đề có sẵn hoặc tự cấu hình</p></div>
+    ${accountHeader()}
+</header>
+<main class="shell__content shell__content--wide" id="main">
+  <div class="setup-wrap">
+    <section class="card card--hero pad-x">
+        <div class="row g12 wrap">
+            <span data-lexi="excited" data-size="lg" style="flex:0 0 auto"></span>
+            <div class="grow" style="min-width:0">
+                <h2 class="t-h2">Tự chọn người bạn sẽ nói cùng</h2>
+                <p class="t-body soft" style="margin-top:4px">Chọn chủ đề, phong cách và người đối thoại. Lexi sẽ nhập vai theo đúng những lựa chọn này, và sửa lại câu của bạn trong lúc trò chuyện.</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="setup-grid">
+        <!-- ============================================================ form -->
+        <form class="setup-form" onsubmit="return false">
+            <!-- THE FORM IS UNCHANGED. A template fills these same six fields; it does not start
+                 anything and it does not charge. The price stays on the one button that sends
+                 POST /custom-speaking-conversations/start. -->
+            <div class="card card--edge pad">
+                <label class="stack g4">
+                    <span class="t-label">Chủ đề</span>
+                    <span class="t-micro muted">Viết tự do — càng cụ thể thì hội thoại càng sát ý bạn.</span>
+                    <input class="input" style="margin-top:6px" value="IELTS Speaking Part 1: your hometown. Where you grew up, what you like about it, and how it has changed." />
+                </label>
+            </div>
+
+            ${[
+                ['Phong cách nói', ['Thân mật', 'Chuyên nghiệp', 'Khích lệ', 'Thử thách', 'Vui vẻ', 'Tán tỉnh', 'Sâu sắc', 'Tranh luận', 'Đường phố', 'Thẳng thắn'], 'Thân mật'],
+                ['Tính cách người đối thoại', ['Thân thiện', 'Hài hước', 'Kiên nhẫn', 'Thẳng thắn', 'Tự tin', 'Tò mò', 'Đồng cảm', 'Mạnh dạn', 'Tán tỉnh', 'Gai góc', 'Nổi loạn'], 'Thân thiện'],
+                ['Lĩnh vực am hiểu', ['Chung', 'Kinh doanh', 'Công nghệ', 'Giáo dục', 'Du lịch', 'Các mối quan hệ', 'Giải trí', 'Trò chơi', 'Thể hình', 'Tâm lý', 'Mạng xã hội'], 'Giáo dục'],
+            ].map(([label, values, active]) => `
+                <fieldset>
+                    <legend class="t-label" style="margin-bottom:8px">${label}</legend>
+                    <div class="row g8 wrap">
+                        ${values.map((value) => `
+                            <button class="pill" type="button" aria-pressed="${value === active}">${value}</button>`).join('')}
+                    </div>
+                </fieldset>`).join('')}
+
+            <div class="card card--edge pad">
+                <fieldset>
+                    <legend class="t-label" style="margin-bottom:8px">Giọng đọc</legend>
+                    <div class="row g8 wrap">
+                        ${['Nam trầm', 'Nam trẻ', 'Nữ trẻ', 'Nữ trung', 'Nữ trung 2', 'Nữ tự nhiên', 'Nữ siêu tự nhiên'].map((voice, i) => `
+                            <button class="pill" type="button" aria-pressed="${i === 2}">${voice}</button>`).join('')}
+                    </div>
+                </fieldset>
+
+                <div class="row g12" style="margin-top:14px">
+                    <button class="switch" type="button" role="switch" aria-checked="true" data-toggle aria-label="Chấm điểm hội thoại này"><span></span></button>
+                    <span class="grow">
+                        <span class="t-label" style="display:block">Chấm điểm hội thoại này</span>
+                        <span class="t-micro muted">Bật để nhận điểm và nhận xét sau khi kết thúc. Tắt thì đây là buổi luyện nói không chấm — không tốn thêm gì.</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- THE CHARGE IS ON THIS BUTTON, and nowhere else on the screen. SPEAKING_START is
+                 taken once for the conversation; submitting turns is free. -->
+            <div class="card card--edge pad">
+                <div class="row g8 wrap">
+                    <span class="chip chip--teal">${icon('coin', 14)} 12 credit</span>
+                    <span class="t-micro muted">Mỗi hội thoại trừ 1 credit khi bắt đầu.</span>
+                </div>
+                <a class="btn btn--primary btn--lg btn--block" style="margin-top:12px" href="27c-custom-speaking-chat.html">Bắt đầu hội thoại · 1 credit</a>
+            </div>
+
+            <!-- Saving is a disclosure because it is a second action. Its open state is specified
+                 in SCREENS-V2.md rather than drawn here: the name field and the "Đã lưu" state. -->
+            <details class="save">
+                <summary>Lưu thành template</summary>
+            </details>
+        </form>
+
+        <!-- ========================================================= template list -->
+        <aside class="pick" aria-labelledby="pick-title">
+            <div class="between">
+                <h2 class="t-h3" id="pick-title">Chủ đề có sẵn</h2>
+            </div>
+
+            <div class="row g8 wrap" data-group role="group" aria-label="Lọc chủ đề">
+                ${['IELTS', 'Đời sống', 'Hội thoại đơn giản', 'Của tôi'].map((label, i) => `
+                    <button class="pill" type="button" data-select aria-pressed="${i === 0}">${label}</button>`).join('')}
+            </div>
+
+            <!-- THE LIST IS VERTICAL AND EACH ROW HAS ONE ACTION. "Dùng" fills the six fields of
+                 the form beside it; it does not start a conversation and cannot spend credit. The
+                 applied row says "Đang dùng", and the form shows exactly that configuration.
+
+                 Own templates carry one extra icon: delete. It is an icon rather than a second
+                 labelled button because the row's verb is "Dùng"; the confirmation is a state. -->
+            <ul class="pick__list stack g8">
+                ${[
+                    {
+                        title: 'Công nghệ và đời sống của tôi',
+                        summary: 'IELTS Speaking Part 3: technology in daily life. Benefits, drawbacks, and how it may change the way we live.',
+                        level: 'B2', group: 'IELTS', own: true, state: 'idle',
+                    },
+                    {
+                        title: 'Nơi bạn lớn lên',
+                        summary: 'Nơi lớn lên, điều bạn thích và cách nơi đó đã thay đổi.',
+                        level: 'B1', group: 'IELTS', state: 'inUse',
+                    },
+                    {
+                        title: 'Công việc hoặc việc học',
+                        summary: 'Công việc hoặc việc học, lịch hằng ngày và điều bạn muốn đổi.',
+                        level: 'B1', group: 'IELTS', state: 'idle',
+                    },
+                    {
+                        title: 'Một người bạn ngưỡng mộ',
+                        summary: 'Một người bạn ngưỡng mộ: họ là ai và vì sao.',
+                        level: 'B2', group: 'IELTS', state: 'idle',
+                    },
+                    {
+                        title: 'Một nơi bạn thích đến',
+                        summary: 'Một nơi bạn thích đến: ở đâu, bao lâu một lần, vì sao.',
+                        level: 'B1', group: 'IELTS', state: 'idle',
+                    },
+                    {
+                        title: 'Công nghệ trong đời sống',
+                        summary: 'Lợi ích, mặt trái và cách công nghệ thay đổi đời sống.',
+                        level: 'B2', group: 'IELTS', state: 'idle',
+                    },
+                ].map((item) => `
+                    <li>
+                        <div class="rowbox" style="align-items:center;gap:10px">
+                            <div class="grow" style="min-width:0">
+                                <div class="row g4 wrap">
+                                    <span class="chip chip--outline">${item.level}</span>
+                                    <span class="chip chip--outline">${item.group}</span>
+                                    ${item.own ? `<span class="chip chip--teal">${icon('user', 14)} Của tôi</span>` : ''}
+                                </div>
+                                <strong class="t-label" style="display:block;margin-top:6px">${item.title}</strong>
+                                <span class="t-micro muted" style="display:block;margin-top:2px">${item.summary}</span>
+                            </div>
+                            <div class="stack g4" style="align-items:flex-end;flex-shrink:0">
+                                ${item.state === 'inUse'
+                                    ? `<button class="btn btn--ghost btn--sm" type="button" disabled>${icon('check', 16)} Đang dùng</button>`
+                                    : `<button class="btn btn--secondary btn--sm" type="button">Dùng</button>`}
+                                ${item.own ? `<button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Xoá template">${icon('trash', 16)}</button>` : ''}
+                            </div>
+                        </div>
+                    </li>`).join('')}
+            </ul>
+
+            <a class="t-label" href="27d-custom-speaking-history.html">Các lượt đã làm</a>
+        </aside>
+    </div>
+  </div>
+</main>`),
+  style: `
+fieldset { border: 0; padding: 0; margin: 0; }
+.setup-wrap { max-width: 1120px; margin-inline: auto; }
+.setup-grid { display: grid; gap: 16px; margin-top: 12px; align-items: start; }
+.setup-form { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.setup-form fieldset, .setup-form .card, .setup-form .save { margin: 0; }
+.pick { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+@media (max-width: 1023px) {
+    .pick { order: -1; }
+    .pick__list { max-height: 46vh; overflow-y: auto; padding-right: 4px; }
+}
+@media (min-width: 1024px) {
+    .setup-grid { grid-template-columns: minmax(0, 1fr) 360px; }
+    .pick { position: sticky; top: 12px; }
+    .pick__list { max-height: calc(100vh - 240px); overflow-y: auto; padding-right: 4px; }
+}
+.switch { position: relative; width: 52px; height: 30px; flex: 0 0 auto; padding: 0; border-radius: 999px; border: 2px solid var(--border-strong); background: var(--surface-alt); cursor: pointer; }
+.switch span { position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 999px; background: var(--surface); border: 2px solid var(--border-strong); }
+.switch[aria-checked='true'] { background: var(--teal); border-color: var(--teal); }
+.switch[aria-checked='true'] span { transform: translateX(22px); border-color: var(--teal); }
+.save { border: 2px solid var(--border); border-radius: var(--r-card); background: var(--surface); overflow: hidden; }
+.save > summary { padding: 12px 14px; font-weight: 800; color: var(--ink-soft); cursor: pointer; }
+.save__body { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px 14px; border-top: 2px solid var(--border); }
+` },
+
+/* =================================================================== 27c */
+'27c-custom-speaking-chat': { file: '27c-custom-speaking-chat.html', title: 'Hội thoại tự chọn — đang nói', subtitle: 'Chat · một khung nhìn', group: 'IELTS',
+  note: 'Tải lại trang vẫn còn hội thoại: log dựng lại từ các lượt đã lưu', shell: true, body: `
 <div class="chat">
     <header class="exam__bar">
-        <a class="btn btn--ghost btn--icon btn--sm" href="24-speaking-list.html" aria-label="Quay lại">${icon('arrowLeft', 18)}</a>
+        <a class="btn btn--ghost btn--icon btn--sm" href="27-custom-speaking.html" aria-label="Thoát hội thoại">${icon('arrowLeft', 18)}</a>
         <div class="grow" style="min-width:0"><span class="t-label truncate" style="display:block">Hội thoại AI</span>
         <span class="t-micro muted">Chủ đề: Du lịch bền vững · lượt 4</span></div>
-        <span class="chip chip--teal">${icon('coin', 14)} 12 credit</span>
+        <span class="chip chip--teal hide-lg">${icon('coin', 14)} 12 credit</span>
+        <button class="btn btn--ghost btn--sm" type="button" aria-label="Kết thúc hội thoại">${icon('flag', 16)} <span class="finish-label">Kết thúc</span></button>
     </header>
 
     <div class="chat__body" id="main">
+        <!-- THE ROUTE IS /custom-speaking/conversation/:id, not the set-up screen. That is what makes
+             a refresh survivable: the log is rebuilt from turns[] of GET /custom-speaking-conversations/{id},
+             and the pending turn is the last row whose userTranscript is null. v1 had a chat route and
+             v2 had none, which is why a reload used to lose a conversation the server still held.
+
+             RESUMING CHARGES NOTHING. The conversation was charged once at start (SPEAKING_START);
+             sending a turn is free. The line under the composer says exactly that, and the send
+             control never carries a price. The old screen priced every send as AI_CHAT, which is
+             neither the action nor the moment the backend uses. -->
         <div class="chat__log" aria-live="polite">
             <div class="msg msg--ai">
                 <span data-lexi="explain" data-size="xs"></span>
@@ -1295,23 +1488,205 @@ On the one hand, supporters of road building point out that…</textarea>
             <button class="btn btn--ghost btn--icon" type="button" aria-label="Ghi âm">${icon('mic', 20)}</button>
             <label class="grow"><span class="sr-only">Nhập tin nhắn</span>
                 <input class="input" placeholder="Nhập câu trả lời hoặc bấm micro để nói…" /></label>
-            <button class="btn btn--primary" type="submit">${icon('arrowRight', 18)}</button>
+            <button class="btn btn--primary" type="submit">${icon('arrowRight', 18)} Gửi</button>
         </form>
-        <p class="t-micro muted" style="text-align:center;padding-bottom:8px">Mỗi lượt AI tốn 1 credit · còn 12 credit</p>
+        <p class="t-micro muted" style="text-align:center;padding-bottom:8px">Hội thoại đã trừ 1 credit khi bắt đầu · còn 12 credit</p>
     </div>
     <div class="chat__bar only-mobile"></div>
 </div>`,
   style: `
-.chat { min-height: 100vh; display: flex; flex-direction: column; background: var(--canvas); }
-.chat__body { flex: 1; width: 100%; max-width: 780px; margin-inline: auto; display: flex; flex-direction: column; padding: 16px; gap: 12px; }
-.chat__log { flex: 1; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+.chat { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; background: var(--canvas); }
+.exam__bar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--surface); border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 15; flex: 0 0 auto; }
+.chat__body { flex: 1; min-height: 0; width: 100%; max-width: 780px; margin-inline: auto; display: flex; flex-direction: column; padding: 16px 16px 0; gap: 12px; }
+.chat__log { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
 .msg { display: flex; gap: 10px; align-items: flex-end; }
 .msg--me { justify-content: flex-end; }
 .msg .bubble { max-width: min(78%, 520px); }
 .chat__input { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 2px solid var(--border-strong); border-radius: var(--r-card); padding: 8px; box-shadow: 0 4px 0 0 var(--border); }
 .chat__input .input { border: 0; box-shadow: none; }
 .chat__input .input:focus { outline: none; }
-.chat__bar { height: calc(var(--shell-tabbar) + env(safe-area-inset-bottom, 0px)); }
+.chat__input .btn { flex: 0 0 auto; white-space: nowrap; }
+.chat__input label { min-width: 0; }
+.chat__bar { height: calc(var(--shell-tabbar) + env(safe-area-inset-bottom, 0px)); flex: 0 0 auto; }
+@media (max-width: 639px) {
+    .exam__bar { gap: 8px; padding: 8px 10px; }
+    .finish-label { display: none; }
+}
+` },
+
+/* =================================================================== 27d */
+'27d-custom-speaking-history': { file: '27d-custom-speaking-history.html', title: 'Hội thoại tự chọn — lịch sử', subtitle: 'Tiếp tục hội thoại dở hoặc xem kết quả', group: 'IELTS',
+  note: 'Hội thoại dở mở đúng chỗ nó đang dừng; không mở bảng điểm rỗng', body: wrap('practice', `
+<header class="shell__header">
+    <a class="btn btn--ghost btn--icon btn--sm" href="27-custom-speaking.html" aria-label="Quay lại">${icon('arrowLeft', 18)}</a>
+    <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Lịch sử hội thoại</h1>
+    <p class="t-micro muted">Tiếp tục hội thoại dở hoặc xem lại kết quả</p></div>
+    ${accountHeader()}
+</header>
+<main class="shell__content shell__content--focus" id="main">
+    <!-- CARDS, NOT A TABLE, for the same reason as 24d: a table whose columns hide on a phone is still
+         a table to a screen reader. Each row is one conversation: the AI's own title, the topic, the
+         number of learner turns and the date on the left; the band or the status on the right.
+
+         AN UNFINISHED CONVERSATION OPENS THE CONVERSATION. IN_PROGRESS has no band and the result
+         screen has nothing to show, so the row's target is 27c and its label says "Tiếp tục".
+         GRADING opens the result, which is where the wait state lives. FAILED opens the result too -
+         it keeps the transcript - and the chip says what happened rather than colour alone.
+
+         THE STYLE / PERSONALITY / EXPERTISE CHIPS ARE THE CONVERSATION'S OWN CONFIGURATION. Without
+         them two conversations on the same topic are indistinguishable, and v1 showed the same three
+         labels in its history table.
+
+         LOAD MORE IS DRAWN because the endpoint is paged. 24d records the absence as an open question;
+         here the control exists in the frame, so the screen cannot silently truncate a history. -->
+    <ul class="stack g8">
+        ${[
+            {
+                title: 'Talking about sustainable travel',
+                meta: 'Chủ đề: du lịch bền vững · 4 lượt · 12/10',
+                chips: ['Thân mật', 'Kiên nhẫn', 'Du lịch'],
+                right: `<span class="t-mono" style="color:var(--teal)">6.0</span>`,
+                href: '27e-custom-speaking-result.html',
+                resume: '',
+            },
+            {
+                title: 'Weekend plans and who you go with',
+                meta: 'Chủ đề: kế hoạch cuối tuần · 2 lượt · hôm nay',
+                chips: ['Vui vẻ', 'Hài hước', 'Chung'],
+                right: `<span class="chip chip--teal">${icon('chat', 14)} Đang hội thoại</span>`,
+                href: '27c-custom-speaking-chat.html',
+                resume: 'Tiếp tục',
+            },
+            {
+                title: 'A job interview for a marketing role',
+                meta: 'Chủ đề: phỏng vấn xin việc · 3 lượt · 11/10',
+                chips: ['Chuyên nghiệp', 'Tự tin', 'Kinh doanh'],
+                right: `<span class="chip chip--amber">${icon('clock', 14)} Đang chấm</span>`,
+                href: '27e-custom-speaking-result.html',
+                resume: '',
+            },
+            {
+                title: 'Ordering food and asking about allergies',
+                meta: 'Chủ đề: gọi món ở nhà hàng · 5 lượt · 09/10',
+                chips: ['Thân mật', 'Kiên nhẫn', 'Chung'],
+                right: `<span class="chip chip--wrong">${icon('cross', 14)} Chấm lỗi</span>`,
+                href: '27e-custom-speaking-result.html',
+                resume: '',
+            },
+        ].map((r) => `
+            <li>
+                <a class="rowbox rowbox--between" href="${r.href}" style="text-decoration:none;color:inherit">
+                    <span class="grow" style="min-width:0">
+                        <strong class="t-label" style="display:block">${r.title}</strong>
+                        <span class="t-micro muted" style="display:block;margin-top:2px">${r.meta}</span>
+                        <span class="row g4 wrap" style="margin-top:6px">
+                            ${r.chips.map((c) => `<span class="chip chip--outline">${c}</span>`).join('')}
+                        </span>
+                    </span>
+                    <span class="row g8" style="flex-shrink:0">
+                        ${r.right}${r.resume ? `<span class="t-label" style="color:var(--teal);white-space:nowrap">${r.resume}</span>` : ''}
+                        ${icon('arrowRight', 16)}
+                    </span>
+                </a>
+            </li>`).join('')}
+    </ul>
+
+    <div style="display:flex;justify-content:center;margin-top:12px">
+        <button class="btn btn--ghost btn--sm" type="button">Tải thêm</button>
+    </div>
+
+    <div class="row g8 wrap" style="justify-content:center;margin-top:16px">
+        <span data-lexi="happy" data-size="xs"></span>
+        <a class="t-label" href="27-custom-speaking.html">Bắt đầu hội thoại mới</a>
+    </div>
+</main>`),
+  style: `
+.rowbox .chip, .rowbox .t-label { white-space: nowrap; }
+` },
+
+/* =================================================================== 27e */
+'27e-custom-speaking-result': { file: '27e-custom-speaking-result.html', title: 'Hội thoại tự chọn — kết quả', subtitle: 'Band · bốn tiêu chí · bản hội thoại', group: 'IELTS',
+  note: 'Kết quả đến sau khi chấm; chưa chấm xong thì không hiện điểm rỗng', body: wrap('practice', `
+<header class="shell__header">
+    <a class="btn btn--ghost btn--icon btn--sm" href="27d-custom-speaking-history.html" aria-label="Quay lại">${icon('arrowLeft', 18)}</a>
+    <div class="grow" style="min-width:0"><h1 class="t-h1 truncate">Kết quả hội thoại</h1>
+    <p class="t-micro muted">Điểm theo bốn tiêu chí và nội dung đã nói</p></div>
+    ${accountHeader()}
+</header>
+<main class="shell__content shell__content--focus" id="main">
+    <!-- THE HERO NAMES THE CONVERSATION, not the template that started it. The title is the model's
+         own and the topic is the learner's; both are needed because the same topic can be talked
+         through twice with different personas.
+
+         NO DELTA CHIP. This screen has one band and no earlier conversation with a comparable
+         configuration, so "hơn lần trước" is not a claim it can support (same rule as 24c). -->
+    <section class="card card--hero pad-x">
+        <div class="row g12 wrap">
+            <span data-lexi="celebrate" data-size="md"></span>
+            <div class="grow" style="min-width:0">
+                <span class="t-micro muted">Hội thoại</span>
+                <h2 class="t-h2" style="margin-top:4px">Talking about sustainable travel</h2>
+                <p class="t-micro muted" style="margin-top:2px">Chủ đề: du lịch bền vững · 4 lượt của bạn</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- EIGHT NUMBERS, the same shape as screen 26: the overall band first, then the four criteria,
+         then the three facts that describe the session. None of them is an estimate. -->
+    <div class="stat-grid" style="margin-top:12px">
+        ${stat('6.0', 'Điểm tổng', 'teal', 'chart')}
+        ${stat('6.0', 'Độ trôi chảy', '', 'mic')}
+        ${stat('5.5', 'Vốn từ', '', 'book')}
+        ${stat('6.0', 'Mạch lạc', '', 'chat')}
+    </div>
+    <div class="stat-grid" style="margin-top:8px">
+        ${stat('5.5', 'Phát âm', '', 'headphones')}
+        ${stat('8', 'Thời gian nói (phút)', '')}
+        ${stat('9', 'Tổng số lượt', '')}
+        ${stat('12/10', 'Kết thúc lúc', '')}
+    </div>
+
+    <section class="card card--edge pad-x" style="margin-top:12px">
+        <h2 class="t-h3">Nhận xét chi tiết</h2>
+        <p class="t-body soft" style="margin-top:8px">Bạn giữ được mạch nói và dùng đúng từ vựng của chủ đề. Hai chỗ nên sửa: dùng thì hiện tại hoàn thành khi kể kinh nghiệm, và thay "too many people" bằng <strong>"overtourism"</strong> để câu tự nhiên hơn.</p>
+    </section>
+
+    <!-- THE TRANSCRIPT IS THE SUBSTANCE. A turn is one AI line and the learner's answer to it; both
+         are stored on the same row, which is why they are paired here and why the chat screen can
+         rebuild itself after a reload. -->
+    <section class="card card--edge pad-x" style="margin-top:12px">
+        <h2 class="t-h3 row g8" style="align-items:center">${icon('chat', 18)} Nội dung hội thoại</h2>
+        <ol class="stack g8" style="margin-top:12px">
+            ${[
+                ['Chúng ta nói về du lịch bền vững nhé. Theo bạn, du lịch đại chúng gây hại gì cho địa phương?', 'I think it can destroy the environment because too many people visit the same place and it makes a lot of rubbish.'],
+                ['Ý tốt. Thử dùng "overtourism" thay cho "too many people". Vậy theo bạn, chính phủ nên làm gì?', 'They should limit the number of visitors and use the money for local services.'],
+            ].map(([ai, me], i) => `
+                <li class="rowbox" style="flex-direction:column;align-items:stretch;gap:6px">
+                    <span class="t-micro muted">Lượt ${i + 1}</span>
+                    <span class="row g8" style="align-items:flex-start">
+                        <span data-lexi="idle" data-size="xs"></span>
+                        <span class="t-body soft grow">${ai}</span>
+                    </span>
+                    <span class="t-body"><strong class="t-label">Bạn:</strong> ${me}</span>
+                </li>`).join('')}
+        </ol>
+    </section>
+
+    <div class="row g8 wrap" style="margin-top:12px">
+        <a class="btn btn--primary" href="27-custom-speaking.html">${icon('chat', 16)} Hội thoại mới</a>
+        <a class="btn btn--ghost" href="24-speaking-list.html">${icon('mic', 16)} Luyện Speaking</a>
+        <button class="btn btn--ghost" type="button">${icon('refresh', 16)} Tải lại</button>
+    </div>
+
+    <!-- TWO STATES ARE SPECIFIED BUT NOT DRAWN, because each is a different moment of the same
+         screen. While the status is GRADING the hero is replaced by "Đang chấm hội thoại" and a
+         skeleton where the band will be: the criteria, the feedback and the transcript are absent
+         rather than empty. With grading turned off at start the score block is replaced by the
+         sentence that says so; the transcript stays. IN_PROGRESS never reaches this screen. -->
+</main>`),
+  style: `
+.stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 1024px) { .stat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; } }
 ` },
 
 /* ==================================================================== 28 */

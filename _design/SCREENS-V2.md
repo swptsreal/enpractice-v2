@@ -4,7 +4,7 @@ Companion to [PROPOSAL.md](PROPOSAL.md) (why) and [DESIGN-V2.md](DESIGN-V2.md) (
 Every screen below has a working mockup in `mockup/` — open `mockup/index.html`.
 
 ## How to read this
-**Coverage.** 53 routes in `../en-practice/src/AppShell.jsx` map to **36 mockups**; several routes share a page component (e.g. `/speaking/conversation/:topicId` and `/speaking/conversation/resume/:conversationId` both render `SpeakingConversationPage`). Three routes are pure redirects (`/`, `/speaking/conversation/history`, `/vocabulary/test/:testId`) and get no mockup.
+**Coverage.** The 53 v1 routes in `../en-practice/src/AppShell.jsx` map to **36 screen numbers**; several routes share a page component (e.g. `/speaking/conversation/:topicId` and `/speaking/conversation/resume/:conversationId` both render `SpeakingConversationPage`). Three routes are pure redirects (`/`, `/speaking/conversation/history`, `/vocabulary/test/:testId`) and get no frame of their own.
 
 **Three screens were added to the speaking module.** `24b` (`/speaking/conversation/:topicId` and its
 resume route), `24c` (`/speaking/conversation/result/:conversationId`) and `24d`
@@ -14,11 +14,25 @@ i.e. endpoints and a hook with no screen. They are numbered under the screen the
 like 15b and 15c, and screen **24 was rewritten in the same pass** because the mode it drew was not the
 mode the backend offers.
 
-**One screen has two frames.** `07b-vocabulary-check-guest.html` is the guest chrome of screen 07 —
-same screen number, different shell — so the 36 numbered screens draw 37 frames, before the two variant
-frames (`33b-account-menu`, `36b-lexi-panel`) and the three speaking frames added above. It exists because
-`/vocabulary/check` is reachable both signed in and signed out, and those two states must not show the
-same page furniture. Every other screen draws one frame.
+**Eleven frames are variants or sub-screens of a numbered screen, so the 36 numbers draw 47
+frames.** `07b-vocabulary-check-guest.html` is the guest chrome of 07 (same screen, different
+shell); `15b`/`15c` are the two steps of the review flow; `24b`–`24d` are the topic conversation,
+its result and history; `27c`–`27e` are custom speaking's chat, history and result; `33b`
+and `36b` are the account menu and the Lexi panel. A variant keeps its parent's number because it
+is the same screen reached another way, and every variant is inside the structural gates. `07b`
+exists because `/vocabulary/check` is reachable both signed in and signed out, and those two
+states must not show the same page furniture.
+
+**Custom speaking grew from one frame to four.** v1 shipped `/custom-speaking` (set-up and chat in
+one component), `/custom-speaking/conversation/:id`, `/custom-speaking/history` and
+`/custom-speaking/result/:id`; v2 had ported only the first, drawing the chat inline with the
+six-field form above it and pointing "Các lượt đã làm" at `/speaking` — the topic list, not a
+history. `27` is now the form with the template list beside it (`/custom-speaking`), `27c` the
+chat (`/custom-speaking/conversation/:conversationId`), `27d` the history
+(`/custom-speaking/history`) and `27e` the result (`/custom-speaking/:conversationId`, kept at its
+old path so existing links still land). A template does not replace the form; it fills it. The
+chat moved to a route of its own for the same reason 24b did: a reload has to rebuild from the
+server rather than discard the conversation.
 
 **The rail's section tabs & mobile tab bar.**
 - **Desktop (≥1024px):** Thanh rail mang 5 section chính (**Trang chủ**, **AI Coach**, **Luyện tập**, **Tiến độ**, **Cá nhân**) và nhóm "Khác" chứa các chức năng còn lại (bao gồm **Từ vựng**).
@@ -575,13 +589,113 @@ way back into the app. The fix is the split above.
 - **The transcript card is headed with the locale's own label** ("Nội dung đã chấm") and carries the caveat
   that speech recognition can err, with repeated words highlighted in the transcript itself.
 
-### 27 · Custom speaking conversation — `/custom-speaking` `[code-verified]`
-- **Layout:** Chat, 780px max, kéo dài toàn bộ chiều dọc (`flex-1 min-h-0`). Chat log giãn trọn chiều dọc, cụm gợi ý xếp trên 1 hàng ngang cuộn mượt (`.chat__suggest`), composer ghim sát đáy.
-- **Anatomy:** header bar with back button, topic/turn context and balance chip → log of alternating Lexi/user bubbles → suggestion chips (`.chat__suggest`) → sleek 1-row composer (`.chat__input` with mic toggle, text input, send) → centered per-message cost line.
-- **Bubbles:** Lexi bubble is white (`var(--surface)`) with left tail (`.bubble--left`), display font; learner bubble is system teal (`var(--teal-soft)`, border `var(--teal)`) with right tail (`.bubble--right`).
-- **Lexi's turns do real work:** she corrects a phrase, gives the improved sentence, and asks the next question. The correction is shown as an italic rewrite rather than a red mark, because this is conversation practice, not an exam.
-- The streaming state is a bubble with a "Đang nói…" label and a skeleton line.
-- Cost is stated twice — a balance chip in the header and "Mỗi lượt AI tốn 1 credit · còn 12 credit" under the composer.
+### 27 · Custom speaking — `/custom-speaking` `[code-verified]`
+- **Layout:** two columns at ≥1024px — the **form on the left**, the **template list on the right**
+  (sticky, its own scrollport). Below 1024px the list comes first, with its height capped at 46vh and
+  its own scroll, so the form is one short scroll away and fifteen templates cannot push it off the
+  page. The form itself is unchanged: topic → the three enum fieldsets → voice + grading → cost →
+  "Lưu thành template".
+- **A template is a stored configuration, not a topic string.** It carries all six fields the start
+  endpoint requires plus a group (`IELTS` / `DAILY` / `BASIC`) and a level (`A2` / `B1` / `B2`).
+  System templates are seeded with the app; a learner's own saved configurations are the same table
+  with `source = USER`, which is what the "Của tôi" filter selects — it is a source, not a fourth
+  shelf.
+- **"Dùng" fills the form; it does not start anything.** This is the whole interaction: the six
+  fields change, the row says "Đang dùng", and the one paid control is still the form's "Bắt đầu
+  hội thoại". A template therefore cannot spend credit by accident. On a phone, applying one
+  scrolls the form into view; on a wide screen both are already visible.
+- **The list is vertical and each row has one action.** A row is level/group chips (or "Của tôi"),
+  title, one-line summary, then **"Dùng"**. An applied row repeats the same control as "Đang dùng"
+  (disabled; the label is its reason). An own template carries one extra **icon** (delete) so the
+  row's verb stays "Dùng"; deletion is confirmed before it happens.
+- **The filter has four entries** — IELTS / Đời sống / Hội thoại đơn giản / Của tôi — and the
+  list opens on **IELTS**, with no "Tất cả" view: the curated catalogue is mostly IELTS, and a
+  mixed list made the default screen noisier than the shelf the learner needs. The filter is
+  client-side over the one list the endpoint returns (`GET /custom-speaking-templates`, system +
+  own) and does not change the URL; `?filter=mine` is accepted so "Xem trong Của tôi" can land on
+  the learner's shelf.
+- **Every enum value the API accepts is drawn**, including the adult-adjacent styles and
+  personalities (`FLIRTY`, `UNFILTERED`, `EDGY`, `REBELLIOUS`). Curating the list would silently
+  narrow what a learner can choose while the API still accepts it; the labels are neutral and the
+  choice is theirs.
+- **The price is on the start button**, because `POST /custom-speaking-conversations/start` is the
+  request that charges: `SPEAKING_START`, once per conversation. "Bắt đầu hội thoại · 1 credit" sits
+  beside the balance chip. Turns submit free. The old screen claimed `AI_CHAT` per turn, which was
+  the wrong action and the wrong moment. When the cost table answers `DISABLED`, the button carries
+  no price and the line says the conversation is free; insufficient balance disables it and the
+  reason is written next to it.
+- **Saving is a second action, collapsed on purpose.** The disclosure asks only for a name, because
+  every other field is already on the screen; it creates a `USER` template that appears under
+  "Của tôi" (the list reloads). After saving, the button reads "Đã lưu" and is disabled — that label
+  is its reason — and "Xem trong Của tôi" selects the filter and scrolls the list into view. A
+  failed save says so in place; a missing topic or name is refused with the reason.
+- **`?templateId=` still prefills the form**, so old "Chỉnh lại" links and bookmarks land on the same
+  screen with that configuration in use. `/custom-speaking/custom` is a redirect to `/custom-speaking`.
+- **States:** the list has its own loading skeleton, empty state (different copy for "Của tôi") and
+  retry; a failed start shows an alert beside the start button, not a toast.
+- **One entry point to history, in the list column's footer** ("Các lượt đã làm" → 27d). This link
+  used to point at `/speaking`, which is why "history" opened the topic list.
+- **Starting navigates to 27c; the chat is not rendered here.** The old page kept the chat in
+  component state, so a refresh lost a conversation the server still held.
+
+### 27c · Custom speaking conversation — `/custom-speaking/conversation/:conversationId` `[code-verified]`
+- **Layout:** full-bleed chat, exactly one viewport tall, no rail, no tab bar, no floating Lexi —
+  the same shape as 24b. The log is the scrollport and the answer panel is docked, so a long
+  conversation cannot push the composer off screen.
+- **The route is the conversation's own, which is what makes a reload survivable.** `GET
+  /custom-speaking-conversations/{id}` returns `turns[]`; each row holds the partner's line and the
+  learner's transcript, so the log is rebuilt from the server. The **pending question** is the last
+  turn whose `userTranscript` is null. `IN_PROGRESS` conversations resume; `POST .../{id}/turn`
+  accepts the next answer.
+- **Resuming charges nothing.** The conversation was charged once at start; the line under the
+  composer says *"Hội thoại đã trừ 1 credit khi bắt đầu · còn 12 credit"*, and the send control
+  carries no price. With the cost table disabled, the line says the conversation is free.
+- **The bar:** exit → 27, the conversation's title, `Chủ đề: … · lượt N`, the balance chip on
+  desktop, and "Kết thúc". On a phone the finish control is icon-only with an `aria-label`, because
+  the title and the exit already fill the bar at 390px.
+- **Lexi's turns do real work:** a correction, the improved sentence, the next question. The
+  correction is an italic rewrite, not a red mark — this is practice, not an exam. The in-flight
+  state is a waiting bubble with a skeleton and the send control disabled for the same window; an
+  empty transcript is refused rather than sent.
+- **Finishing posts `/finish` and goes to 27e.** So does the last allowed turn: the backend
+  completes the conversation when `userTurnCount` reaches `maxUserTurns` (50 in the live response,
+  not the 10 its env var suggests), so the UI reads that number and navigates instead of offering
+  another answer.
+
+### 27d · Custom speaking history — `/custom-speaking/history` `[code-verified]`
+- **Layout:** Focus, one column, cards rather than a table — a table whose columns hide on a phone
+  is still a table to a screen reader.
+- **Each row:** the AI's own conversation title, `Chủ đề: … · N lượt · ngày`, the conversation's own
+  configuration (style · personality · expertise as three chips), and on the right either the band
+  or a status chip. Without the three chips two conversations on the same topic are
+  indistinguishable.
+- **An unfinished conversation opens the conversation, not its result.** `IN_PROGRESS` has no band,
+  so the row targets 27c and its label says "Tiếp tục". `GRADING` and `FAILED` open 27e, which
+  carries the wait or the failure; `GRADED` opens it with the band.
+- **The list is paged, so "Tải thêm" is drawn.** A silently truncated history is the one kind of
+  loss a learner cannot notice — the same open question 24d records, answered here.
+- **No stat tiles.** The endpoint returns pages, not an aggregate; a count/average/best row would
+  have to be invented.
+- **States:** empty ("Chưa có hội thoại nào" + the action back to 27), error with a retry, and a
+  footer action "Bắt đầu hội thoại mới" → 27.
+
+### 27e · Custom speaking result — `/custom-speaking/:conversationId` `[code-verified]`
+- **Layout:** Focus, one column, inside the shell.
+- **Hero:** Lexi, the conversation's title, `Chủ đề: … · N lượt của bạn`. **No delta chip**: this
+  endpoint returns one band and no comparable earlier conversation, so "hơn lần trước" is not a
+  claim the screen can support.
+- **Eight numbers, no estimates:** overall band, the four criterion scores (Độ trôi chảy, Vốn từ,
+  Mạch lạc, Phát âm — the fields the DTO actually carries), speaking time, total turns, and the
+  finish date. Two columns on a phone, four from 1024px.
+- **The feedback is drawn as it arrives** (markdown) and the **transcript is the substance**: each
+  turn pairs the partner's line with the learner's answer, in order.
+- **GRADING is a designed wait**, not a null band: the hero becomes "Đang chấm hội thoại" with a
+  skeleton, and the criteria, feedback and transcript are absent rather than empty. `FAILED` says
+  grading failed and keeps the transcript; it does not pretend the conversation was unmarked by
+  choice. With `gradingEnabled` off, the score block is replaced by the sentence that says the
+  conversation was never marked — that is a choice, not a failure.
+- **Actions:** "Hội thoại mới" → 27, "Luyện Speaking" → 24, and "Tải lại" re-reads the result.
+  There is no cost on any of them: restarting a conversation charges only when it starts.
 
 ---
 

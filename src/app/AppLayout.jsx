@@ -8,7 +8,7 @@ import OnboardingAutoOpen from './OnboardingAutoOpen';
 import AccountMenu from './AccountMenu';
 import { Lexi } from '../components/mascot/Lexi';
 import { Badge } from '../components/ui/Primitives';
-import { PAGE_TITLES } from './pageTitles';
+import { pageTitleKey } from './pageTitles';
 import { ProviderStack } from './ProviderLayout';
 import { PageHeaderProvider } from './PageHeaderContext';
 import { usePageHeaderSubtitle } from './PageHeaderContextCore';
@@ -49,7 +49,7 @@ const LexiPanel = lazy(() => import('./LexiPanel'));
 export default function AppLayout() {
     const { t } = useTranslation();
     const { pathname } = useLocation();
-    const title = PAGE_TITLES[pathname] ?? 'common.appName';
+    const title = pageTitleKey(pathname);
 
     return (
         <ProviderStack>

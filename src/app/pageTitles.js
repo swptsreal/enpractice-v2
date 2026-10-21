@@ -19,6 +19,7 @@ export const PAGE_TITLES = {
     '/speaking': 'nav.speaking',
     '/speaking/attempts': 'nav.speaking',
     '/custom-speaking': 'nav.customSpeaking',
+    '/custom-speaking/history': 'customSpeaking.historyTitle',
     '/ai-chat': 'nav.aiChat',
     '/leaderboard': 'nav.leaderboard',
     '/rewards': 'nav.rewards',
@@ -33,3 +34,18 @@ export const PAGE_TITLES = {
 };
 
 export const HOME_TITLE = { '/home': 'home.title' };
+
+/**
+ * The title for a pathname.
+ *
+ * One route is dynamic and still needs a real heading: `/custom-speaking/:conversationId` is the
+ * result step (27e), and before this it fell back to `common.appName` — so the header read
+ * "EN Practice" over a conversation result. Its other destinations have exact entries above, and
+ * the chat lives outside the shell and draws its own heading.
+ */
+export function pageTitleKey(pathname) {
+    const exact = PAGE_TITLES[pathname];
+    if (exact) return exact;
+    if (/^\/custom-speaking\/[^/]+$/.test(pathname)) return 'customSpeaking.resultTitle';
+    return 'common.appName';
+}
