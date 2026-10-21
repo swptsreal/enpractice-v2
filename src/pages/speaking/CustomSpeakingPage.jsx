@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { AlertTriangle, Check, Coins, Loader2, Plus, Sparkles } from 'lucide-react';
-import { Lexi } from '../../components/mascot/Lexi';
+import { AlertTriangle, Check, Coins, Info, Loader2, Plus, Sparkles } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Chip, Field, SkeletonCard, inputClass } from '../../components/ui/Primitives';
@@ -210,14 +209,10 @@ export default function CustomSpeakingPage() {
 
     return (
         <div className="flex w-full flex-col gap-4">
-            <Card level="hero" padding="xl" className="flex flex-col gap-3 md:flex-row md:items-center">
-                <Lexi mood="excited" size="lg" />
-                <div className="min-w-0 flex-1">
-                    {/* `h2`: the shell header renders this route's title as the page's h1. */}
-                    <h2 className="t-h2">{t('customSpeaking.setupTitle')}</h2>
-                    <p className="t-body soft mt-1">{t('customSpeaking.setupBody')}</p>
-                </div>
-            </Card>
+            <p className="t-micro muted flex items-start gap-2">
+                <Info size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+                <span>{t('customSpeaking.setupBody')}</span>
+            </p>
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
                 <div ref={pickerRef} className="order-1 min-w-0 lg:order-2">

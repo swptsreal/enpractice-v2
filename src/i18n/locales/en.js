@@ -3839,7 +3839,6 @@ export default {
         failedBody: 'This conversation could not be marked. What you said is kept below.',
         resultHistoryLink: 'Conversation history',
         title: 'Custom conversation',
-        setupTitle: 'Choose who you are talking to',
         setupBody: 'Pick a topic, a style and a partner. Lexi plays exactly the role you choose, and corrects your sentences as you go.',
         topicLabel: 'Topic',
         topicHint: 'Free text — the more specific, the closer the conversation stays to what you want.',

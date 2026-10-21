@@ -1255,15 +1255,9 @@ On the one hand, supporters of road building point out that…</textarea>
 </header>
 <main class="shell__content shell__content--wide" id="main">
   <div class="setup-wrap">
-    <section class="card card--hero pad-x">
-        <div class="row g12 wrap">
-            <span data-lexi="excited" data-size="lg" style="flex:0 0 auto"></span>
-            <div class="grow" style="min-width:0">
-                <h2 class="t-h2">Tự chọn người bạn sẽ nói cùng</h2>
-                <p class="t-body soft" style="margin-top:4px">Chọn chủ đề, phong cách và người đối thoại. Lexi sẽ nhập vai theo đúng những lựa chọn này, và sửa lại câu của bạn trong lúc trò chuyện.</p>
-            </div>
-        </div>
-    </section>
+    <p class="t-micro muted setup-info">
+        ${icon('info', 14)} Chọn chủ đề, phong cách và người đối thoại. Lexi sẽ nhập vai theo đúng những lựa chọn này, và sửa lại câu của bạn trong lúc trò chuyện.
+    </p>
 
     <div class="setup-grid">
         <!-- ============================================================ form -->
@@ -1406,7 +1400,9 @@ On the one hand, supporters of road building point out that…</textarea>
   style: `
 fieldset { border: 0; padding: 0; margin: 0; }
 .setup-wrap { max-width: 1120px; margin-inline: auto; }
-.setup-grid { display: grid; gap: 16px; margin-top: 12px; align-items: start; }
+.setup-info { display: flex; gap: 6px; align-items: flex-start; margin: 0 0 12px; }
+.setup-info svg { flex: 0 0 auto; margin-top: 2px; }
+.setup-grid { display: grid; gap: 16px; margin-top: 0; align-items: start; }
 .setup-form { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .setup-form fieldset, .setup-form .card, .setup-form .save { margin: 0; }
 .pick { display: flex; flex-direction: column; gap: 10px; min-width: 0; }

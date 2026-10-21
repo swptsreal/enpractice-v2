@@ -595,6 +595,11 @@ way back into the app. The fix is the split above.
   its own scroll, so the form is one short scroll away and fifteen templates cannot push it off the
   page. The form itself is unchanged: topic → the three enum fieldsets → voice + grading → cost →
   "Lưu thành template".
+- **There is no hero.** The screen opens with **one muted info line** — an info glyph followed by
+  "Chọn chủ đề, phong cách và người đối thoại…" — instead of the Lexi hero card. The hero was a
+  ~200px block above a screen whose task is the form and the list, and it pushed both down on a
+  phone. The shell header still carries the page title and the "Chủ đề có sẵn hoặc tự cấu hình"
+  subtitle.
 - **A template is a stored configuration, not a topic string.** It carries all six fields the start
   endpoint requires plus a group (`IELTS` / `DAILY` / `BASIC`) and a level (`A2` / `B1` / `B2`).
   System templates are seeded with the app; a learner's own saved configurations are the same table

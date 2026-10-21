@@ -3841,7 +3841,6 @@ export default {
         failedBody: 'Hệ thống không chấm được hội thoại này. Nội dung bạn đã nói vẫn được giữ bên dưới.',
         resultHistoryLink: 'Lịch sử hội thoại',
         title: 'Hội thoại tự chọn',
-        setupTitle: 'Tự chọn người bạn sẽ nói cùng',
         setupBody: 'Chọn chủ đề, phong cách và người đối thoại. Lexi sẽ nhập vai theo đúng những lựa chọn này, và sửa lại câu của bạn trong lúc trò chuyện.',
         topicLabel: 'Chủ đề',
         topicHint: 'Viết tự do — càng cụ thể thì hội thoại càng sát ý bạn.',
