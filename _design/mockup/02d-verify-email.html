@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Xác thực email · EN Practice v2</title>
+<link rel="stylesheet" href="assets/tokens.css" />
+<link rel="stylesheet" href="assets/shell.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" />
+<style>
+.auth { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+.auth__side { padding: 40px; display: flex; flex-direction: column; gap: 20px; border-right: 2px solid var(--border); }
+.auth__main { display: grid; place-items: center; padding: 32px 20px; background: var(--canvas); }
+.auth__card { width: 100%; max-width: 460px; }
+@media (max-width: 1023px) {
+    .auth { grid-template-columns: 1fr; }
+    .auth__side { display: none; }
+}
+</style>
+</head>
+<body>
+<a class="sr-only" href="#main">Bỏ qua tới nội dung</a>
+
+<div class="auth">
+    <aside class="auth__side hero-wash">
+        <a class="row g8" href="01-landing.html" style="color:inherit">
+            <img class="lexi lexi--xs " data-mood="idle"
+        src="assets/lexi-yes.webp" width="40" height="42"
+        loading="lazy" decoding="async" aria-hidden="true" /><strong class="t-h3">EN Practice</strong>
+        </a>
+        <div class="grow" style="display:flex;flex-direction:column;justify-content:center;gap:20px">
+            <img class="lexi lexi--lg " data-mood="curious"
+        src="assets/lexi-yes.webp" width="120" height="127"
+        loading="lazy" decoding="async" role="img" aria-label="Lexi" />
+            <h2 class="t-display" style="font-size:2rem">Một bước nữa thôi.</h2>
+            <p class="t-body-lg soft" style="max-width:36ch">
+                Xác thực email để chúng tôi biết địa chỉ này là của bạn — đó cũng là đường duy nhất để lấy lại mật khẩu sau này.
+            </p>
+        </div>
+        <p class="t-micro muted">Đây là minh hoạ giao diện. Không có số liệu người dùng thật.</p>
+    </aside>
+
+    <main class="auth__main" id="main">
+        <div class="card card--raised auth__card" style="padding:28px;text-align:center">
+            <span style="display:inline-flex;color:var(--teal)"><svg class="" width="40" height="40" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg></span>
+            <h1 class="t-h1" style="margin-top:12px">Kiểm tra hộp thư</h1>
+            <p class="t-body muted" style="margin-top:6px">
+                Chúng tôi đã gửi liên kết xác nhận tới <strong>mi***@example.com</strong>.
+            </p>
+
+            <div class="stack g12" style="margin-top:20px">
+                <button class="btn btn--ghost btn--block" type="button"><svg class="" width="18" height="18" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20.5 4v5h-5"/></svg> Gửi lại email</button>
+            </div>
+
+            <p class="t-micro muted" style="margin-top:14px">
+                Chưa thấy email? Kiểm tra mục Spam. Có thể gửi lại sau 60 giây.
+            </p>
+            <p class="t-micro muted" style="margin-top:6px">
+                <a href="02-login.html">Đăng nhập bằng tài khoản khác</a>
+            </p>
+        </div>
+    </main>
+</div>
+<div id="live" class="sr-only" role="status" aria-atomic="true"></div>
+<script>
+/* A mockup that cannot be pressed cannot be judged, so the interactions that
+   carry the design — tab switching, answer selection, switch toggles, revealing
+   a verdict — are live. Tab panels are keyed off data-panel, which is also what
+   the aria-controls wiring documents, so the mockup and the accessibility tree
+   cannot disagree. Plain <script>, no module, so file:// works. */
+(function () {
+    var live = document.getElementById('live');
+    function announce(text) { if (live) live.textContent = text; }
+
+    document.addEventListener('click', function (e) {
+        var tab = e.target.closest('[data-tab]');
+        if (tab) {
+            var group = tab.closest('[data-tabs]');
+            group.querySelectorAll('[data-tab]').forEach(function (t) {
+                t.setAttribute('aria-selected', String(t === tab));
+            });
+            var scope = group.dataset.tabs;
+            document.querySelectorAll('[data-panel^="' + scope + '-"]').forEach(function (p) {
+                p.hidden = p.dataset.panel !== tab.dataset.tab;
+            });
+            return;
+        }
+        var sel = e.target.closest('[data-select]');
+        if (sel) {
+            var box = sel.closest('[data-group]');
+            if (box) box.querySelectorAll('[data-select]').forEach(function (s) {
+                s.setAttribute('aria-pressed', String(s === sel));
+            });
+            announce(sel.dataset.announce || 'Đã chọn');
+            return;
+        }
+        var tog = e.target.closest('[data-toggle]');
+        if (tog) {
+            var on = (tog.getAttribute('aria-checked') || tog.getAttribute('aria-pressed')) === 'true';
+            tog.setAttribute('aria-checked', String(!on));
+            tog.setAttribute('aria-pressed', String(!on));
+            return;
+        }
+        var reveal = e.target.closest('[data-reveal]');
+        if (reveal) {
+            var el = document.getElementById(reveal.dataset.reveal);
+            if (el) {
+                el.hidden = false;
+                el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                announce(reveal.dataset.announce || '');
+            }
+        }
+    });
+})();
+</script>
+</body>
+</html>

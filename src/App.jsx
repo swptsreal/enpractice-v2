@@ -41,6 +41,9 @@ const IeltsResultPage = lazy(() => import('./pages/ielts/IeltsResultPage'));
 const IeltsTestDetailPage = lazy(() => import('./pages/ielts/IeltsTestDetailPage'));
 const IeltsHistoryPage = lazy(() => import('./pages/ielts/IeltsHistoryPage'));
 const LoginPage = lazy(() => import('./pages/login/LoginPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/login/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/login/ResetPasswordPage'));
+const VerifyEmailPage = lazy(() => import('./pages/login/VerifyEmailPage'));
 const VocabularyListPage = lazy(() => import('./pages/vocabulary/VocabularyListPage'));
 const VocabularyTakePage = lazy(() => import('./pages/vocabulary/VocabularyTakePage'));
 const VocabularyResultPage = lazy(() => import('./pages/vocabulary/VocabularyResultPage'));
@@ -403,6 +406,13 @@ export default function App() {
                     visitor back to the guarded route. That is an infinite loop and
                     it hangs the browser. */}
                 <Route path="/login" element={<LoginPage />} />
+
+                {/* Ba màn khôi phục tài khoản, cùng lý do nằm ngoài shell như /login: người dùng
+                    tới đây chưa có phiên (hoặc vừa mất phiên), nên rail/tab bar/bell là chrome của
+                    một tài khoản họ chưa vào được. Link trong mail trỏ thẳng vào các route này. */}
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
 
                 {/* Timed surfaces sit outside the shell: no sidebar, no tab bar, no
                     floating Lexi. A test screen must not offer a way to wander off,

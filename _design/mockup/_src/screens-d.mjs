@@ -2298,7 +2298,7 @@ fieldset { border: 0; padding: 0; margin: 0; }
     <div class="set-cols">
         <nav class="card card--edge pad-sm hide-lg" aria-label="Mục cài đặt" style="position:sticky;top:80px">
             <div class="nav">
-                ${[['Học tập', true], ['Nhắc học &amp; chuỗi', false], ['Thông báo', false], ['Giao diện', false], ['Tài khoản', false], ['Dữ liệu', false]].map(([t, on]) => `
+                ${[['Học tập', true], ['Nhắc học &amp; chuỗi', false], ['Thông báo', false], ['Giao diện', false], ['Bảo mật', false], ['Tài khoản', false], ['Dữ liệu', false]].map(([t, on]) => `
                     <a class="nav__item" href="#${t.replace(/[^a-z]/gi, '')}" ${on ? 'aria-current="page"' : ''}>${t}</a>`).join('')}
             </div>
         </nav>
@@ -2374,6 +2374,36 @@ fieldset { border: 0; padding: 0; margin: 0; }
                 <div class="verdict" style="margin-top:14px;border-color:var(--info);background:color-mix(in srgb,var(--info) 10%,var(--surface));box-shadow:0 4px 0 0 var(--info)">
                     <span style="color:var(--info)">${icon('shield', 20)}</span>
                     <span class="t-micro">Bản v2 bỏ 9 theme profile của v1 để có một ngôn ngữ thiết kế thống nhất. Sáng/tối vẫn theo hệ điều hành.</span>
+                </div>
+            </section>
+
+            <section class="card card--edge pad-x" id="Bomt">
+                <h2 class="t-h3">Bảo mật</h2>
+                <p class="t-micro muted" style="margin-top:4px">Email xác thực là đường duy nhất để lấy lại mật khẩu.</p>
+                <div class="stack" style="margin-top:12px">
+                    <div class="between" style="min-height:56px;border-bottom:2px solid var(--border)">
+                        <span><strong class="t-label" style="display:block">Email</strong>
+                            <span class="t-micro muted">mi***@example.com</span></span>
+                        <span class="chip chip--correct">${icon('check', 14)} Đã xác thực</span>
+                    </div>
+                    <div class="stack g12" style="margin-top:12px">
+                        <label class="field">
+                            <span class="field__label">Mật khẩu hiện tại</span>
+                            <input class="input" type="password" autocomplete="current-password" />
+                        </label>
+                        <label class="field">
+                            <span class="field__label">Mật khẩu mới</span>
+                            <input class="input" type="password" placeholder="Ít nhất 8 ký tự" autocomplete="new-password" />
+                        </label>
+                        <label class="field">
+                            <span class="field__label">Nhập lại mật khẩu mới</span>
+                            <input class="input" type="password" autocomplete="new-password" />
+                        </label>
+                        <div class="row g8 wrap">
+                            <button class="btn btn--primary btn--sm" type="button">${icon('lock', 16)} Đổi mật khẩu</button>
+                            <span class="t-micro muted">Các thiết bị khác sẽ được đăng xuất.</span>
+                        </div>
+                    </div>
                 </div>
             </section>
 

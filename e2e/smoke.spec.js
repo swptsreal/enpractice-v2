@@ -60,6 +60,10 @@ const SIGNED_IN_SCREENS = [
 const GUEST_SCREENS = [
     ['landing', '/'],
     ['login', '/login'],
+    /* Luồng khôi phục tài khoản: vào được khi chưa có phiên, và không gọi API nào lúc load. */
+    ['forgot-password', '/forgot-password'],
+    ['reset-password', '/reset-password'],
+    ['verify-email', '/verify-email'],
     ['vocabulary-check', '/vocabulary/check'],
 ];
 

@@ -199,39 +199,58 @@ export function AuthProvider({ children }) {
         }
     }, []);
 
+    const storeSession = useCallback((data) => {
+        setAuthSession({
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+            accessTokenExpiresAt: data.accessTokenExpiresAt,
+            refreshTokenExpiresAt: data.refreshTokenExpiresAt,
+        });
+        setUser(data.user);
+        setStoredUser(data.user);
+    }, []);
+
     const login = useCallback(async (email, password) => {
         const data = await authApi.login({ email, password });
-        setAuthSession({
-            accessToken: data.accessToken,
-            refreshToken: data.refreshToken,
-            accessTokenExpiresAt: data.accessTokenExpiresAt,
-            refreshTokenExpiresAt: data.refreshTokenExpiresAt,
-        });
-        setUser(data.user);
-        setStoredUser(data.user);
+        storeSession(data);
 
         // Sync localStorage data lên DB (records + dictionary)
         await Promise.all([importLocalData(), importDictionaryData()]);
 
         return data.user;
-    }, [importLocalData, importDictionaryData]);
+    }, [importLocalData, importDictionaryData, storeSession]);
 
+    /**
+     * Đăng ký tài khoản.
+     *
+     * KHÔNG mở phiên đăng nhập: backend trả `{ email, verificationRequired, resendAvailableAt }`
+     * và gửi mail xác thực. Người dùng chỉ vào được app sau khi bấm liên kết đó — email gõ sai nghĩa
+     * là mất luôn đường khôi phục mật khẩu, nên đây là bước không được bỏ qua.
+     */
     const register = useCallback(async (email, password, displayName) => {
-        const data = await authApi.register({ email, password, displayName });
-        setAuthSession({
-            accessToken: data.accessToken,
-            refreshToken: data.refreshToken,
-            accessTokenExpiresAt: data.accessTokenExpiresAt,
-            refreshTokenExpiresAt: data.refreshTokenExpiresAt,
-        });
-        setUser(data.user);
-        setStoredUser(data.user);
+        return authApi.register({ email, password, displayName });
+    }, []);
 
-        // Sync localStorage data lên DB (records + dictionary)
+    /**
+     * Xác thực email bằng token trong mail. Đây mới là lúc mở phiên; dữ liệu offline được đồng bộ
+     * ở đúng thời điểm login thường, để hai đường vào app có cùng kết quả.
+     */
+    const verifyEmail = useCallback(async (token) => {
+        const data = await authApi.verifyEmail({ token });
+        storeSession(data);
         await Promise.all([importLocalData(), importDictionaryData()]);
-
         return data.user;
-    }, [importLocalData, importDictionaryData]);
+    }, [importLocalData, importDictionaryData, storeSession]);
+
+    /**
+     * Đổi mật khẩu. Backend revoke mọi phiên cũ và trả session mới, nên session trong máy phải được
+     * thay bằng session mới này — nếu không, request kế tiếp sẽ 401.
+     */
+    const changePassword = useCallback(async (currentPassword, newPassword) => {
+        const data = await authApi.changePassword({ currentPassword, newPassword });
+        storeSession(data);
+        return data.user;
+    }, [storeSession]);
 
     const logout = useCallback(() => {
         const refreshToken = getAuthSession()?.refreshToken;
@@ -249,6 +268,8 @@ export function AuthProvider({ children }) {
         isAuthenticated,
         login,
         register,
+        verifyEmail,
+        changePassword,
         logout,
         refreshUser,
         patchUser,
