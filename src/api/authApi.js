@@ -21,27 +21,6 @@ export const authApi = {
     },
 
     /**
-     * Xác thực email bằng token trong mail; đây mới là lúc backend mở phiên.
-     * @param {{ token: string }} data
-     */
-    verifyEmail(data) {
-        return axiosClient.post("/auth/verify-email", data, {
-            skipAuthRefresh: true,
-        });
-    },
-
-    /**
-     * Gửi lại mail xác thực. Backend chặn 30s giữa hai lần gửi (429 kèm
-     * `retryAfterSeconds`).
-     * @param {{ email: string }} data
-     */
-    resendVerification(data) {
-        return axiosClient.post("/auth/resend-verification", data, {
-            skipAuthRefresh: true,
-        });
-    },
-
-    /**
      * Đăng nhập
      * @param {{ email: string, password: string }} data
      * @returns {Promise<{ accessToken: string, refreshToken: string, accessTokenExpiresAt: string, refreshTokenExpiresAt: string, user: object }>}

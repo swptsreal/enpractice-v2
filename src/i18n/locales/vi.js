@@ -3619,13 +3619,6 @@ export default {
             "Đây là minh hoạ giao diện. Không có số liệu người dùng thật.",
         forgotPassword: "Quên mật khẩu?",
         emailTaken: "Email này đã được dùng, chọn email khác nhé.",
-        checkInboxTitle: "Kiểm tra hộp thư",
-        checkInboxBody:
-            "Chúng tôi đã gửi liên kết xác thực tới {{email}}. Mở liên kết để kích hoạt tài khoản.",
-        resend: "Gửi lại email",
-        resendDone: "Đã gửi lại. Kiểm tra hộp thư của bạn.",
-        resendCooldown: "Có thể gửi lại sau {{seconds}} giây.",
-        resendError: "Chưa gửi được email lúc này. Vui lòng thử lại.",
     },
     security: {
         forgot: {

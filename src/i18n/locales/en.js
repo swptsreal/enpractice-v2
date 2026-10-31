@@ -3631,13 +3631,6 @@ export default {
             "This is an interface illustration. No real user figures are shown.",
         forgotPassword: "Forgot password?",
         emailTaken: "That email is already in use — choose another one.",
-        checkInboxTitle: "Check your inbox",
-        checkInboxBody:
-            "We sent a verification link to {{email}}. Open it to activate your account.",
-        resend: "Resend email",
-        resendDone: "Sent again. Check your inbox.",
-        resendCooldown: "You can resend in {{seconds}} seconds.",
-        resendError: "Could not send the email right now. Please try again.",
     },
     security: {
         forgot: {

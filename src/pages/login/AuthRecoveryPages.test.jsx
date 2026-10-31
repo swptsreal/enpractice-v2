@@ -16,14 +16,12 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
  */
 const forgotMock = vi.fn();
 const resetMock = vi.fn();
-const resendMock = vi.fn();
 const verifyMock = vi.fn();
 
 vi.mock('../../api/authApi', () => ({
     authApi: {
         forgotPassword: (...args) => forgotMock(...args),
         resetPassword: (...args) => resetMock(...args),
-        resendVerification: (...args) => resendMock(...args),
     },
 }));
 
@@ -139,11 +137,19 @@ describe('ResetPasswordPage', () => {
 });
 
 describe('VerifyEmailPage', () => {
-    it('masks the address on the check-inbox state', async () => {
+    it('masks the address on the check-inbox state', () => {
         renderAt('/verify-email?email=learner@example.com', <VerifyEmailPage />);
 
         expect(screen.getByText(/le\*\*\*@example\.com/)).toBeInTheDocument();
         expect(screen.queryByText(/learner@example\.com/)).not.toBeInTheDocument();
+    });
+
+    /* Quyết định sản phẩm: màn này KHÔNG có nút "Gửi lại email". Người dùng quay lại đăng nhập để
+       yêu cầu mail mới nếu cần; giữ test để nút không bị thêm lại ngoài ý muốn. */
+    it('does not offer a resend button', () => {
+        renderAt('/verify-email?email=learner@example.com', <VerifyEmailPage />);
+
+        expect(screen.queryByRole('button', { name: /Gửi lại email/ })).not.toBeInTheDocument();
     });
 
     it('does NOT consume the token on mount, only when the learner presses confirm', async () => {
@@ -160,7 +166,7 @@ describe('VerifyEmailPage', () => {
         expect(await screen.findByText('home')).toBeInTheDocument();
     });
 
-    it('offers a resend when the link has expired', async () => {
+    it('explains an expired link without offering a resend', async () => {
         const user = userEvent.setup();
         verifyMock.mockRejectedValue(
             Object.assign(new Error('expired'), { status: 400, data: { reason: 'TOKEN_EXPIRED' } })
@@ -170,17 +176,6 @@ describe('VerifyEmailPage', () => {
         await user.click(screen.getByRole('button', { name: 'Xác nhận email' }));
 
         expect(await screen.findByText(/Liên kết đã hết hạn/)).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /Gửi lại email/ })).toBeEnabled();
-    });
-
-    it('sends the resend request for the address it was opened with', async () => {
-        const user = userEvent.setup();
-        resendMock.mockResolvedValue({ success: true });
-        renderAt('/verify-email?email=learner@example.com', <VerifyEmailPage />);
-
-        await user.click(screen.getByRole('button', { name: /Gửi lại email/ }));
-
-        await waitFor(() => expect(resendMock).toHaveBeenCalledWith({ email: 'learner@example.com' }));
-        expect(await screen.findByText(/Đã gửi lại/)).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /Gửi lại email/ })).not.toBeInTheDocument();
     });
 });
