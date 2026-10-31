@@ -206,13 +206,11 @@ function shouldSkipRefresh(config) {
         isRefreshRequest(config) ||
         url.includes("/auth/login") ||
         url.includes("/auth/register") ||
-        url.includes("/auth/logout") ||
-        /* Các endpoint công khai của luồng khôi phục tài khoản: một 400/401 ở đây không có nghĩa là
-           phiên đã hết hạn, nên không được kích hoạt refresh rồi đăng xuất toàn cục. */
+        url.includes("/auth/verify-email") ||
+        url.includes("/auth/resend-verification") ||
         url.includes("/auth/forgot-password") ||
         url.includes("/auth/reset-password") ||
-        url.includes("/auth/verify-email") ||
-        url.includes("/auth/resend-verification")
+        url.includes("/auth/logout")
     );
 }
 
@@ -396,29 +394,39 @@ axiosClient.interceptors.response.use(
             const message =
                 data?.message ||
                 "Phien dang nhap het han. Vui long dang nhap lai.";
-            return Promise.reject(new ApiError(message, 401, data?.data, data?.code));
+            return Promise.reject(
+                new ApiError(message, 401, data?.data, data?.code),
+            );
         }
 
         if (status === 403) {
             const message =
                 data?.message || "Ban khong co quyen truy cap tai nguyen nay.";
-            return Promise.reject(new ApiError(message, 403, data?.data, data?.code));
+            return Promise.reject(
+                new ApiError(message, 403, data?.data, data?.code),
+            );
         }
 
         if (status === 422) {
             const message = data?.message || "Du lieu khong hop le.";
-            return Promise.reject(new ApiError(message, 422, data?.data, data?.code));
+            return Promise.reject(
+                new ApiError(message, 422, data?.data, data?.code),
+            );
         }
 
         if (status >= 500) {
             const message =
                 data?.message || "Loi server. Vui long thu lai sau.";
-            return Promise.reject(new ApiError(message, status, data?.data, data?.code));
+            return Promise.reject(
+                new ApiError(message, status, data?.data, data?.code),
+            );
         }
 
         const message =
             data?.message || data?.error || `Request failed (${status})`;
-        return Promise.reject(new ApiError(message, status, data?.data, data?.code));
+        return Promise.reject(
+            new ApiError(message, status, data?.data, data?.code),
+        );
     },
 );
 

@@ -1,4 +1,4 @@
-import axiosClient from './axiosClient';
+import axiosClient from "./axiosClient";
 
 /**
  * Auth API — Đăng nhập, Đăng ký, Lấy thông tin user
@@ -8,14 +8,35 @@ export const authApi = {
     /**
      * Đăng ký tài khoản mới
      *
-     * KHÔNG trả về session: tài khoản phải xác thực email trước khi đăng nhập được, nên response
-     * chỉ có `{ email, verificationRequired, resendAvailableAt }`.
+     * Backend KHÔNG mở phiên khi đăng ký: nó gửi mail xác thực và trả
+     * `{ email, verificationRequired, resendAvailableAt }`.
      *
      * @param {{ email: string, password: string, displayName: string }} data
      * @returns {Promise<{ email: string, verificationRequired: boolean, resendAvailableAt: string }>}
      */
     register(data) {
-        return axiosClient.post('/auth/register', data, {
+        return axiosClient.post("/auth/register", data, {
+            skipAuthRefresh: true,
+        });
+    },
+
+    /**
+     * Xác thực email bằng token trong mail; đây mới là lúc backend mở phiên.
+     * @param {{ token: string }} data
+     */
+    verifyEmail(data) {
+        return axiosClient.post("/auth/verify-email", data, {
+            skipAuthRefresh: true,
+        });
+    },
+
+    /**
+     * Gửi lại mail xác thực. Backend chặn 30s giữa hai lần gửi (429 kèm
+     * `retryAfterSeconds`).
+     * @param {{ email: string }} data
+     */
+    resendVerification(data) {
+        return axiosClient.post("/auth/resend-verification", data, {
             skipAuthRefresh: true,
         });
     },
@@ -26,27 +47,27 @@ export const authApi = {
      * @returns {Promise<{ accessToken: string, refreshToken: string, accessTokenExpiresAt: string, refreshTokenExpiresAt: string, user: object }>}
      */
     login(data) {
-        return axiosClient.post('/auth/login', data, {
+        return axiosClient.post("/auth/login", data, {
             skipAuthRefresh: true,
         });
     },
 
     refresh(data) {
-        return axiosClient.post('/auth/refresh', data, {
+        return axiosClient.post("/auth/refresh", data, {
             skipAuthRefresh: true,
         });
     },
 
     logout(refreshToken) {
         return axiosClient.post(
-            '/auth/logout',
+            "/auth/logout",
             { refreshToken },
-            { skipAuthRefresh: true }
+            { skipAuthRefresh: true },
         );
     },
 
     logoutAll() {
-        return axiosClient.post('/auth/logout-all', {});
+        return axiosClient.post("/auth/logout-all", {});
     },
 
     /**
@@ -54,7 +75,7 @@ export const authApi = {
      * @returns {Promise<{ id: string, email: string, displayName: string }>}
      */
     getMe() {
-        return axiosClient.get('/auth/me');
+        return axiosClient.get("/auth/me");
     },
 
     /**
@@ -65,7 +86,7 @@ export const authApi = {
      * @returns {Promise<void>}
      */
     saveFcmToken(fcmToken, os, browser) {
-        return axiosClient.post('/auth/fcm-token', { fcmToken, os, browser });
+        return axiosClient.post("/auth/fcm-token", { fcmToken, os, browser });
     },
 
     /**
@@ -75,7 +96,7 @@ export const authApi = {
      * @returns {Promise<object>} AuthResponse
      */
     verifyEmail(data) {
-        return axiosClient.post('/auth/verify-email', data, {
+        return axiosClient.post("/auth/verify-email", data, {
             skipAuthRefresh: true,
         });
     },
@@ -85,7 +106,7 @@ export const authApi = {
      * @param {{ email: string }} data
      */
     resendVerification(data) {
-        return axiosClient.post('/auth/resend-verification', data, {
+        return axiosClient.post("/auth/resend-verification", data, {
             skipAuthRefresh: true,
         });
     },
@@ -95,7 +116,7 @@ export const authApi = {
      * @param {{ email: string }} data
      */
     forgotPassword(data) {
-        return axiosClient.post('/auth/forgot-password', data, {
+        return axiosClient.post("/auth/forgot-password", data, {
             skipAuthRefresh: true,
         });
     },
@@ -105,7 +126,7 @@ export const authApi = {
      * @param {{ token: string, newPassword: string }} data
      */
     resetPassword(data) {
-        return axiosClient.post('/auth/reset-password', data, {
+        return axiosClient.post("/auth/reset-password", data, {
             skipAuthRefresh: true,
         });
     },
@@ -117,6 +138,6 @@ export const authApi = {
      * @returns {Promise<object>} AuthResponse
      */
     changePassword(data) {
-        return axiosClient.post('/auth/change-password', data);
+        return axiosClient.post("/auth/change-password", data);
     },
 };
