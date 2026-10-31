@@ -112,6 +112,28 @@ Any screen that does not obviously fit one of these five is a signal that it is 
 - **Below 1024px the left panel is removed entirely** rather than stacked — a marketing panel above a login form pushes the form below the fold on a phone, which is the one thing a login screen must not do.
 - **Guest trial is a peer action, not a footnote:** "Học thử không cần tài khoản" sits at the same weight as the Google button, with the daily-limit caveat stated in one line underneath.
 - **States:** default, field error (below the field, `--wrong`), submitting (button label swaps, no spinner-only), expired-session banner (assertive live region — the one place assertive is allowed).
+- **"Quên mật khẩu?"** sits on the password row and goes to `/forgot-password` (02b). It is the only account-recovery path in the product, so it is a plain link at micro size — visible, not competing with the submit.
+- **Register does not sign the learner in.** The backend answers `201` with no session and mails a confirmation link, so the form switches to the "check your inbox" state (02d) and shows the account-recovery reason in one line: an unverified address cannot reset a password.
+
+### 02b · Forgot password — `/forgot-password` `[new]`
+- **Layout:** same split as 02, same 460px card, left panel removed below 1024px. Recovery is a single-field task, so the card carries one input and one button.
+- **One field, one action:** email → "Gửi liên kết". The back link to `/login` is micro-sized at the top, because leaving is the second-most-likely intent.
+- **The sent state keeps the SAME answer for every address** ("Nếu email tồn tại…"). An answer that differs for a known address turns this endpoint into an account-existence oracle; the mockup's info band exists to make that rule visible to whoever edits the copy.
+- **States:** default, submitting, sent, rate-limited (429 — say how long to wait), network error.
+- **Link lifetime is stated on the screen** (30 phút, dùng một lần) because the failure it prevents — a user returning next morning — is invisible otherwise.
+
+### 02c · Reset password — `/reset-password?token=…` `[new]`
+- **Layout:** same split as 02. Two password fields, no email field: the token in the URL already identifies the account, and asking for it again adds a step nobody can complete.
+- **The consequence is on the button's row, not in a toast afterwards:** saving signs out every other device and burns the link.
+- **States:** default, password shorter than 8, mismatch, submitting, token missing/invalid/expired/used (with a link to `/forgot-password`), success → `/login?reset=1`.
+- **The token is never re-sent to analytics or a referrer**; the page reads it once and the request body is the only place it appears.
+
+### 02d · Verify email — `/verify-email?token=…` `[new]`
+- **Layout:** same split as 02, but the card is centred text with one action — after signing up there is exactly one thing to do.
+- **The address is masked** (`mi***@example.com`). The screen has to prove which inbox to open without printing an address onto a laptop someone else can see.
+- **Without a token this is the "check your inbox" state** (after register, and after a blocked login): masked address, "Gửi lại email" with a 60-second cooldown stated in the line below it.
+- **With a token** the button becomes "Xác nhận email" and the POST happens on the press, never on page load: mail scanners prefetch links, and a GET that consumes the token would verify — and sign in — a robot.
+- **States:** no token (check inbox), confirming, success (redirects into the app), expired/used (resend), rate-limited.
 
 ### 03 · Onboarding — new `[route-inferred]`
 - **New surface.** v1 has no onboarding; a first-run user lands on `/vocabulary` when logged out. v2 adds a 4-step flow because the product's activation event is "finish one piece of work", and a band goal is what makes the generated practice the right difficulty.
@@ -784,6 +806,7 @@ to render with no type at all.
   - **Ngày nghỉ tự động** — 2 per month, applied automatically, "không thể mua thêm".
 - **Theme control says what v2 did:** light / dark / system only, with an info panel explaining that the nine v1 theme profiles are gone in favour of one interface. Users who liked `mono` deserve to be told rather than to discover it.
 - **Text size** (Vừa / Lớn / Rất lớn) is a real setting that affects reading passages, not just chrome.
+- **Bảo mật** sits between Appearance and Data, because it is account state rather than a preference: the verified address (with a `Đã xác thực` chip, or a resend action when it is not), then the change-password form — current, new, repeat. The helper on the submit row states the consequence ("Các thiết bị khác sẽ được đăng xuất") instead of a success toast inventing it afterwards.
 - Data section: export, delete AI chat history, delete account — with the destructive action in the danger variant and separated.
 
 ### 36 · AI coach — `/ai-chat` `[code-verified]`

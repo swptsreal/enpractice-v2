@@ -289,7 +289,7 @@ export const screens = {
                 </label>
                 <div class="between">
                     <label class="row g8 t-micro soft"><input type="checkbox" /> Ghi nhớ đăng nhập</label>
-                    <a class="t-micro" href="02-login.html">Quên mật khẩu?</a>
+                    <a class="t-micro" href="02b-forgot-password.html">Quên mật khẩu?</a>
                 </div>
                 <button class="btn btn--primary btn--block btn--lg" type="submit">Đăng nhập</button>
             </form>
@@ -318,6 +318,180 @@ export const screens = {
 .or { position: relative; text-align: center; margin: 20px 0; }
 .or::before { content: ''; position: absolute; inset: 50% 0 auto; height: 2px; background: var(--border); }
 .or span { position: relative; background: var(--surface); padding: 0 10px; font-size: .8125rem; color: var(--ink-muted); }
+`,
+},
+
+/* =================================================================== 02b */
+'02b-forgot-password': {
+    file: '02b-forgot-password.html',
+    title: 'Quên mật khẩu',
+    subtitle: 'Nhập email → nhận liên kết',
+    group: 'Marketing & Auth',
+    note: 'Một ô, một hành động · trạng thái "đã gửi" giữ nguyên câu trả lời cho mọi email',
+    body: `
+<div class="auth">
+    <aside class="auth__side hero-wash">
+        <a class="row g8" href="01-landing.html" style="color:inherit">
+            ${lexi({ mood: 'idle', size: 'xs' })}<strong class="t-h3">EN Practice</strong>
+        </a>
+        <div class="grow" style="display:flex;flex-direction:column;justify-content:center;gap:20px">
+            ${lexi({ mood: 'idle', size: 'lg', label: 'Lexi' })}
+            <h2 class="t-display" style="font-size:2rem">Không vào được cũng không mất gì.</h2>
+            <p class="t-body-lg soft" style="max-width:36ch">
+                Tiến độ học nằm trong tài khoản, nên việc cần làm chỉ là lấy lại đường vào — không phải học lại.
+            </p>
+        </div>
+        <p class="t-micro muted">Đây là minh hoạ giao diện. Không có số liệu người dùng thật.</p>
+    </aside>
+
+    <main class="auth__main" id="main">
+        <div class="card card--raised pad-x auth__card">
+            <a class="row g8 t-micro soft" href="02-login.html">${icon('arrowLeft', 16)} Quay lại đăng nhập</a>
+
+            <h1 class="t-h1" style="margin-top:16px">Quên mật khẩu</h1>
+            <p class="t-body muted" style="margin-top:4px">
+                Nhập email bạn đã đăng ký. Chúng tôi gửi một liên kết để bạn đặt mật khẩu mới.
+            </p>
+
+            <form class="stack g16" style="margin-top:20px" onsubmit="return false">
+                <label class="field">
+                    <span class="field__label">Email</span>
+                    <input class="input" type="email" placeholder="ban@email.com" autocomplete="email" />
+                </label>
+                <button class="btn btn--primary btn--block btn--lg" type="submit">Gửi liên kết</button>
+            </form>
+
+            <div class="verdict" style="margin-top:16px;border-color:var(--info);background:color-mix(in srgb,var(--info) 10%,var(--surface));box-shadow:0 4px 0 0 var(--info)">
+                <span style="color:var(--info)">${icon('info', 18)}</span>
+                <span class="t-micro">Liên kết có hiệu lực 30 phút và chỉ dùng được một lần.</span>
+            </div>
+        </div>
+    </main>
+</div>`,
+    style: `
+.auth { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+.auth__side { padding: 40px; display: flex; flex-direction: column; gap: 20px; border-right: 2px solid var(--border); }
+.auth__main { display: grid; place-items: center; padding: 32px 20px; background: var(--canvas); }
+.auth__card { width: 100%; max-width: 460px; }
+@media (max-width: 1023px) {
+    .auth { grid-template-columns: 1fr; }
+    .auth__side { display: none; }
+}
+`,
+},
+
+/* =================================================================== 02c */
+'02c-reset-password': {
+    file: '02c-reset-password.html',
+    title: 'Đặt mật khẩu mới',
+    subtitle: 'Từ liên kết trong email',
+    group: 'Marketing & Auth',
+    note: 'Nói rõ hậu quả: đổi xong mọi thiết bị khác bị đăng xuất',
+    body: `
+<div class="auth">
+    <aside class="auth__side hero-wash">
+        <a class="row g8" href="01-landing.html" style="color:inherit">
+            ${lexi({ mood: 'idle', size: 'xs' })}<strong class="t-h3">EN Practice</strong>
+        </a>
+        <div class="grow" style="display:flex;flex-direction:column;justify-content:center;gap:20px">
+            ${lexi({ mood: 'explain', size: 'lg', label: 'Lexi' })}
+            <h2 class="t-display" style="font-size:2rem">Mật khẩu mới, phiên cũ đóng lại.</h2>
+            <p class="t-body-lg soft" style="max-width:36ch">
+                Nếu ai đó đang dùng tài khoản của bạn, bước này chấm dứt việc đó ngay — không phải chờ thiết bị kia tự hết phiên.
+            </p>
+        </div>
+        <p class="t-micro muted">Đây là minh hoạ giao diện. Không có số liệu người dùng thật.</p>
+    </aside>
+
+    <main class="auth__main" id="main">
+        <div class="card card--raised pad-x auth__card">
+            <h1 class="t-h1">Đặt mật khẩu mới</h1>
+            <p class="t-body muted" style="margin-top:4px">Tối thiểu 8 ký tự.</p>
+
+            <form class="stack g16" style="margin-top:20px" onsubmit="return false">
+                <label class="field">
+                    <span class="field__label">Mật khẩu mới</span>
+                    <input class="input" type="password" placeholder="Ít nhất 8 ký tự" autocomplete="new-password" />
+                </label>
+                <label class="field">
+                    <span class="field__label">Nhập lại mật khẩu mới</span>
+                    <input class="input" type="password" autocomplete="new-password" />
+                </label>
+                <button class="btn btn--primary btn--block btn--lg" type="submit">Lưu mật khẩu mới</button>
+            </form>
+
+            <div class="verdict" style="margin-top:16px">
+                <span style="color:var(--teal)">${icon('shield', 18)}</span>
+                <span class="t-micro">Lưu xong, mọi thiết bị khác sẽ được đăng xuất. Liên kết này cũng hết hiệu lực.</span>
+            </div>
+        </div>
+    </main>
+</div>`,
+    style: `
+.auth { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+.auth__side { padding: 40px; display: flex; flex-direction: column; gap: 20px; border-right: 2px solid var(--border); }
+.auth__main { display: grid; place-items: center; padding: 32px 20px; background: var(--canvas); }
+.auth__card { width: 100%; max-width: 460px; }
+@media (max-width: 1023px) {
+    .auth { grid-template-columns: 1fr; }
+    .auth__side { display: none; }
+}
+`,
+},
+
+/* =================================================================== 02d */
+'02d-verify-email': {
+    file: '02d-verify-email.html',
+    title: 'Xác thực email',
+    subtitle: 'Sau đăng ký — chờ xác nhận',
+    group: 'Marketing & Auth',
+    note: 'Email hiển thị đã che một phần · gửi lại có cooldown 60 giây',
+    body: `
+<div class="auth">
+    <aside class="auth__side hero-wash">
+        <a class="row g8" href="01-landing.html" style="color:inherit">
+            ${lexi({ mood: 'idle', size: 'xs' })}<strong class="t-h3">EN Practice</strong>
+        </a>
+        <div class="grow" style="display:flex;flex-direction:column;justify-content:center;gap:20px">
+            ${lexi({ mood: 'curious', size: 'lg', label: 'Lexi' })}
+            <h2 class="t-display" style="font-size:2rem">Một bước nữa thôi.</h2>
+            <p class="t-body-lg soft" style="max-width:36ch">
+                Xác thực email để chúng tôi biết địa chỉ này là của bạn — đó cũng là đường duy nhất để lấy lại mật khẩu sau này.
+            </p>
+        </div>
+        <p class="t-micro muted">Đây là minh hoạ giao diện. Không có số liệu người dùng thật.</p>
+    </aside>
+
+    <main class="auth__main" id="main">
+        <div class="card card--raised auth__card" style="padding:28px;text-align:center">
+            <span style="display:inline-flex;color:var(--teal)">${icon('user', 40)}</span>
+            <h1 class="t-h1" style="margin-top:12px">Kiểm tra hộp thư</h1>
+            <p class="t-body muted" style="margin-top:6px">
+                Chúng tôi đã gửi liên kết xác nhận tới <strong>mi***@example.com</strong>.
+            </p>
+
+            <div class="stack g12" style="margin-top:20px">
+                <button class="btn btn--ghost btn--block" type="button">${icon('refresh', 18)} Gửi lại email</button>
+            </div>
+
+            <p class="t-micro muted" style="margin-top:14px">
+                Chưa thấy email? Kiểm tra mục Spam. Có thể gửi lại sau 60 giây.
+            </p>
+            <p class="t-micro muted" style="margin-top:6px">
+                <a href="02-login.html">Đăng nhập bằng tài khoản khác</a>
+            </p>
+        </div>
+    </main>
+</div>`,
+    style: `
+.auth { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+.auth__side { padding: 40px; display: flex; flex-direction: column; gap: 20px; border-right: 2px solid var(--border); }
+.auth__main { display: grid; place-items: center; padding: 32px 20px; background: var(--canvas); }
+.auth__card { width: 100%; max-width: 460px; }
+@media (max-width: 1023px) {
+    .auth { grid-template-columns: 1fr; }
+    .auth__side { display: none; }
+}
 `,
 },
 

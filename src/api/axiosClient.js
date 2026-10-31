@@ -155,11 +155,13 @@ export function removeToken() {
 }
 
 export class ApiError extends Error {
-    constructor(message, status, data = null) {
+    constructor(message, status, data = null, code = null) {
         super(message);
         this.name = "ApiError";
         this.status = status;
         this.data = data;
+        /** Mã lỗi ổn định từ envelope (`code`), để caller phân nhánh theo mã thay vì câu chữ. */
+        this.code = code;
     }
 }
 
@@ -204,6 +206,10 @@ function shouldSkipRefresh(config) {
         isRefreshRequest(config) ||
         url.includes("/auth/login") ||
         url.includes("/auth/register") ||
+        url.includes("/auth/verify-email") ||
+        url.includes("/auth/resend-verification") ||
+        url.includes("/auth/forgot-password") ||
+        url.includes("/auth/reset-password") ||
         url.includes("/auth/logout")
     );
 }
@@ -388,29 +394,39 @@ axiosClient.interceptors.response.use(
             const message =
                 data?.message ||
                 "Phien dang nhap het han. Vui long dang nhap lai.";
-            return Promise.reject(new ApiError(message, 401, data?.data));
+            return Promise.reject(
+                new ApiError(message, 401, data?.data, data?.code),
+            );
         }
 
         if (status === 403) {
             const message =
                 data?.message || "Ban khong co quyen truy cap tai nguyen nay.";
-            return Promise.reject(new ApiError(message, 403, data?.data));
+            return Promise.reject(
+                new ApiError(message, 403, data?.data, data?.code),
+            );
         }
 
         if (status === 422) {
             const message = data?.message || "Du lieu khong hop le.";
-            return Promise.reject(new ApiError(message, 422, data?.data));
+            return Promise.reject(
+                new ApiError(message, 422, data?.data, data?.code),
+            );
         }
 
         if (status >= 500) {
             const message =
                 data?.message || "Loi server. Vui long thu lai sau.";
-            return Promise.reject(new ApiError(message, status, data?.data));
+            return Promise.reject(
+                new ApiError(message, status, data?.data, data?.code),
+            );
         }
 
         const message =
             data?.message || data?.error || `Request failed (${status})`;
-        return Promise.reject(new ApiError(message, status, data?.data));
+        return Promise.reject(
+            new ApiError(message, status, data?.data, data?.code),
+        );
     },
 );
 

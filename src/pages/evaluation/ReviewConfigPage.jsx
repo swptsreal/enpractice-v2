@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, CalendarDays, Layers, Target } from "lucide-react";
-import { Lexi } from "../../components/mascot/Lexi";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { SkeletonCard } from "../../components/ui/Primitives";

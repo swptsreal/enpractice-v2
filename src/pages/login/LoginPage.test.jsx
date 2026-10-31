@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 /**
  * The LOGIN PAYLOAD, pinned.
@@ -119,5 +119,63 @@ describe('LoginPage — the payload the API receives', () => {
         });
         expect(typeof payload.email).toBe('string');
         expect(typeof payload.displayName).toBe('string');
+    });
+});
+
+/**
+ * Cổng xác thực email, nhìn từ màn đăng nhập.
+ *
+ * Hai đường vào app đều phải dừng ở màn xác thực: đăng ký mới (chưa có mail) và đăng nhập khi email
+ * chưa xác thực. Nếu màn này hiện "Email hoặc mật khẩu không đúng" cho trường hợp thứ hai, người
+ * dùng sẽ đi đổi mật khẩu trong khi mật khẩu của họ hoàn toàn đúng.
+ */
+describe('LoginPage — the email verification gate', () => {
+    function renderWithVerifyRoute() {
+        return render(
+            <MemoryRouter initialEntries={['/login']}>
+                <AuthProvider>
+                    <Routes>
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/verify-email" element={<p>verify screen</p>} />
+                    </Routes>
+                </AuthProvider>
+            </MemoryRouter>
+        );
+    }
+
+    it('sends a new registration to the check-inbox screen instead of into the app', async () => {
+        const user = userEvent.setup();
+        registerMock.mockResolvedValue({
+            email: 'learner@example.com',
+            verificationRequired: true,
+            resendAvailableAt: '2026-10-30T07:01:00Z',
+        });
+        renderWithVerifyRoute();
+
+        await user.click(screen.getByRole('tab', { name: 'Đăng ký' }));
+        await user.type(screen.getByLabelText('Tên hiển thị'), 'Minh');
+        await user.type(screen.getByLabelText('Email'), 'learner@example.com');
+        await user.type(screen.getByLabelText('Mật khẩu'), 'MatKhau123');
+        await user.click(screen.getByRole('button', { name: 'Đăng ký' }));
+
+        expect(await screen.findByText('verify screen')).toBeInTheDocument();
+    });
+
+    it('turns a blocked login into a trip to the verification screen, not a wrong-password error', async () => {
+        const user = userEvent.setup();
+        loginMock.mockRejectedValue(
+            Object.assign(new Error('blocked'), {
+                status: 403,
+                data: { reason: 'EMAIL_NOT_VERIFIED', email: 'learner@example.com' },
+            })
+        );
+        renderWithVerifyRoute();
+
+        await user.type(screen.getByLabelText('Email'), 'learner@example.com');
+        await user.type(screen.getByLabelText('Mật khẩu'), 'MatKhau123');
+        await user.click(screen.getByRole('button', { name: 'Đăng nhập' }));
+
+        expect(await screen.findByText('verify screen')).toBeInTheDocument();
+        expect(screen.queryByText('Email hoặc mật khẩu không đúng')).not.toBeInTheDocument();
     });
 });

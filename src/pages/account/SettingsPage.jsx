@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     BookOpen,
@@ -11,12 +12,16 @@ import {
     Trash2,
     AlertTriangle,
     Sparkles,
+    ShieldCheck,
+    Check,
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { Chip, SkeletonCard } from '../../components/ui/Primitives';
+import { Chip, Field, SkeletonCard, inputClass } from '../../components/ui/Primitives';
 import { AsyncBoundary } from '../../components/ui/AsyncBoundary';
 import { cn } from '../../lib/cn';
+import { maskEmail } from '../../lib/mask';
+import { useAuth } from '../../contexts/AuthContext';
 import { useLocalPreferences, useNotificationPreferences, NOTIFICATION_KEYS } from '../../features/settings/useSettings';
 
 /**
@@ -49,6 +54,7 @@ const SECTIONS = [
     { id: 'reminders', labelKey: 'settings.sectionReminders', icon: Flame },
     { id: 'learning', labelKey: 'settings.sectionLearning', icon: BookOpen },
     { id: 'appearance', labelKey: 'settings.sectionAppearance', icon: Palette },
+    { id: 'security', labelKey: 'settings.sectionSecurity', icon: ShieldCheck },
     { id: 'data', labelKey: 'settings.sectionData', icon: Database },
 ];
 
@@ -267,7 +273,12 @@ export default function SettingsPage() {
                         </Card>
                     </section>
 
-                    {/* ============ 4. DATA ================================== */}
+                    {/* ============ 4. SECURITY ============================= */}
+                    <section id="security" aria-labelledby="security-title">
+                        <SecuritySection />
+                    </section>
+
+                    {/* ============ 5. DATA ================================== */}
                     <section id="data" aria-labelledby="data-title">
                         <Card level="edge" padding="xl" className="flex flex-col gap-3">
                             <h2 id="data-title" className="t-h3 flex items-center gap-2">
@@ -316,6 +327,148 @@ export default function SettingsPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+/**
+ * Bảo mật: trạng thái email + đổi mật khẩu.
+ *
+ * Vì sao ở Settings chứ không phải một trang riêng: đây là trạng thái của tài khoản, không phải một
+ * tác vụ đủ lớn để rời màn hình.
+ *
+ * Câu "các thiết bị khác sẽ được đăng xuất" nằm CẠNH nút, không phải trong toast sau khi xong: đó là
+ * hậu quả của việc bấm, nên phải đọc được trước khi bấm.
+ */
+function SecuritySection() {
+    const { t } = useTranslation();
+    const { user, changePassword } = useAuth();
+
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [busy, setBusy] = useState(false);
+    const [done, setDone] = useState(false);
+    const [error, setError] = useState(null);
+
+    const tooShort = newPassword.length > 0 && newPassword.length < 8;
+    const mismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
+    const canSubmit = !busy && currentPassword.length > 0 && newPassword.length >= 8 && newPassword === confirmPassword;
+
+    async function onSubmit(event) {
+        event.preventDefault();
+        setError(null);
+        setDone(false);
+        setBusy(true);
+        try {
+            await changePassword(currentPassword, newPassword);
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+            setDone(true);
+        } catch (err) {
+            const status = err?.status ?? err?.response?.status;
+            if (err?.code === 'INVALID_CURRENT_PASSWORD') setError(t('security.change.wrongCurrent'));
+            else if (err?.code === 'PASSWORD_REUSED') setError(t('security.change.reused'));
+            else if (status === 400) setError(err?.message ?? t('common.error.generic'));
+            else if (!status) setError(t('common.error.network'));
+            else setError(t('common.error.generic'));
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    const verified = Boolean(user?.emailVerified);
+
+    return (
+        <Card level="edge" padding="xl" className="flex flex-col gap-3">
+            <h2 id="security-title" className="t-h3 flex items-center gap-2">
+                <ShieldCheck size={18} aria-hidden="true" />
+                {t('settings.sectionSecurity')}
+            </h2>
+            <p className="t-micro muted">{t('security.change.subtitle')}</p>
+
+            <div className="flex flex-wrap items-center gap-3 border-y-2 border-[var(--border)] py-3">
+                <span className="min-w-0 flex-1">
+                    <span className="t-label block">{t('security.email.label')}</span>
+                    <span className="t-micro muted block">{maskEmail(user?.email)}</span>
+                </span>
+                {verified ? (
+                    <Chip tone="correct" icon={Check}>
+                        {t('security.email.verified')}
+                    </Chip>
+                ) : (
+                    <Link to="/verify-email" className="t-micro font-bold text-[var(--teal)] underline underline-offset-4">
+                        {t('security.email.resend')}
+                    </Link>
+                )}
+            </div>
+
+            <form className="flex flex-col gap-3" onSubmit={onSubmit} noValidate>
+                <Field id="currentPassword" label={t('security.change.current')}>
+                    <input
+                        id="currentPassword"
+                        type="password"
+                        className={inputClass}
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        autoComplete="current-password"
+                        required
+                    />
+                </Field>
+
+                <Field
+                    id="newPassword"
+                    label={t('security.change.next')}
+                    help={t('login.passwordHint')}
+                    error={tooShort ? t('security.reset.tooShort') : null}
+                >
+                    <input
+                        id="newPassword"
+                        type="password"
+                        className={inputClass}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        autoComplete="new-password"
+                        required
+                    />
+                </Field>
+
+                <Field
+                    id="confirmPassword"
+                    label={t('security.change.confirm')}
+                    error={mismatch ? t('security.reset.mismatch') : null}
+                >
+                    <input
+                        id="confirmPassword"
+                        type="password"
+                        className={inputClass}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        autoComplete="new-password"
+                        required
+                    />
+                </Field>
+
+                {error ? (
+                    <p className="t-micro" style={{ color: 'var(--wrong)' }} role="alert">
+                        {error}
+                    </p>
+                ) : null}
+
+                {done ? (
+                    <p className="t-micro" style={{ color: 'var(--correct)' }} role="status">
+                        {t('security.change.success')}
+                    </p>
+                ) : null}
+
+                <div className="flex flex-wrap items-center gap-3">
+                    <Button type="submit" size="sm" disabled={!canSubmit}>
+                        {busy ? t('common.loading') : t('security.change.submit')}
+                    </Button>
+                    <span className="t-micro muted">{t('security.change.signOutNote')}</span>
+                </div>
+            </form>
+        </Card>
     );
 }
 

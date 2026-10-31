@@ -36,6 +36,18 @@ const getProfile = vi.fn();
 const getPreferences = vi.fn();
 const updatePreferences = vi.fn();
 
+/* `useAuth` phải được mock: SettingsPage đọc trạng thái email và gọi changePassword. Dựng
+   AuthProvider thật ở đây sẽ kéo theo session restore + 4 module api khác, không liên quan tới
+   những gì test này kiểm tra. */
+const { changePasswordMock, authUser } = vi.hoisted(() => ({
+    changePasswordMock: vi.fn(),
+    authUser: { email: 'learner@example.com', emailVerified: true },
+}));
+
+vi.mock('../../contexts/AuthContext', () => ({
+    useAuth: () => ({ user: authUser, changePassword: (...args) => changePasswordMock(...args) }),
+}));
+
 vi.mock('../../api', () => ({
     ApiError: class ApiError extends Error {},
     profileApi: { getProfile: (...a) => getProfile(...a), updateProfile: vi.fn() },
@@ -501,5 +513,71 @@ describe('SettingsPage', () => {
         expect(await screen.findByRole('button', { name: /Tải dữ liệu của tôi/ })).toBeDisabled();
         expect(screen.getByRole('button', { name: /Xoá lịch sử trò chuyện AI/ })).toBeDisabled();
         expect(screen.getByRole('button', { name: 'Xoá tài khoản' })).toBeDisabled();
+    });
+
+    /**
+     * Bảo mật: section mới. Ba điều phải giữ được:
+     *
+     *  1. email đã xác thực hiện chip, không phải một nút "xác thực" vô nghĩa;
+     *  2. hậu quả (đăng xuất thiết bị khác) đọc được TRƯỚC khi bấm;
+     *  3. payload gửi lên là hai chuỗi, và lỗi "mật khẩu hiện tại sai" được nhận theo mã
+     *     (`INVALID_CURRENT_PASSWORD`), không theo câu chữ của backend.
+     */
+    it('shows the verified email with a chip instead of a resend action', async () => {
+        getPreferences.mockResolvedValue(envelope(PREFS));
+        renderSettings();
+
+        await screen.findByText('Tạm dừng tất cả nhắc học');
+        expect(screen.getByText('Đã xác thực')).toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Xác thực ngay' })).not.toBeInTheDocument();
+    });
+
+    it('states the sign-out consequence next to the change-password button', async () => {
+        getPreferences.mockResolvedValue(envelope(PREFS));
+        renderSettings();
+
+        await screen.findByText('Tạm dừng tất cả nhắc học');
+        expect(screen.getByText('Các thiết bị khác sẽ được đăng xuất.')).toBeInTheDocument();
+    });
+
+    it('sends the two passwords as strings and clears the form on success', async () => {
+        const user = userEvent.setup();
+        getPreferences.mockResolvedValue(envelope(PREFS));
+        changePasswordMock.mockResolvedValue({});
+        renderSettings();
+
+        await screen.findByText('Tạm dừng tất cả nhắc học');
+        await user.type(screen.getByLabelText('Mật khẩu hiện tại'), 'MatKhauCu123');
+        await user.type(screen.getByLabelText('Mật khẩu mới'), 'MatKhauMoi123');
+        await user.type(screen.getByLabelText('Nhập lại mật khẩu mới'), 'MatKhauMoi123');
+        await user.click(screen.getByRole('button', { name: 'Đổi mật khẩu' }));
+
+        await waitFor(() => expect(changePasswordMock).toHaveBeenCalledTimes(1));
+        const [current, next] = changePasswordMock.mock.calls[0];
+        expect(current).toBe('MatKhauCu123');
+        expect(next).toBe('MatKhauMoi123');
+        expect(typeof current).toBe('string');
+        expect(typeof next).toBe('string');
+        expect(await screen.findByText('Đã đổi mật khẩu. Các thiết bị khác đã được đăng xuất.')).toBeInTheDocument();
+    });
+
+    it('translates a stable error code, not the backend sentence', async () => {
+        const user = userEvent.setup();
+        getPreferences.mockResolvedValue(envelope(PREFS));
+        changePasswordMock.mockRejectedValue(
+            Object.assign(new Error('Mật khẩu hiện tại không đúng'), {
+                status: 400,
+                code: 'INVALID_CURRENT_PASSWORD',
+            })
+        );
+        renderSettings();
+
+        await screen.findByText('Tạm dừng tất cả nhắc học');
+        await user.type(screen.getByLabelText('Mật khẩu hiện tại'), 'sai');
+        await user.type(screen.getByLabelText('Mật khẩu mới'), 'MatKhauMoi123');
+        await user.type(screen.getByLabelText('Nhập lại mật khẩu mới'), 'MatKhauMoi123');
+        await user.click(screen.getByRole('button', { name: 'Đổi mật khẩu' }));
+
+        expect(await screen.findByText('Mật khẩu hiện tại không đúng.')).toBeInTheDocument();
     });
 });
